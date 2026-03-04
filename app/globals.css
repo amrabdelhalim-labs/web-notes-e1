@@ -1,0 +1,29 @@
+:root {
+  --app-background: #f7f9fc;
+  --app-foreground: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  min-height: 100%;
+}
+
+body {
+  background: var(--app-background);
+  color: var(--app-foreground);
+  font-family: var(--font-cairo), Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
