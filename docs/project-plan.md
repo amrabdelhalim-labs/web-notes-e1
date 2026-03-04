@@ -448,34 +448,36 @@ web-notes-e1/
 
 #### المهام:
 
-- [ ] **١.١** إنشاء `app/lib/mongodb.ts` — اتصال MongoDB (singleton مع connection pooling)
-- [ ] **١.٢** إنشاء نموذج المستخدم `app/models/User.ts`:
+- [x] **١.١** إنشاء `app/lib/mongodb.ts` — اتصال MongoDB (singleton مع connection pooling)
+- [x] **١.٢** إنشاء نموذج المستخدم `app/models/User.ts`:
   - الحقول: `email`, `username`, `password` (مشفر), `displayName`, `language`, `createdAt`, `updatedAt`
   - المؤشرات: `email` (فريد)، `username` (فريد)
-- [ ] **١.٣** إنشاء نموذج الملاحظة `app/models/Note.ts`:
-  - الحقول: `title`, `content` (نصي)، `audioUrl` (صوتي)، `type` (text/voice)، `user` (مرجع)، `createdAt`, `updatedAt`
+- [x] **١.٣** إنشاء نموذج الملاحظة `app/models/Note.ts`:
+  - الحقول: `title`, `content` (نصي)، `audioData` (صوتي)، `type` (text/voice)، `user` (مرجع)، `createdAt`, `updatedAt`
   - المؤشرات: `user`، `type`، `createdAt`
-- [ ] **١.٤** إنشاء نموذج الاشتراك `app/models/Subscription.ts`:
+- [x] **١.٤** إنشاء نموذج الاشتراك `app/models/Subscription.ts`:
   - الحقول: `user` (مرجع)، `endpoint`, `keys` (p256dh, auth)، `deviceInfo`, `createdAt`
   - المؤشرات: `user`، `endpoint` (فريد)
-- [ ] **١.٥** إنشاء واجهة المستودع `app/repositories/repository.interface.ts`
-- [ ] **١.٦** إنشاء المستودع الأساسي `app/repositories/base.repository.ts`
+- [x] **١.٥** إنشاء واجهة المستودع `app/repositories/repository.interface.ts`
+- [x] **١.٦** إنشاء المستودع الأساسي `app/repositories/base.repository.ts`
   - تنفيذ جميع عمليات CRUD المعيارية
   - ترقيم الصفحات الآمن (حدود max/min)
-- [ ] **١.٧** إنشاء مستودع المستخدم `app/repositories/user.repository.ts`
+- [x] **١.٧** إنشاء مستودع المستخدم `app/repositories/user.repository.ts`
   - `findByEmail()`, `findByUsername()`, `emailExists()`, `usernameExists()`
   - `deleteUserCascade()` — حذف المستخدم مع ملاحظاته واشتراكاته
-- [ ] **١.٨** إنشاء مستودع الملاحظات `app/repositories/note.repository.ts`
+- [x] **١.٨** إنشاء مستودع الملاحظات `app/repositories/note.repository.ts`
   - `findByUser()`, `findByUserPaginated()`, `findByType()`
   - `search()` — بحث نصي في العنوان والمحتوى
   - `deleteByUser()` — حذف جميع ملاحظات مستخدم
-- [ ] **١.٩** إنشاء مستودع الاشتراكات `app/repositories/subscription.repository.ts`
+- [x] **١.٩** إنشاء مستودع الاشتراكات `app/repositories/subscription.repository.ts`
   - `findByUser()`, `findByEndpoint()`, `deleteByUser()`
-- [ ] **١.١٠** إنشاء مدير المستودعات `app/repositories/index.ts` (RepositoryManager + singleton)
-- [ ] **١.١١** إنشاء طبقة التحقق `app/validators/index.ts`
+- [x] **١.١٠** إنشاء مدير المستودعات `app/repositories/index.ts` (RepositoryManager + singleton)
+- [x] **١.١١** إنشاء طبقة التحقق `app/validators/index.ts`
   - `validateRegisterInput()`, `validateLoginInput()`
   - `validateNoteInput()`, `validateUpdateNoteInput()`
   - `validateUpdateUserInput()`, `validateChangePasswordInput()`
+
+**الحالة:** ✅ منفذة
 
 **الإيداع:** `feat(db): add Mongoose models, repository pattern, and validators`
 
