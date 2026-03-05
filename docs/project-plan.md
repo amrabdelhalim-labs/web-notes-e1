@@ -489,24 +489,31 @@ web-notes-e1/
 
 #### المهام:
 
-- [ ] **٢.١** إنشاء `app/lib/auth.ts` — دوال JWT (توليد، التحقق) + تشفير كلمة المرور (bcrypt)
-- [ ] **٢.٢** إنشاء `app/middlewares/auth.middleware.ts` — التحقق من الرمز المميز في طلبات API
-- [ ] **٢.٣** إنشاء `app/api/auth/register/route.ts`:
+- [x] **٢.١** إنشاء `app/lib/auth.ts` — دوال JWT (توليد، التحقق) + تشفير كلمة المرور (bcrypt)
+- [x] **٢.٢** إنشاء `app/middlewares/auth.middleware.ts` — التحقق من الرمز المميز في طلبات API
+- [x] **٢.٣** إنشاء `app/api/auth/register/route.ts`:
   - التحقق من المدخلات (بريد إلكتروني، اسم مستخدم، كلمة مرور)
   - التحقق من عدم وجود بريد/اسم مستخدم مكرر
   - تشفير كلمة المرور + إنشاء المستخدم + إرجاع JWT
-- [ ] **٢.٤** إنشاء `app/api/auth/login/route.ts`:
+- [x] **٢.٤** إنشاء `app/api/auth/login/route.ts`:
   - التحقق من البريد + كلمة المرور
   - إرجاع JWT + بيانات المستخدم
-- [ ] **٢.٥** إنشاء `app/api/auth/me/route.ts`:
+- [x] **٢.٥** إنشاء `app/api/auth/me/route.ts`:
   - GET: إرجاع بيانات المستخدم الحالي (يتطلب JWT)
-- [ ] **٢.٦** إنشاء `app/api/users/[id]/route.ts`:
+- [x] **٢.٦** إنشاء `app/api/users/[id]/route.ts`:
   - PUT: تحديث البيانات الشخصية
-  - DELETE: حذف الحساب (cascade)
-- [ ] **٢.٧** إنشاء `app/api/health/route.ts` — فحص صحة التطبيق وقاعدة البيانات
-- [ ] **٢.٨** اختبار جميع مسارات المصادقة يدوياً
+  - DELETE: حذف الحساب (cascade مع MongoDB Transactions)
+- [x] **٢.٧** إنشاء `app/api/health/route.ts` — فحص صحة التطبيق وقاعدة البيانات
+- [x] **٢.٨** اختبار جميع مسارات المصادقة (HTTP Local Smoke Tests)
 
-**الإيداع:** `feat(auth): add JWT authentication with register, login, and user management`
+**الحالة:** ✅ منفذة بالكامل
+
+**المهام الإضافية المنفذة:**
+- إضافة `app/lib/apiErrors.ts` — معالجة أخطاء مركزية
+- إصلاح `deleteUserCascade()` مع MongoDB Transactions
+- فعلية Replica Set محلي للتطوير
+
+**الإيداع:** `feat(auth): implement Phase 2 - Authentication API with JWT, session management, and transactional deletion`
 
 ---
 
@@ -1046,8 +1053,8 @@ web-notes-e1/
 - [ ] التزامات Git بصيغة Conventional Commits (إنجليزي فقط)
 - [ ] العلامات المرجعية (Tags) تحديثية فقط في النقاط المهمة
 - [ ] التوثيقات التعليمية بالعربية، أسماء الملفات بالإنجليزية
-- [ ] **استقلالية الكود:** لا يُذكر أي مشروع مرجعي أو مقارنة داخل أكواد المشروع أو تعليقاته. ملف الخطة (`project-plan.md`) هو المكان الوحيد المسموح فيه بذكر المراجع
-- [ ] استخدام MongoDB Transactions في عمليات الحذف التسلسلي (Cascade Delete) لتجنب Partial Failure
+- [x] استقلالية الكود: لا يُذكر أي مشروع مرجعي أو مقارنة داخل أكواد المشروع أو تعليقاته. ملف الخطة (`project-plan.md`) هو المكان الوحيد المسموح فيه بذكر المراجع
+- [x] استخدام MongoDB Transactions في عمليات الحذف التسلسلي (Cascade Delete) لتجنب Partial Failure
 
 ### معايير الأداء
 
