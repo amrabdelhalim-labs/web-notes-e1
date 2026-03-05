@@ -33,6 +33,19 @@ function out(label, value) {
 async function main() {
   await waitUp();
 
+  // ── Phase 4: Page routes ──────────────────────────────────────────────────
+
+  const rootPage = await request('/');
+  out('ROOT_PAGE_STATUS', rootPage.status);
+
+  const loginPage = await request('/login');
+  out('LOGIN_PAGE_STATUS', loginPage.status);
+
+  const registerPage = await request('/register');
+  out('REGISTER_PAGE_STATUS', registerPage.status);
+
+  // ── API smoke tests ───────────────────────────────────────────────────────
+
   const health = await request('/api/health');
   out('HEALTH_STATUS', health.status);
 

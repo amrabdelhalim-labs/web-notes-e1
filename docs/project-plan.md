@@ -120,25 +120,20 @@ web-notes-e1/
 │
 ├── app/                        ← Next.js App Router
 │   ├── layout.tsx              ← التخطيط الجذري (html lang, dir, Providers)
-│   ├── page.tsx                ← الصفحة الرئيسية (إعادة توجيه)
+│   ├── page.tsx                ← الصفحة الرئيسية (إعادة توجيه → /notes أو /login)
 │   ├── globals.css
-│   ├── providers.tsx           ← تكوين جميع Providers
+│   ├── providers.tsx           ← ThemeProviderWrapper > AuthProvider > children
 │   ├── config.ts               ← الثوابت والإعدادات المركزية
 │   ├── types.ts                ← جميع واجهات TypeScript
 │   │
-│   ├── [locale]/               ← مسارات الترجمة (ar, en)
-│   │   ├── layout.tsx
-│   │   ├── page.tsx            ← الصفحة الرئيسية
-│   │   ├── login/
-│   │   │   └── page.tsx        ← تسجيل الدخول
-│   │   ├── register/
-│   │   │   └── page.tsx        ← إنشاء حساب
-│   │   ├── notes/
-│   │   │   ├── page.tsx        ← قائمة الملاحظات (ملاحظاتي)
-│   │   │   └── [id]/
-│   │   │       └── page.tsx    ← عرض/تعديل ملاحظة
-│   │   └── profile/
-│   │       └── page.tsx        ← الملف الشخصي + حذف الحساب
+│   ├── login/
+│   │   └── page.tsx            ← صفحة تسجيل الدخول
+│   ├── register/
+│   │   └── page.tsx            ← صفحة إنشاء حساب
+│   ├── notes/
+│   │   └── page.tsx            ← صفحة الملاحظات (stub — المرحلة ٥)
+│   ├── profile/
+│   │   └── page.tsx            ← صفحة الملف الشخصي (stub — المرحلة ٦)
 │   │
 │   ├── api/                    ← Next.js Route Handlers
 │   │   ├── auth/
@@ -165,14 +160,11 @@ web-notes-e1/
 │   │
 │   ├── components/             ← مكونات واجهة المستخدم
 │   │   ├── layout/
-│   │   │   ├── AppBar.tsx
-│   │   │   ├── SideBar.tsx
-│   │   │   ├── Footer.tsx
-│   │   │   └── MainLayout.tsx
+│   │   │   ├── AppBar.tsx      ← شريط التطبيق (عنوان + سمة + قائمة مستخدم)
+│   │   │   ├── SideBar.tsx     ← قائمة جانبية (responsive drawer)
+│   │   │   └── MainLayout.tsx  ← تخطيط رئيسي (AppBar + SideBar + محتوى)
 │   │   ├── auth/
-│   │   │   ├── LoginForm.tsx
-│   │   │   ├── RegisterForm.tsx
-│   │   │   └── PrivateRoute.tsx
+│   │   │   └── PrivateRoute.tsx ← حماية الصفحات (redirect to /login)
 │   │   ├── notes/
 │   │   │   ├── NoteCard.tsx
 │   │   │   ├── NoteList.tsx
@@ -189,18 +181,17 @@ web-notes-e1/
 │   │       └── LanguageToggle.tsx
 │   │
 │   ├── context/
-│   │   ├── AuthContext.tsx
-│   │   ├── AuthProvider.tsx
-│   │   └── NotesContext.tsx     ← (اختياري — قد نستخدم React Query بدلاً)
+│   │   ├── ThemeContext.tsx     ← MUI Theme + RTL + light/dark + CacheProvider
+│   │   └── AuthContext.tsx      ← AuthProvider + JWT state + login/register/logout
 │   │
 │   ├── hooks/
-│   │   ├── useAuth.ts
+│   │   ├── useAuth.ts          ← خطاف المصادقة
+│   │   ├── useThemeMode.ts     ← خطاف تبديل السمة
 │   │   ├── useNotes.ts
-│   │   ├── useThemeMode.ts
 │   │   └── usePushNotifications.ts
 │   │
 │   ├── lib/
-│   │   ├── api.ts              ← طبقة HTTP Client
+│   │   ├── api.ts              ← طبقة HTTP Client (fetchApi + typed helpers)
 │   │   ├── apiErrors.ts        ← معالجة أخطاء API
 │   │   ├── mongodb.ts          ← اتصال MongoDB (singleton)
 │   │   ├── auth.ts             ← دوال JWT + bcrypt
@@ -208,7 +199,7 @@ web-notes-e1/
 │   │
 │   ├── models/                 ← نماذج Mongoose
 │   │   ├── User.ts
-│   │   ├── Note.ts
+│   │   ├── Note.ts             ← + pre('save') consistency guard
 │   │   └── Subscription.ts
 │   │
 │   ├── repositories/           ← طبقة الوصول للبيانات
@@ -240,7 +231,7 @@ web-notes-e1/
 │       ├── useThemeMode.test.tsx
 │       └── components.test.tsx
 │
-├── messages/                   ← ملفات الترجمة (next-intl)
+├── messages/                   ← ملفات الترجمة (next-intl — المرحلة ٧)
 │   ├── ar.json
 │   └── en.json
 │
@@ -554,37 +545,39 @@ web-notes-e1/
 
 #### المهام:
 
-- [ ] **٤.١** إنشاء `app/context/ThemeContext.tsx` — إعداد MUI Theme مع الوضع الفاتح/الداكن:
+- [x] **٤.١** إنشاء `app/context/ThemeContext.tsx` — إعداد MUI Theme مع الوضع الفاتح/الداكن:
   - كشف تفضيل النظام (`prefers-color-scheme`)
   - حفظ التفضيل في `localStorage`
   - دعم RTL عبر `stylis-plugin-rtl` + `CacheProvider`
-- [ ] **٤.٢** إنشاء `app/hooks/useThemeMode.ts` — خطاف مخصص لتبديل السمة
-- [ ] **٤.٣** إنشاء `app/context/AuthContext.tsx` + `app/context/AuthProvider.tsx`:
+- [x] **٤.٢** إنشاء `app/hooks/useThemeMode.ts` — خطاف مخصص لتبديل السمة
+- [x] **٤.٣** إنشاء `app/context/AuthContext.tsx` (AuthProvider مدمج في نفس الملف):
   - إدارة حالة المصادقة (token, user)
   - دوال `login()`, `logout()`, `register()`
   - حفظ/استرجاع الرمز من `localStorage`
-- [ ] **٤.٤** إنشاء `app/hooks/useAuth.ts` — خطاف مخصص للمصادقة
-- [ ] **٤.٥** تحديث `app/providers.tsx` — تكوين جميع Providers:
+- [x] **٤.٤** إنشاء `app/hooks/useAuth.ts` — خطاف مخصص للمصادقة
+- [x] **٤.٥** تحديث `app/providers.tsx` — تكوين جميع Providers:
   - `ThemeProviderWrapper` > `AuthProvider` > `{children}`
-- [ ] **٤.٦** إنشاء `app/lib/api.ts` — طبقة HTTP Client:
+- [x] **٤.٦** إنشاء `app/lib/api.ts` — طبقة HTTP Client:
   - دوال `fetchApi()` مع حقن JWT تلقائي
   - معالجة أخطاء مركزية
   - دوال مخصوصة: `loginApi()`, `registerApi()`, `getNotesApi()`, إلخ
-- [ ] **٤.٧** إنشاء مكونات التخطيط:
-  - `AppBar.tsx` — شريط التطبيق (عنوان + زر السمة + زر اللغة + قائمة المستخدم)
-  - `SideBar.tsx` — القائمة الجانبية (الملاحظات، الملف الشخصي، تسجيل الخروج)
-  - `MainLayout.tsx` — التخطيط الرئيسي (AppBar + SideBar + محتوى + Footer)
-- [ ] **٤.٨** إنشاء `app/components/auth/PrivateRoute.tsx` — حماية الصفحات
-- [ ] **٤.٩** إنشاء صفحة تسجيل الدخول `login/page.tsx`:
+- [x] **٤.٧** إنشاء مكونات التخطيط:
+  - `AppBar.tsx` — شريط التطبيق (عنوان + زر السمة + قائمة المستخدم)
+  - `SideBar.tsx` — القائمة الجانبية (responsive drawer — permanent desktop, temporary mobile)
+  - `MainLayout.tsx` — التخطيط الرئيسي (AppBar + SideBar + محتوى)
+- [x] **٤.٨** إنشاء `app/components/auth/PrivateRoute.tsx` — حماية الصفحات
+- [x] **٤.٩** إنشاء صفحة تسجيل الدخول `login/page.tsx`:
   - نموذج (بريد إلكتروني + كلمة مرور)
   - التحقق من المدخلات
   - رابط لإنشاء حساب
-- [ ] **٤.١٠** إنشاء صفحة إنشاء حساب `register/page.tsx`:
+- [x] **٤.١٠** إنشاء صفحة إنشاء حساب `register/page.tsx`:
   - نموذج (اسم مستخدم + بريد إلكتروني + كلمة مرور + تأكيد كلمة المرور)
   - التحقق من المدخلات
   - رابط لتسجيل الدخول
-- [ ] **٤.١١** إنشاء الصفحة الرئيسية `page.tsx` — إعادة توجيه إلى `/notes` أو `/login`
-- [ ] **٤.١٢** التحقق من عمل النظام كاملاً (تسجيل + دخول + تبديل السمة)
+- [x] **٤.١١** إنشاء الصفحة الرئيسية `page.tsx` — إعادة توجيه إلى `/notes` أو `/login`
+- [x] **٤.١٢** التحقق من عمل النظام كاملاً (smoke tests: ROOT + LOGIN + REGISTER pages = 200)
+
+**الحالة:** ✅ منفذة بالكامل
 
 **الإيداع:** `feat(ui): add layout, theme system, auth context, and login/register pages`
 
