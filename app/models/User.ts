@@ -3,9 +3,6 @@
  *
  * Mongoose schema for application users.
  * Stores credentials, profile information, and language preference.
- *
- * @reference web-booking-e1 — server/src/models/user.ts
- * @reference project-chatapp-e1 — server/models/User.js (timestamps pattern)
  */
 
 import mongoose, { Schema } from 'mongoose';

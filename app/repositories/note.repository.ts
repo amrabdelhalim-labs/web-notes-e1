@@ -3,9 +3,6 @@
  *
  * Extends BaseRepository with note-specific data access methods.
  * Supports text search, filtering by type, and user-scoped queries.
- *
- * @reference web-booking-e1 — server/src/repositories/event.repository.ts (search pattern)
- * @reference project-chatapp-e1 — server/repositories/message.repository.js (user-scoped queries)
  */
 
 import { BaseRepository } from './base.repository';
@@ -48,8 +45,6 @@ class NoteRepository extends BaseRepository<INote> {
   /**
    * Search notes by title/content using regex.
    * Escapes special regex characters from the search term for safety.
-   *
-   * @reference web-booking-e1 — EventRepository.search() (regex escape pattern)
    */
   async search(
     userId: string,

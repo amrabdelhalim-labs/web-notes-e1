@@ -29,7 +29,6 @@ export interface Note {
 
 // ─── Server-Side Types (Mongoose Documents) ─────────────────────────────────
 /**
- * @reference web-booking-e1 — server/src/types/index.ts
  * All Mongoose document interfaces include `_doc` for raw-doc access
  * and extend `Document` to work with the Repository pattern generics.
  */

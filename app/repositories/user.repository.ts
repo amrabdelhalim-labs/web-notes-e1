@@ -2,13 +2,13 @@
  * User Repository
  *
  * Extends BaseRepository with user-specific data access methods.
- *
- * @reference web-booking-e1 — server/src/repositories/user.repository.ts
- * @reference project-chatapp-e1 — server/repositories/user.repository.js
  */
 
+import mongoose from 'mongoose';
 import { BaseRepository } from './base.repository';
 import User from '@/app/models/User';
+import Note from '@/app/models/Note';
+import Subscription from '@/app/models/Subscription';
 import type { IUser } from '@/app/types';
 
 class UserRepository extends BaseRepository<IUser> {
@@ -37,19 +37,32 @@ class UserRepository extends BaseRepository<IUser> {
   }
 
   /**
-   * Delete a user and all associated data (notes + subscriptions).
-   * Uses the repository references to perform cascade deletion.
+   * Delete a user and all associated data (notes + subscriptions)
+   * inside a single MongoDB transaction to prevent partial failures.
+   *
+   * If any step fails the entire operation rolls back — no orphaned data.
    */
-  async deleteUserCascade(
-    userId: string,
-    noteRepo: { deleteByUser(userId: string): Promise<number> },
-    subscriptionRepo: { deleteByUser(userId: string): Promise<number> }
-  ): Promise<IUser | null> {
-    await Promise.all([
-      noteRepo.deleteByUser(userId),
-      subscriptionRepo.deleteByUser(userId),
-    ]);
-    return this.delete(userId);
+  async deleteUserCascade(userId: string): Promise<IUser | null> {
+    const session = await mongoose.startSession();
+
+    try {
+      session.startTransaction();
+
+      await Promise.all([
+        Note.deleteMany({ user: userId }, { session }),
+        Subscription.deleteMany({ user: userId }, { session }),
+      ]);
+
+      const deletedUser = await User.findByIdAndDelete(userId, { session });
+
+      await session.commitTransaction();
+      return deletedUser;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
   }
 }
 

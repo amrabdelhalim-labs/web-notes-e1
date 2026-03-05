@@ -4,9 +4,6 @@
  * Central access point for all repositories.
  * Provides a single, cached instance of each entity repository
  * and a health-check helper for the `/api/health` endpoint.
- *
- * @reference web-booking-e1 — server/src/repositories/index.ts
- * @reference project-chatapp-e1 — server/repositories/index.js
  */
 
 import mongoose from 'mongoose';

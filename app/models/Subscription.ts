@@ -3,8 +3,6 @@
  *
  * Mongoose schema for Web Push notification subscriptions.
  * Each record links a push endpoint to a user and device.
- *
- * @reference PWA — backend/server.js (web-push subscription storage)
  */
 
 import mongoose, { Schema } from 'mongoose';

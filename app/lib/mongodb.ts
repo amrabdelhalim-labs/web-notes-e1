@@ -5,9 +5,6 @@
  * In development, the connection is cached on `globalThis` to survive HMR reloads.
  * In production, each cold start creates a fresh connection that persists
  * for the lifetime of the serverless function instance.
- *
- * @reference web-booking-e1 — config/index.ts (env cascade)
- * @reference project-chatapp-e1 — server/config pattern
  */
 
 import mongoose from 'mongoose';

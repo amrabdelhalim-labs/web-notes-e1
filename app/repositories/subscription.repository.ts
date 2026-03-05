@@ -2,9 +2,6 @@
  * Subscription Repository
  *
  * Extends BaseRepository with push subscription-specific data access methods.
- *
- * @reference PWA — backend/server.js (subscription CRUD)
- * @reference web-booking-e1 — singleton pattern
  */
 
 import { BaseRepository } from './base.repository';

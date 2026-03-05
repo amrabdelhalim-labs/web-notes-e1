@@ -3,9 +3,6 @@
  *
  * Generic implementation of the Repository Interface for Mongoose models.
  * Provides common CRUD operations that all entity repositories inherit.
- *
- * @reference web-booking-e1 — server/src/repositories/base.repository.ts
- * @reference project-chatapp-e1 — server/repositories/base.repository.js
  */
 
 import { Model, Document, QueryFilter, UpdateQuery, QueryOptions } from 'mongoose';

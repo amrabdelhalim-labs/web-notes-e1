@@ -3,9 +3,6 @@
  *
  * Mongoose schema for user notes.
  * Supports two types: text notes (with content) and voice notes (with audioData).
- *
- * @reference project-chatapp-e1 — server/models/Message.js (indexes + timestamps)
- * @reference PWA — backend/server.js (voice note storage pattern)
  */
 
 import mongoose, { Schema } from 'mongoose';

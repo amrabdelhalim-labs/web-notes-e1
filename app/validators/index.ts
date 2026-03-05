@@ -7,8 +7,6 @@
  *
  * The validators are separated from business logic following
  * the workspace quality standards.
- *
- * @reference web-booking-e1 — server/src/validators/index.ts
  */
 
 import type {

@@ -3,8 +3,6 @@
  *
  * Defines the contract that all repositories must implement.
  * Provides a consistent API for data access operations across all entities.
- *
- * @reference web-booking-e1 — server/src/repositories/repository.interface.ts
  */
 
 import { Document, QueryFilter, UpdateQuery, QueryOptions } from 'mongoose';
