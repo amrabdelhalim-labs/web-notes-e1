@@ -47,6 +47,18 @@ noteSchema.index({ user: 1, createdAt: -1 });
 noteSchema.index({ user: 1, type: 1 });
 noteSchema.index({ title: 'text', content: 'text' });
 
+// ─── Consistency Guard ───────────────────────────────────────────────────────
+// Enforces that the `type` field always matches the actual data stored.
+// This is the last line of defence — the API layer checks this too.
+noteSchema.pre('save', function () {
+  if (this.type === 'voice' && !this.audioData) {
+    throw new Error('الملاحظة الصوتية يجب أن تحتوي على بيانات صوتية');
+  }
+  if (this.type === 'text' && this.audioData) {
+    throw new Error('الملاحظة النصية لا يمكن أن تحتوي على بيانات صوتية');
+  }
+});
+
 /**
  * Prevent model recompilation during HMR in Next.js development.
  */

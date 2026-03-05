@@ -106,6 +106,14 @@ export async function PUT(
 
     if (ownerId !== auth.userId) return forbiddenError();
 
+    // Guard: type is immutable after creation — reject cross-type field updates
+    if (existing.type === 'text' && (body.audioData !== undefined || body.audioDuration !== undefined)) {
+      return validationError(['الملاحظات النصية لا تقبل بيانات صوتية']);
+    }
+    if (existing.type === 'voice' && body.content !== undefined) {
+      return validationError(['الملاحظات الصوتية لا تقبل محتوى نصياً']);
+    }
+
     const updates: Partial<INote> = {};
     if (body.title !== undefined) updates.title = String(body.title).trim();
     if (body.content !== undefined) updates.content = String(body.content).trim();
