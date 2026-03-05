@@ -1,4 +1,5 @@
-const base = 'http://127.0.0.1:3000';
+/** Base URL — pass as first CLI argument, e.g.: node scripts/http-smoke.mjs http://localhost:3001 */
+const base = process.argv[2] ?? 'http://127.0.0.1:3000';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -10,7 +11,7 @@ async function waitUp() {
     } catch {}
     await sleep(1000);
   }
-  throw new Error('Server not reachable on port 3000');
+  throw new Error(`Server not reachable at ${base}`);
 }
 
 async function request(path, options) {
@@ -65,6 +66,54 @@ async function main() {
     headers: { Authorization: `Bearer ${token}` },
   });
   out('ME_STATUS', me.status);
+
+  // ── Notes ──────────────────────────────────────────────────────────────────
+
+  const createNote = await request('/api/notes', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ title: 'ملاحظة اختبارية', content: 'محتوى الملاحظة', type: 'text' }),
+  });
+  out('NOTE_CREATE_STATUS', createNote.status);
+  if (createNote.status !== 201) { out('NOTE_CREATE_BODY', createNote.text); process.exit(1); }
+
+  const noteId = createNote.json?.data?._id;
+  out('NOTE_ID_PRESENT', Boolean(noteId));
+
+  const notesList = await request('/api/notes', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  out('NOTES_LIST_STATUS', notesList.status);
+
+  const notesFilter = await request('/api/notes?type=text', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  out('NOTES_FILTER_STATUS', notesFilter.status);
+
+  const notesSearch = await request('/api/notes?q=اختباري', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  out('NOTES_SEARCH_STATUS', notesSearch.status);
+
+  const noteGet = await request(`/api/notes/${noteId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  out('NOTE_GET_STATUS', noteGet.status);
+
+  const noteUpdate = await request(`/api/notes/${noteId}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ title: 'ملاحظة محدّثة', content: 'محتوى محدّث' }),
+  });
+  out('NOTE_UPDATE_STATUS', noteUpdate.status);
+
+  const noteDelete = await request(`/api/notes/${noteId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  out('NOTE_DELETE_STATUS', noteDelete.status);
+
+  // ── User profile & account deletion ───────────────────────────────────────
 
   const put = await request(`/api/users/${userId}`, {
     method: 'PUT',

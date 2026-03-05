@@ -41,6 +41,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local MongoDB data directory
+.mongo-data/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
