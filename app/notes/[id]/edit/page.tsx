@@ -30,25 +30,27 @@ export default function EditNotePage({ params }: EditNotePageProps) {
   const { getNote, updateNote } = useNotes({ autoFetch: false });
 
   const [note, setNote] = useState<Note | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<{ loading: boolean; error: string | null }>({ loading: true, error: null });
+  const { loading, error } = status;
 
   // Fetch the note once on mount
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(null);
+    // Initial state is already { loading: true, error: null }; Next.js remounts
+    // this page component on route change so no manual reset is needed here.
 
     getNote(id)
       .then((data) => {
-        if (!cancelled) setNote(data);
+        if (!cancelled) {
+          setNote(data);
+          setStatus({ loading: false, error: null });
+        }
       })
       .catch((err) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : 'لم يتم العثور على الملاحظة');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : 'لم يتم العثور على الملاحظة';
+          setStatus({ loading: false, error: msg });
+        }
       });
 
     return () => { cancelled = true; };
@@ -97,6 +99,7 @@ export default function EditNotePage({ params }: EditNotePageProps) {
       {/* Form — rendered once the note is loaded */}
       {note && !loading && (
         <NoteEditorForm
+          key={note._id}
           mode="edit"
           initialData={{
             title: note.title,

@@ -15,7 +15,7 @@
  * This component owns only form state, validation, and rendering.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
@@ -53,6 +53,27 @@ interface NoteEditorFormProps {
   onCancel: () => void;
 }
 
+// Bundle all editable fields into one object so the async re-population
+// (when edit page finishes fetching) calls setFields exactly once —
+// satisfying the React compiler's "no cascading setState" rule.
+type Fields = {
+  title: string;
+  noteType: NoteType;
+  content: string;
+  audioData: string | undefined;
+  audioDuration: number | undefined;
+};
+
+function makeFields(d?: NoteEditorInitialData): Fields {
+  return {
+    title: d?.title ?? '',
+    noteType: d?.type ?? 'text',
+    content: d?.content ?? '',
+    audioData: d?.audioData,
+    audioDuration: d?.audioDuration,
+  };
+}
+
 export default function NoteEditorForm({
   mode,
   initialData,
@@ -62,28 +83,19 @@ export default function NoteEditorForm({
   const isEdit = mode === 'edit';
 
   // ── Form state ──────────────────────────────────────────────────────────────
-  const [title, setTitle] = useState(initialData?.title ?? '');
-  const [noteType, setNoteType] = useState<NoteType>(initialData?.type ?? 'text');
-  const [content, setContent] = useState(initialData?.content ?? '');
-  const [audioData, setAudioData] = useState<string | undefined>(initialData?.audioData);
-  const [audioDuration, setAudioDuration] = useState<number | undefined>(initialData?.audioDuration);
+  const [fields, setFields] = useState<Fields>(() => makeFields(initialData));
+  const { title, noteType, content, audioData, audioDuration } = fields;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Re-populate when initialData loads asynchronously (edit page fetches note).
-  useEffect(() => {
-    if (!initialData) return;
-    setTitle(initialData.title);
-    setNoteType(initialData.type);
-    setContent(initialData.content ?? '');
-    setAudioData(initialData.audioData);
-    setAudioDuration(initialData.audioDuration);
-  }, [initialData]);
+  // Re-populate is handled by the parent mounting NoteEditorForm with
+  // key={note._id}. When the key changes the component remounts, which
+  // re-runs the useState lazy initializer with the correct initialData.
+  // No useEffect is needed here.
 
   const handleRecorded = useCallback((base64: string, dur: number) => {
-    setAudioData(base64);
-    setAudioDuration(dur);
+    setFields((f) => ({ ...f, audioData: base64, audioDuration: dur }));
   }, []);
 
   // ── Validation ──────────────────────────────────────────────────────────────
@@ -145,7 +157,7 @@ export default function NoteEditorForm({
             <ToggleButtonGroup
               value={noteType}
               exclusive
-              onChange={(_, v) => v && setNoteType(v as NoteType)}
+              onChange={(_, v) => v && setFields((f) => ({ ...f, noteType: v as NoteType }))}
               fullWidth
               color="primary"
             >
@@ -165,7 +177,7 @@ export default function NoteEditorForm({
         <TextField
           label="العنوان"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => setFields((f) => ({ ...f, title: e.target.value }))}
           fullWidth
           required
           inputProps={{ maxLength: 200 }}
@@ -184,7 +196,7 @@ export default function NoteEditorForm({
           {noteType === 'text' ? (
             <RichTextEditor
               content={content}
-              onChange={setContent}
+              onChange={(v) => setFields((f) => ({ ...f, content: v }))}
               placeholder="اكتب محتوى الملاحظة..."
               minHeight={320}
               maxHeight="55vh"

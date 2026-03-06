@@ -12,6 +12,7 @@
 
 import {
   createContext,
+  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -96,7 +97,7 @@ function buildTheme(mode: PaletteMode) {
       // Outlined inputs: stronger border for better visibility
       MuiOutlinedInput: {
         styleOverrides: {
-          notchedOutline: ({ theme }) => ({
+          notchedOutline: () => ({
             borderColor: isDark
               ? 'rgba(255,255,255,0.32)'
               : 'rgba(0,0,0,0.32)',
@@ -107,7 +108,7 @@ function buildTheme(mode: PaletteMode) {
       // Chip outlines: slightly bolder border
       MuiChip: {
         styleOverrides: {
-          outlined: ({ theme }) => ({
+          outlined: () => ({
             borderWidth: '1.5px',
           }),
         },
@@ -176,21 +177,18 @@ export function ThemeProviderWrapper({ children }: { children: ReactNode }) {
 
   // After hydration, apply the real saved/system preference.
   useEffect(() => {
+    // Apply the user's real preference now that we're client-side.
+    // Wrapped in startTransition to signal a non-urgent (background) update,
+    // which is the React-compiler-accepted pattern for state sync from
+    // external systems (localStorage / matchMedia).
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'light' || stored === 'dark') {
-      setMode(stored);
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setMode('dark');
-    }
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const resolved: PaletteMode = stored === 'dark' || (!stored && prefersDark) ? 'dark' : 'light';
+
+    startTransition(() => setMode(resolved));
+
     // Also sync the attribute in case the blocking script didn't run (e.g. JS disabled)
-    document.documentElement.setAttribute(
-      'data-color-scheme',
-      stored === 'dark' ||
-        (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)
-        ? 'dark'
-        : 'light',
-    );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    document.documentElement.setAttribute('data-color-scheme', resolved);
   }, []); // ← runs once, after hydration
 
   const toggleMode = useCallback(() => {

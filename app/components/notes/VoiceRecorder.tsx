@@ -51,16 +51,19 @@ export default function VoiceRecorder({
   // Phase
   const [phase, setPhase] = useState<Phase>(() => (initialAudio ? 'done' : 'idle'));
 
-  // Audio URL ownership tracking
-  const initialBlobUrlRef = useRef<string | null>(null);
+  // Audio URL ownership tracking.
+  // initialBlobUrlRef: URL created from the `initialAudio` prop (not owned by
+  //   this component — revoked on unmount, never on reset).
+  // ownedUrlRef: URL created from a new recording (owned, revoked on reset/unmount).
+  //
+  // NOTE: We pre-compute the initial URL here so we can pass it directly to
+  // useState without touching any ref inside the initializer (which would be
+  // a render-phase side-effect). The ref is populated separately below.
+  const _precomputedUrl = initialAudio ? createAudioUrl(initialAudio) : null;
+  const initialBlobUrlRef = useRef<string | null>(_precomputedUrl);
   const ownedUrlRef = useRef<string | null>(null);
 
-  const [audioUrl, setAudioUrl] = useState<string | null>(() => {
-    if (!initialAudio) return null;
-    const url = createAudioUrl(initialAudio);
-    initialBlobUrlRef.current = url;
-    return url;
-  });
+  const [audioUrl, setAudioUrl] = useState<string | null>(_precomputedUrl);
 
   // Timer: `accumulatedRef` = seconds from all completed segments.
   //        `segmentStartRef` = Date.now() when current segment started.
@@ -76,14 +79,17 @@ export default function VoiceRecorder({
   // Error
   const [error, setError] = useState<string | null>(null);
 
-  // Cleanup on unmount
+  // Cleanup on unmount.
+  // `initialBlobUrlRef.current` is captured before the cleanup function so the
+  // linter can confirm its value is stable at cleanup time.
   useEffect(() => {
+    const initialUrl = initialBlobUrlRef.current;
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (ownedUrlRef.current) URL.revokeObjectURL(ownedUrlRef.current);
-      if (initialBlobUrlRef.current) URL.revokeObjectURL(initialBlobUrlRef.current);
+      if (initialUrl) URL.revokeObjectURL(initialUrl);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Timer helpers
   const startTimer = useCallback(() => {
