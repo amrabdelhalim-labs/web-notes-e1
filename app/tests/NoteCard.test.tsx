@@ -9,6 +9,14 @@ import { render, screen, fireEvent } from './utils';
 import NoteCard from '@/app/components/notes/NoteCard';
 import type { Note } from '@/app/types';
 
+// ─── Module mocks ─────────────────────────────────────────────────────────────
+
+const mockPush = vi.fn();
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush, replace: vi.fn(), back: vi.fn() }),
+}));
+
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
 const textNote: Note = {

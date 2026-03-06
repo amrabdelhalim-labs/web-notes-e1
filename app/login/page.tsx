@@ -7,7 +7,7 @@
  * Redirects to /notes on success.
  */
 
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, type SyntheticEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -40,7 +40,7 @@ export default function LoginPage() {
 
   if (authLoading || user) return null;
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
