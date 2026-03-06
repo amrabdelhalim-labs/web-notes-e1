@@ -7,7 +7,7 @@
  * Redirects to /notes on success.
  */
 
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -31,11 +31,14 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // If already logged in, redirect
-  if (!authLoading && user) {
-    router.replace('/notes');
-    return null;
-  }
+  // Redirect after mount — never call router during render
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/notes');
+    }
+  }, [authLoading, user, router]);
+
+  if (authLoading || user) return null;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

@@ -131,7 +131,13 @@ web-notes-e1/
 │   ├── register/
 │   │   └── page.tsx            ← صفحة إنشاء حساب
 │   ├── notes/
-│   │   └── page.tsx            ← صفحة الملاحظات (stub — المرحلة ٥)
+│   │   ├── page.tsx            ← صفحة الملاحظات (قائمة + بحث + تصفية + حذف)
+│   │   ├── new/
+│   │   │   └── page.tsx        ← صفحة إنشاء ملاحظة جديدة
+│   │   └── [id]/
+│   │       ├── page.tsx        ← صفحة عرض ملاحظة (قراءة فقط)
+│   │       └── edit/
+│   │           └── page.tsx    ← صفحة تعديل ملاحظة
 │   ├── profile/
 │   │   └── page.tsx            ← صفحة الملف الشخصي (stub — المرحلة ٦)
 │   │
@@ -166,11 +172,12 @@ web-notes-e1/
 │   │   ├── auth/
 │   │   │   └── PrivateRoute.tsx ← حماية الصفحات (redirect to /login)
 │   │   ├── notes/
-│   │   │   ├── NoteCard.tsx
-│   │   │   ├── NoteList.tsx
-│   │   │   ├── NoteForm.tsx
-│   │   │   ├── TextNoteEditor.tsx
-│   │   │   └── VoiceRecorder.tsx
+│   │   │   ├── NoteCard.tsx         ← بطاقة ملاحظة (عنوان + نوع + تاريخ + معاينة + تنقل)
+│   │   │   ├── NoteList.tsx         ← قائمة الملاحظات (Grid + بحث + تصفية + ترقيم)
+│   │   │   ├── NoteEditorForm.tsx   ← نموذج مشترك للإنشاء والتعديل (صفحة كاملة)
+│   │   │   ├── RichTextEditor.tsx   ← محرر نصوص متقدم (Tiptap + تمرير داخلي)
+│   │   │   ├── VoiceRecorder.tsx    ← مسجل صوتي (MediaRecorder + إيقاف/استئناف + مشغل ناتيف)
+│   │   │   └── DeleteConfirmDialog.tsx ← حوار تأكيد الحذف
 │   │   ├── profile/
 │   │   │   ├── ProfileEditor.tsx
 │   │   │   └── DeleteAccountButton.tsx
@@ -187,7 +194,7 @@ web-notes-e1/
 │   ├── hooks/
 │   │   ├── useAuth.ts          ← خطاف المصادقة
 │   │   ├── useThemeMode.ts     ← خطاف تبديل السمة
-│   │   ├── useNotes.ts
+│   │   ├── useNotes.ts         ← خطاف إدارة الملاحظات (CRUD + بحث + تصفية)
 │   │   └── usePushNotifications.ts
 │   │
 │   ├── lib/
@@ -217,8 +224,8 @@ web-notes-e1/
 │   │   └── auth.middleware.ts
 │   │
 │   ├── utils/
-│   │   ├── formatDate.ts
-│   │   └── audio.ts            ← مساعدات تحويل الصوت
+│   │   ├── audio.ts            ← مساعدات تحويل الصوت (blobToBase64, createAudioUrl, formatDuration)
+│   │   └── notes.ts            ← مساعدات مشتركة (stripHtml, formatDateShort, formatDateLong)
 │   │
 │   └── tests/
 │       ├── setupTests.ts
@@ -589,47 +596,82 @@ web-notes-e1/
 
 #### المهام:
 
-- [ ] **٥.١** إنشاء `app/components/notes/NoteCard.tsx`:
+- [x] **٥.١** إنشاء `app/components/notes/NoteCard.tsx`:
   - عرض بطاقة ملاحظة (عنوان، نوع، تاريخ، معاينة المحتوى)
   - أيقونة مختلفة للملاحظات النصية والصوتية
   - أزرار تعديل وحذف
-- [ ] **٥.٢** إنشاء `app/components/notes/NoteList.tsx`:
+  - `CardActionArea` للتنقل إلى `/notes/[id]` عند النقر على البطاقة
+  - معاينة النص باستخدام `stripHtml()` مع مسافة مناسبة بين الكلمات
+  - تاريخ مقروء (لون `text.secondary` + خط غامق)
+- [x] **٥.٢** إنشاء `app/components/notes/NoteList.tsx`:
   - عرض قائمة الملاحظات بتخطيط شبكي (Grid)
   - شريط بحث + تصفية حسب النوع
   - ترقيم الصفحات
   - حالة فارغة (لا توجد ملاحظات)
-- [ ] **٥.٣** إنشاء `app/components/notes/TextNoteEditor.tsx`:
-  - محرر نصي بسيط (عنوان + محتوى)
-  - يمكن التوسع لاحقاً لمحرر Markdown أو Rich Text
-- [ ] **٥.٤** إنشاء `app/components/notes/VoiceRecorder.tsx`:
+- [x] **٥.٣** إنشاء `app/components/notes/RichTextEditor.tsx`:
+  - محرر نصوص متقدم باستخدام **Tiptap** (ProseMirror)
+  - شريط أدوات MUI: عريض، مائل، تسطير، يتوسطه خط، تمييز
+  - عناوين (H2, H3)، قوائم نقطية ومرقمة، محاذاة نص
+  - دعم RTL كامل عبر `editorProps: { attributes: { dir: 'rtl' } }` (cursor + caret صحيح)
+  - CSS متوافق مع stylis-plugin-rtl (للتعداد مع القلب)
+  - prop اختياري `maxHeight` لتمرير داخلي (بدلاً من تمرير الصفحة كاملة)
+  - المحتوى يُحفظ كـ HTML
+- [x] **٥.٤** إنشاء `app/components/notes/VoiceRecorder.tsx`:
   - تسجيل صوتي باستخدام `MediaRecorder API`
-  - التحكم (بدء، إيقاف، إعادة تسجيل)
-  - مشغل صوت للاستماع قبل الحفظ
-  - عرض مؤقت زمني أثناء التسجيل
-- [ ] **٥.٥** إنشاء `app/components/notes/NoteForm.tsx`:
-  - نموذج إنشاء/تعديل ملاحظة
-  - اختيار نوع الملاحظة (نصية/صوتية)
+  - Phase state machine: `idle → recording → paused → done`
+  - إيقاف مؤقت / استئناف باستخدام `MediaRecorder.pause()` / `.resume()`
+  - مؤقت صحيح (segments متراكمة بدون احتساب وقت الإيقاف المؤقت)
+  - مشغل `<audio>` ناتيف يظهر فور الضغط على إنهاء التسجيل
+  - إدارة الذاكرة متقنة (blob URL revocation)
+- [x] **٥.٥** إنشاء `app/components/notes/NoteEditorForm.tsx` (بدلاً من NoteForm.tsx المستند-إلى-Dialog):
+  - نموذج مشترك للإنشاء (`mode='create'`) والتعديل (`mode='edit'`)
+  - اختيار نوع الملاحظة (مخفي عند التعديل)
   - حقل العنوان (مشترك)
-  - عرض المحرر المناسب حسب النوع
-- [ ] **٥.٦** إنشاء `app/hooks/useNotes.ts`:
+  - `RichTextEditor` أو `VoiceRecorder` حسب النوع
+  - بدون Dialog — يُعرض كصفحة كاملة
+- [x] **٥.٥.١** إنشاء `app/components/notes/DeleteConfirmDialog.tsx`:
+  - حوار تأكيد حذف ملاحظة
+- [x] **٥.٦** إنشاء `app/hooks/useNotes.ts`:
   - جلب الملاحظات مع إدارة الحالة
   - إنشاء، تعديل، حذف ملاحظة
-  - بحث وتصفية
-- [ ] **٥.٧** إنشاء صفحة الملاحظات `notes/page.tsx`:
+  - بحث وتصفية مع إعادة تعيين الصفحة تلقائياً
+  - خيار `autoFetch: false` للصفحات التي لا تحتاج جلب القائمة
+- [x] **٥.٧** إنشاء صفحة الملاحظات `notes/page.tsx`:
   - عرض NoteList
-  - زر إنشاء ملاحظة جديدة (FAB)
-  - حوار إنشاء ملاحظة (Modal Dialog)
-- [ ] **٥.٨** إنشاء صفحة عرض/تعديل ملاحظة `notes/[id]/page.tsx`:
-  - عرض تفاصيل الملاحظة
-  - وضع التعديل
+  - زر إنشاء ملاحظة جديدة (FAB) يتنقل إلى `/notes/new`
+  - زر التعديل يتنقل إلى `/notes/[id]/edit`
+  - DeleteConfirmDialog للحذف فقط (بدون ديالوج إنشاء/تعديل)
+- [x] **٥.٨** إنشاء صفحة إنشاء ملاحظة `notes/new/page.tsx`:
+  - تستخدم `NoteEditorForm` بـ `mode='create'`
+  - بعد الحفظ تنتقل إلى `/notes`
+- [x] **٥.٩** إنشاء صفحة عرض ملاحظة `notes/[id]/page.tsx`:
+  - عرض تفاصيل الملاحظة (Rich HTML أو مشغل صوت)
+  - قراءة فقط — هيئة عرض نظيفة
+  - زر التعديل يتنقل إلى `/notes/[id]/edit`
   - زر حذف مع تأكيد
-- [ ] **٥.٩** إنشاء `app/utils/audio.ts` — مساعدات تحويل الصوت:
+- [x] **٥.٩.١** إنشاء صفحة تعديل ملاحظة `notes/[id]/edit/page.tsx`:
+  - تجلب بيانات الملاحظة (نمط إلغاء في حالة unmount)
+  - تستخدم `NoteEditorForm` بـ `mode='edit'`
+  - بعد الحفظ تنتقل إلى `/notes/[id]`
+- [x] **٥.١٠** إنشاء `app/utils/audio.ts` — مساعدات تحويل الصوت:
   - تحويل Blob إلى Base64
-  - تحويل Base64 إلى Blob
+  - تحويل Base64 إلى Blob URL
   - إنشاء عنوان URL مؤقت للصوت
-- [ ] **٥.١٠** التحقق من عمل جميع العمليات (CRUD + تسجيل صوتي + تشغيل)
+  - تنسيق المدة (mm:ss)
+- [x] **٥.١١** إنشاء `app/utils/notes.ts` — مساعدات مشتركة:
+  - `stripHtml()` — يدرك block tags ويضيف مسافات بين الفقرات
+  - `formatDateShort()` — تنسيق قصير للبطاقات (ar-EG)
+  - `formatDateLong()` — تنسيق طويل لصفحة التفاصيل (ar-EG + يوم الأسبوع)
+- [x] **٥.١٢** تحسينات إضافية شاملة:
+  - تحسين WCAG-AA للتباين اللوني
+  - إصلاح التميف بتطبيق blocking script في layout.tsx
+  - إصلاح setState أثناء Render في صفحتي Login / Register
+  - استخراج EmotionCacheProvider منفصل لصيانة Separation of Concerns
+- [x] **٥.١٣** التحقق من عمل جميع العمليات (smoke tests + `npx tsc --noEmit` → لا أخطاء)
 
-**الإيداع:** `feat(notes): add notes management UI with text and voice support`
+**الحالة:** ✅ منفذة بالكامل
+
+**الإيداع:** `feat(notes): add full notes UI with page navigation, RTL editor, voice pause/resume, and UX improvements`
 
 ---
 

@@ -71,7 +71,8 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
         <Typography
           variant="h6"
           component="h1"
-          sx={{ flexGrow: 1, fontWeight: 700 }}
+          noWrap
+          sx={{ flexGrow: 1, fontWeight: 700, minWidth: 0 }}
         >
           {APP_NAME_AR}
         </Typography>

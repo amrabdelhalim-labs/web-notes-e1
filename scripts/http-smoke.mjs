@@ -44,6 +44,13 @@ async function main() {
   const registerPage = await request('/register');
   out('REGISTER_PAGE_STATUS', registerPage.status);
 
+  const notesPage = await request('/notes');
+  out('NOTES_PAGE_STATUS', notesPage.status);
+
+  // Protected pages — Next.js returns 200 (client-side PrivateRoute redirects)
+  const notesNewPage = await request('/notes/new');
+  out('NOTES_NEW_PAGE_STATUS', notesNewPage.status);
+
   // ── API smoke tests ───────────────────────────────────────────────────────
 
   const health = await request('/api/health');
@@ -112,6 +119,13 @@ async function main() {
     headers: { Authorization: `Bearer ${token}` },
   });
   out('NOTE_GET_STATUS', noteGet.status);
+
+  // Page routes for individual note (protected \u2014 200 with client-side redirect)
+  const noteViewPage = await request(`/notes/${noteId}`);
+  out('NOTE_VIEW_PAGE_STATUS', noteViewPage.status);
+
+  const noteEditPage = await request(`/notes/${noteId}/edit`);
+  out('NOTE_EDIT_PAGE_STATUS', noteEditPage.status);
 
   const noteUpdate = await request(`/api/notes/${noteId}`, {
     method: 'PUT',

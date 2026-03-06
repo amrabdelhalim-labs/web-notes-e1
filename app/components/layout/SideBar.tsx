@@ -86,7 +86,18 @@ export default function SideBar({ open, onClose }: SideBarProps) {
             logout();
             router.push('/login');
           }}
-          sx={{ mx: 1, borderRadius: 2 }}
+          sx={{
+            mx: 1,
+            borderRadius: 2,
+            color: 'error.main',
+            '& .MuiListItemIcon-root': { color: 'error.main' },
+            '&:hover': {
+              bgcolor: 'error.main',
+              color: 'error.contrastText',
+              '& .MuiListItemIcon-root': { color: 'error.contrastText' },
+            },
+            transition: 'background-color 0.2s, color 0.2s',
+          }}
         >
           <ListItemIcon><LogoutIcon /></ListItemIcon>
           <ListItemText primary="تسجيل الخروج" />
@@ -97,9 +108,10 @@ export default function SideBar({ open, onClose }: SideBarProps) {
 
   return (
     <>
-      {/* Mobile drawer */}
+      {/* Mobile drawer — anchor="left" يتحول تلقائياً لليمين في theme RTL */}
       <Drawer
         variant="temporary"
+        anchor="left"
         open={open}
         onClose={onClose}
         ModalProps={{ keepMounted: true }}
@@ -111,9 +123,10 @@ export default function SideBar({ open, onClose }: SideBarProps) {
         {drawerContent}
       </Drawer>
 
-      {/* Desktop drawer — permanent, يدفع المحتوى ولا يغطيه */}
+      {/* Desktop drawer — permanent, anchor="left" يتحول لليمين في RTL theme */}
       <Drawer
         variant="permanent"
+        anchor="left"
         sx={{
           display: { xs: 'none', md: 'block' },
           width: DRAWER_WIDTH,

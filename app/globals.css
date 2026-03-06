@@ -1,29 +1,90 @@
-:root {
-  --app-background: #f7f9fc;
-  --app-foreground: #0f172a;
-}
-
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
-html,
-body {
-  max-width: 100vw;
+html {
   min-height: 100%;
+  /* Smooth scrolling for anchor jumps */
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--app-background);
-  color: var(--app-foreground);
+  /* Background & color are fully managed by MUI CssBaseline + ThemeProvider.
+     Do NOT set background or color here — it will conflict with dark mode. */
   font-family: var(--font-cairo), Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Anti-FOUC (Flash of Unstyled Content) ────────────────────────────────────
+   The blocking <script> in layout.tsx sets data-color-scheme on <html>
+   synchronously before React hydration. These rules apply the correct
+   base background/color immediately so there is no white flash on reload
+   when the user has saved "dark" mode.
+   MUI CssBaseline takes over once React mounts.
+   ─────────────────────────────────────────────────────────────────────────── */
+html[data-color-scheme='dark'] body {
+  background-color: #121212;
+  color: #e8eaed;
+}
+
+html[data-color-scheme='light'] body,
+html:not([data-color-scheme]) body {
+  background-color: #f0f4f8;
+  color: #1a1a2e;
+}
+
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* ── Scrollbar styling (Chromium) ────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: rgba(128, 128, 128, 0.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.65);
+}
+
+/* ── Keyboard focus — high-contrast outline ──────────────────────────────── */
+/*
+  MUI components handle focus internally.
+  This fallback covers any non-MUI focusable elements.
+*/
+:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Text selection highlight ────────────────────────────────────────────── */
+::selection {
+  background-color: rgba(66, 165, 245, 0.28);
+}
+
+/* ── Responsive images & media ───────────────────────────────────────────── */
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Shared animations ───────────────────────────────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
 }
