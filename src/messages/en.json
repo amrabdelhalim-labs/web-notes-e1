@@ -1,0 +1,180 @@
+{
+  "App": {
+    "name": "MyNotes"
+  },
+  "AppBar": {
+    "menu": "Menu",
+    "toggleTheme": "Toggle theme",
+    "userMenu": "User account",
+    "profile": "Profile",
+    "logout": "Logout",
+    "switchLanguage": "Switch language"
+  },
+  "SideBar": {
+    "notes": "Notes",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "NoteList": {
+    "searchPlaceholder": "Search notes...",
+    "all": "All",
+    "text": "Text",
+    "voice": "Voice",
+    "noteCount": "{count} {count, plural, one {note} other {notes}}",
+    "emptyTitle": "No notes found",
+    "emptyFilterHint": "Try changing your search or filter criteria",
+    "emptyCreateHint": "Press \"+\" to create a new note"
+  },
+  "NoteCard": {
+    "voicePreview": "Voice recording — {duration}",
+    "voice": "Voice",
+    "text": "Text",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editNote": "Edit note",
+    "deleteNote": "Delete note"
+  },
+  "NoteEditorForm": {
+    "noteTypeLabel": "Note type",
+    "text": "Text",
+    "voice": "Voice",
+    "titleLabel": "Title",
+    "voiceContentLabel": "Voice recording",
+    "contentLabel": "Content",
+    "contentPlaceholder": "Write note content...",
+    "cancel": "Cancel",
+    "saveEdit": "Save changes",
+    "create": "Create note",
+    "errors": {
+      "titleRequired": "Note title is required",
+      "titleTooLong": "Title must not exceed 200 characters",
+      "contentRequired": "Note content is required",
+      "voiceRequired": "Please record a voice clip",
+      "saveFailed": "An error occurred while saving the note"
+    }
+  },
+  "DeleteConfirmDialog": {
+    "title": "Confirm deletion",
+    "body": "Are you sure you want to delete the note \"{noteTitle}\"? This action cannot be undone.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "delete": "Delete"
+  },
+  "Login": {
+    "subtitle": "Sign in to your account",
+    "email": "Email address",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in...",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Create account",
+    "errors": {
+      "emailRequired": "Email address is required",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "failed": "Login failed"
+    }
+  },
+  "Register": {
+    "title": "Create an account",
+    "username": "Username",
+    "email": "Email address",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "submit": "Create account",
+    "submitting": "Creating account...",
+    "hasAccount": "Already have an account?",
+    "loginLink": "Sign in",
+    "errors": {
+      "usernameTooShort": "Username must be at least 3 characters",
+      "emailRequired": "Email address is required",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordMismatch": "Passwords do not match",
+      "failed": "Registration failed"
+    }
+  },
+  "ProfileEditor": {
+    "personalInfo": "Personal information",
+    "editHint": "Click the edit icon next to any field to change it",
+    "username": "Username",
+    "email": "Email address",
+    "displayName": "Display name",
+    "usernameHelperText": "Lowercase letters, digits and symbols (. _ -) only — no spaces",
+    "displayNameHelperText": "Optional — shown instead of username",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "changePasswordButton": "Change password",
+    "editField": "Edit {label}",
+    "confirmField": "Confirm {label}",
+    "cancelField": "Cancel {label}",
+    "saveSuccess": "{label} updated successfully ✔️",
+    "confirmChangeTitle": "Confirm change to {label}",
+    "confirmChangeBody": "Do you want to change {label}?",
+    "confirmButton": "Confirm change",
+    "cancelButton": "Cancel",
+    "saveFailed": "Save failed",
+    "passwordErrors": {
+      "currentRequired": "Current password is required",
+      "newTooShort": "New password must be at least 6 characters",
+      "mismatch": "New password and confirmation do not match",
+      "sameAsCurrent": "New password must differ from the current one",
+      "failed": "Password change failed",
+      "success": "Password changed successfully"
+    },
+    "usernameErrors": {
+      "tooShort": "Username must be at least 3 characters",
+      "hasSpaces": "Spaces are not allowed in usernames",
+      "invalidChars": "Username may only contain lowercase letters (a-z), digits, and symbols (. _ -)"
+    }
+  },
+  "DeleteAccountDialog": {
+    "openButton": "Delete account permanently",
+    "title": "Delete account",
+    "warning": "This action is permanent and cannot be undone. Your account and all your notes will be deleted.",
+    "passwordPrompt": "Enter your password to confirm:",
+    "passwordLabel": "Password",
+    "cancel": "Cancel",
+    "confirm": "Delete my account",
+    "confirming": "Deleting...",
+    "errors": {
+      "passwordRequired": "Password is required to confirm account deletion",
+      "failed": "Account deletion failed"
+    }
+  },
+  "ProfilePage": {
+    "title": "Profile",
+    "noteCount": "{count} {count, plural, one {note} other {notes}}",
+    "joinDate": "Joined {date}",
+    "dangerZone": "Danger zone",
+    "dangerWarning": "Account deletion is permanent and cannot be undone. All your notes will be deleted."
+  },
+  "NotesPage": {
+    "createNote": "Create a new note",
+    "newNote": "New note"
+  },
+  "NewNotePage": {
+    "back": "Back to notes",
+    "title": "New note"
+  },
+  "NoteDetailPage": {
+    "back": "Back to notes",
+    "voice": "Voice",
+    "text": "Text",
+    "lastModified": "Last modified: {date}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editNote": "Edit note",
+    "deleteNote": "Delete note",
+    "notFound": "Note not found",
+    "audioDuration": "Duration: {duration}",
+    "audioUnsupported": "Your browser does not support audio playback"
+  },
+  "EditNotePage": {
+    "backToNote": "Back to note",
+    "loading": "Loading...",
+    "editTitle": "Edit: {title}",
+    "editFallback": "Edit note",
+    "notFound": "Note not found"
+  }
+}

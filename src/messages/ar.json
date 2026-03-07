@@ -1,0 +1,180 @@
+{
+  "App": {
+    "name": "ملاحظاتي"
+  },
+  "AppBar": {
+    "menu": "القائمة",
+    "toggleTheme": "تبديل السمة",
+    "userMenu": "حساب المستخدم",
+    "profile": "الملف الشخصي",
+    "logout": "تسجيل الخروج",
+    "switchLanguage": "تغيير اللغة"
+  },
+  "SideBar": {
+    "notes": "الملاحظات",
+    "profile": "الملف الشخصي",
+    "logout": "تسجيل الخروج"
+  },
+  "NoteList": {
+    "searchPlaceholder": "بحث في الملاحظات...",
+    "all": "الكل",
+    "text": "نصية",
+    "voice": "صوتية",
+    "noteCount": "{count} ملاحظة",
+    "emptyTitle": "لا توجد ملاحظات",
+    "emptyFilterHint": "جرّب تغيير معايير البحث أو التصفية",
+    "emptyCreateHint": "اضغط على زر \"+\" لإنشاء ملاحظة جديدة"
+  },
+  "NoteCard": {
+    "voicePreview": "تسجيل صوتي — {duration}",
+    "voice": "صوتية",
+    "text": "نصية",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "editNote": "تعديل الملاحظة",
+    "deleteNote": "حذف الملاحظة"
+  },
+  "NoteEditorForm": {
+    "noteTypeLabel": "نوع الملاحظة",
+    "text": "نصية",
+    "voice": "صوتية",
+    "titleLabel": "العنوان",
+    "voiceContentLabel": "التسجيل الصوتي",
+    "contentLabel": "المحتوى",
+    "contentPlaceholder": "اكتب محتوى الملاحظة...",
+    "cancel": "إلغاء",
+    "saveEdit": "حفظ التعديلات",
+    "create": "إنشاء الملاحظة",
+    "errors": {
+      "titleRequired": "عنوان الملاحظة مطلوب",
+      "titleTooLong": "العنوان يجب ألا يتجاوز 200 حرف",
+      "contentRequired": "محتوى الملاحظة مطلوب",
+      "voiceRequired": "يرجى تسجيل مقطع صوتي",
+      "saveFailed": "حدث خطأ أثناء حفظ الملاحظة"
+    }
+  },
+  "DeleteConfirmDialog": {
+    "title": "تأكيد الحذف",
+    "body": "هل أنت متأكد من حذف الملاحظة \"{noteTitle}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+    "cancel": "إلغاء",
+    "deleting": "جارٍ الحذف...",
+    "delete": "حذف"
+  },
+  "Login": {
+    "subtitle": "تسجيل الدخول إلى حسابك",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "submit": "تسجيل الدخول",
+    "submitting": "جارٍ تسجيل الدخول...",
+    "noAccount": "ليس لديك حساب؟",
+    "registerLink": "إنشاء حساب جديد",
+    "errors": {
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "passwordTooShort": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+      "failed": "فشل تسجيل الدخول"
+    }
+  },
+  "Register": {
+    "title": "إنشاء حساب جديد",
+    "username": "اسم المستخدم",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "submit": "إنشاء الحساب",
+    "submitting": "جارٍ إنشاء الحساب...",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "loginLink": "تسجيل الدخول",
+    "errors": {
+      "usernameTooShort": "اسم المستخدم يجب أن يكون 3 أحرف على الأقل",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "passwordTooShort": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+      "passwordMismatch": "كلمة المرور وتأكيدها غير متطابقتين",
+      "failed": "فشل إنشاء الحساب"
+    }
+  },
+  "ProfileEditor": {
+    "personalInfo": "البيانات الشخصية",
+    "editHint": "اضغط على أيقونة التعديل بجانب أي حقل لتغييره",
+    "username": "اسم المستخدم",
+    "email": "البريد الإلكتروني",
+    "displayName": "اسم العرض",
+    "usernameHelperText": "حروف صغيرة وأرقام ورموز (. _ -) فقط — بدون مسافات",
+    "displayNameHelperText": "اختياري — يظهر بدلاً من اسم المستخدم",
+    "changePassword": "تغيير كلمة المرور",
+    "currentPassword": "كلمة المرور الحالية",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور الجديدة",
+    "changePasswordButton": "تغيير كلمة المرور",
+    "editField": "تعديل {label}",
+    "confirmField": "تأكيد {label}",
+    "cancelField": "إلغاء {label}",
+    "saveSuccess": "تم تحديث {label} بنجاح ✔️",
+    "confirmChangeTitle": "تأكيد تغيير {label}",
+    "confirmChangeBody": "هل تريد تغيير {label}؟",
+    "confirmButton": "تأكيد التغيير",
+    "cancelButton": "إلغاء",
+    "saveFailed": "فشل الحفظ",
+    "passwordErrors": {
+      "currentRequired": "كلمة المرور الحالية مطلوبة",
+      "newTooShort": "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل",
+      "mismatch": "كلمة المرور الجديدة وتأكيدها غير متطابقتين",
+      "sameAsCurrent": "كلمة المرور الجديدة يجب أن تختلف عن الحالية",
+      "failed": "فشل تغيير كلمة المرور",
+      "success": "تم تغيير كلمة المرور بنجاح"
+    },
+    "usernameErrors": {
+      "tooShort": "اسم المستخدم يجب أن يكون 3 أحرف على الأقل",
+      "hasSpaces": "لا يسمح بالمسافات في اسم المستخدم",
+      "invalidChars": "اسم المستخدم يقبل فقط حروفاً صغيرة (a-z)، أرقاماً، ورموز (. _ -)"
+    }
+  },
+  "DeleteAccountDialog": {
+    "openButton": "حذف الحساب نهائياً",
+    "title": "حذف الحساب",
+    "warning": "هذا الإجراء نهائي ولا يمكن التراجع عنه. سيتم حذف حسابك وجميع ملاحظاتك بشكل دائم.",
+    "passwordPrompt": "أدخل كلمة المرور لتأكيد الحذف:",
+    "passwordLabel": "كلمة المرور",
+    "cancel": "إلغاء",
+    "confirm": "حذف الحساب",
+    "confirming": "جارٍ الحذف...",
+    "errors": {
+      "passwordRequired": "كلمة المرور مطلوبة لتأكيد حذف الحساب",
+      "failed": "فشل حذف الحساب"
+    }
+  },
+  "ProfilePage": {
+    "title": "الملف الشخصي",
+    "noteCount": "{count} ملاحظة",
+    "joinDate": "انضم {date}",
+    "dangerZone": "منطقة الخطر",
+    "dangerWarning": "حذف الحساب نهائي ولا يمكن التراجع عنه. سيتم حذف جميع ملاحظاتك."
+  },
+  "NotesPage": {
+    "createNote": "إنشاء ملاحظة جديدة",
+    "newNote": "ملاحظة جديدة"
+  },
+  "NewNotePage": {
+    "back": "الرجوع للملاحظات",
+    "title": "ملاحظة جديدة"
+  },
+  "NoteDetailPage": {
+    "back": "الرجوع للملاحظات",
+    "voice": "صوتية",
+    "text": "نصية",
+    "lastModified": "آخر تعديل: {date}",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "editNote": "تعديل الملاحظة",
+    "deleteNote": "حذف الملاحظة",
+    "notFound": "لم يتم العثور على الملاحظة",
+    "audioDuration": "مدة التسجيل: {duration}",
+    "audioUnsupported": "المتصفح لا يدعم تشغيل الصوت"
+  },
+  "EditNotePage": {
+    "backToNote": "الرجوع للملاحظة",
+    "loading": "تحميل...",
+    "editTitle": "تعديل: {title}",
+    "editFallback": "تعديل الملاحظة",
+    "notFound": "لم يتم العثور على الملاحظة"
+  }
+}
