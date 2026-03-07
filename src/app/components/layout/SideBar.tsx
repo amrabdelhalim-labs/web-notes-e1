@@ -20,8 +20,9 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { useRouter, usePathname } from '@/app/lib/navigation';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useTranslations } from 'next-intl';
+import { DRAWER_WIDTH, TRANSITIONS } from '@/app/lib/ui-constants';
 
-export const DRAWER_WIDTH = 240;
+export { DRAWER_WIDTH };
 
 interface SideBarProps {
   open: boolean;
@@ -48,7 +49,7 @@ export default function SideBar({ open, onClose }: SideBarProps) {
     mx: 1,
     mb: 0.5,
     borderRadius: 2,
-    transition: 'background-color 0.2s',
+    transition: TRANSITIONS.bgFast,
     '&.Mui-selected': {
       bgcolor: 'primary.main',
       color: 'primary.contrastText',
@@ -98,7 +99,7 @@ export default function SideBar({ open, onClose }: SideBarProps) {
               color: 'error.contrastText',
               '& .MuiListItemIcon-root': { color: 'error.contrastText' },
             },
-            transition: 'background-color 0.2s, color 0.2s',
+            transition: TRANSITIONS.all,
           }}
         >
           <ListItemIcon><LogoutIcon /></ListItemIcon>

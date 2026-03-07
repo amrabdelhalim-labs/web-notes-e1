@@ -18,23 +18,22 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
 import MenuIcon from '@mui/icons-material/Menu';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { useThemeMode } from '@/app/hooks/useThemeMode';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useRouter } from '@/app/lib/navigation';
 import { useTranslations } from 'next-intl';
 import LanguageToggle from '@/app/components/common/LanguageToggle';
+import ThemeToggle from '@/app/components/common/ThemeToggle';
+import ConnectionIndicator from '@/app/components/common/ConnectionIndicator';
+import { Z_INDEX } from '@/app/lib/ui-constants';
 
 interface AppBarProps {
   onMenuClick: () => void;
 }
 
 export default function AppBar({ onMenuClick }: AppBarProps) {
-  const { mode, toggleMode } = useThemeMode();
   const { user, logout } = useAuth();
   const router = useRouter();
   const t = useTranslations('AppBar');
@@ -58,7 +57,7 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
   };
 
   return (
-    <MuiAppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
+    <MuiAppBar position="fixed" sx={{ zIndex: Z_INDEX.appBar }}>
       <Toolbar>
         {/* زر القائمة — يظهر فقط على الشاشات الصغيرة والمتوسطة */}
         <IconButton
@@ -80,10 +79,11 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
           {tApp('name')}
         </Typography>
 
+        {/* Connection status indicator */}
+        <ConnectionIndicator />
+
         {/* Theme toggle */}
-        <IconButton color="inherit" onClick={toggleMode} aria-label={t('toggleTheme')}>
-          {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
-        </IconButton>
+        <ThemeToggle />
 
         {/* Language toggle */}
         <LanguageToggle />

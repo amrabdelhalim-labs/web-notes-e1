@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Cairo, Geist_Mono } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
@@ -23,6 +23,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'ملاحظاتي | MyNotes',
   description: APP_DESCRIPTION,
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'ملاحظاتي',
+  },
+  icons: {
+    apple: '/icons/icon-192x192.png',
+    icon: '/icons/icon-512x512.png',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#1565c0',
 };
 
 interface LocaleLayoutProps {

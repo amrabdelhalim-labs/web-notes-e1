@@ -13,6 +13,7 @@ import Toolbar from '@mui/material/Toolbar';
 import CircularProgress from '@mui/material/CircularProgress';
 import AppBar from '@/app/components/layout/AppBar';
 import SideBar from '@/app/components/layout/SideBar';
+import OfflineBanner from '@/app/components/common/OfflineBanner';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useRouter } from '@/app/lib/navigation';
 import { useEffect } from 'react';
@@ -58,12 +59,18 @@ export default function MainLayout({ children }: MainLayoutProps) {
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 2, sm: 3 },
-          minWidth: 0, // يمنع overflow في flex
+          minWidth: 0,
+          width: '100%',
+          maxWidth: '100%',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        <Toolbar /> {/* spacer */}
-        {children}
+        <Toolbar /> {/* spacer for fixed AppBar */}
+        <OfflineBanner />
+        <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 }, flexGrow: 1 }}>
+          {children}
+        </Box>
       </Box>
     </Box>
   );
