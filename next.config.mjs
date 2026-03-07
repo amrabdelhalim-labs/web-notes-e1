@@ -1,7 +1,5 @@
-const createNextIntlPlugin = require('next-intl/plugin');
-// Note: @serwist/next is ESM; Node ≥ 22 supports loading it via require() with
-// the experimental CJS-ESM interop (shows a warning in dev — harmless).
-const withSerwist = require('@serwist/next').default;
+import createNextIntlPlugin from 'next-intl/plugin';
+import withSerwist from '@serwist/next';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
@@ -29,4 +27,4 @@ const withSerwistConfig = withSerwist({
   reloadOnOnline: true,
 });
 
-module.exports = withSerwistConfig(withNextIntl(nextConfig));
+export default withSerwistConfig(withNextIntl(nextConfig));
