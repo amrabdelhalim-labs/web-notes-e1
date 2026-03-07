@@ -33,6 +33,8 @@ export interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   /** Create a new account. Throws on error. */
   register: (username: string, email: string, password: string) => Promise<void>;
+  /** Update user state in-memory after a profile change. */
+  updateUser: (updated: User) => void;
   /** Clear session and redirect to /login. */
   logout: () => void;
 }
@@ -45,6 +47,7 @@ export const AuthContext = createContext<AuthContextValue>({
   loading: true,
   login: async () => {},
   register: async () => {},
+  updateUser: () => {},
   logout: () => {},
 });
 
@@ -136,9 +139,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const updateUser = useCallback((updated: User) => {
+    setUser(updated);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ user, token, loading, login, register, logout }),
-    [user, token, loading, login, register, logout],
+    () => ({ user, token, loading, login, register, updateUser, logout }),
+    [user, token, loading, login, register, updateUser, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

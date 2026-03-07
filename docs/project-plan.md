@@ -2,7 +2,7 @@
 
 > **المستودع:** `web-notes-e1`
 > **نوع المشروع:** تطبيق ويب تقدمي (PWA) — Full-Stack SSR
-> **الحالة:** مرحلة التخطيط
+> **الحالة:** المراحل ٠-٦ مكتملة — ٢٦٠ اختبار ✅
 
 ---
 
@@ -113,6 +113,7 @@ web-notes-e1/
 ├── format.mjs
 ├── LICENSE
 ├── next.config.js              ← ملف JS وليس TS (توافق Heroku)
+├── instrumentation.ts          ← Next.js startup hook (server log: port + MongoDB)
 ├── package.json
 ├── tsconfig.json
 ├── README.md
@@ -681,22 +682,38 @@ web-notes-e1/
 
 #### المهام:
 
-- [ ] **٦.١** إنشاء `app/components/profile/ProfileEditor.tsx`:
+- [x] **٦.١** إنشاء `app/components/profile/ProfileEditor.tsx`:
   - عرض البيانات الحالية
   - تعديل: اسم العرض، البريد الإلكتروني، اسم المستخدم
   - تغيير كلمة المرور (الحالية + الجديدة + التأكيد)
   - اختيار اللغة المفضلة
-- [ ] **٦.٢** إنشاء `app/components/profile/DeleteAccountButton.tsx`:
+- [x] **٦.٢** إنشاء `app/components/profile/DeleteAccountDialog.tsx`:
   - زر حذف الحساب مع تأكيد مزدوج
   - عرض تحذير واضح (الحذف نهائي + جميع الملاحظات ستُحذف)
   - إدخال كلمة المرور للتأكيد
-- [ ] **٦.٣** إنشاء صفحة الملف الشخصي `profile/page.tsx`:
+- [x] **٦.٣** إنشاء صفحة الملف الشخصي `profile/page.tsx`:
   - عرض ProfileEditor
-  - عرض DeleteAccountButton
+  - عرض DeleteAccountDialog
   - عرض إحصائيات (عدد الملاحظات، تاريخ الانضمام)
-- [ ] **٦.٤** التحقق من عمل جميع العمليات
+- [x] **٦.٤** التحقق من عمل جميع العمليات
+- [x] **٦.٥** تحسينات ما بعد المرحلة ٦:
+  - **`instrumentation.ts`** (جديد): خطاف بدء خادم Next.js — يسجّل المنفذ + البيئة + رابط MongoDB (مُقنَّع)، ومستمعي أحداث Mongoose (`connected / disconnected / reconnected / error`) ويُدفئ الاتصال عند الإقلاع
+  - **`app/lib/mongodb.ts`**: إضافة `serverSelectionTimeoutMS: 5000`، إزالة console (تجنب الآثار الجانبية في مكتبات)، تحذير بيئة dev إن غاب `DATABASE_URL`
+  - **`app/context/ThemeContext.tsx`**: إصلاح تباين WCAG — `primary.contrastText` في الوضع الداكن من `#ffffff` (نسبة 2.64:1 ❌) إلى `#0a1929` (نسبة 7.57:1 ✅ AAA)
+  - **`app/components/layout/AppBar.tsx`**: عرض `displayName` بخط غامق + `@username` بخط `caption` في قائمة المستخدم عند توفرهما
+  - **`app/components/profile/ProfileEditor.tsx`** (إعادة كتابة كاملة):
+    - نمط تعديل مضمّن لكل حقل على حِدة (`EditableField`): قيمة نصية + أيقونة قلم عند العرض، تتحول إلى `TextField` + ✓ + ✗ عند الضغط
+    - التحقق من صحة اسم المستخدم عميلياً: حروف صغيرة `a-z` وأرقام ورموز `. _ -` فقط، لا مسافات، 3 أحرف حداً أدنى
+    - رسالة نجاح خضراء تُعرض 3 ثوانٍ بعد الحفظ (`role="status"`, `aria-live="polite"`)
+    - **نافذة تأكيد** قبل الحفظ: تعرض القيمة القديمة ← الجديدة (ملوّنة)، مع زري "تأكيد التغيير" و"إلغاء" — الإلغاء يُبقي الحقل مفتوحاً
+    - يدعم Enter للتأكيد و Escape للإلغاء
+    - قسم كلمة المرور يبقى كنموذج مجمّع (الحقول مترابطة منطقياً)
+  - **`app/profile/page.tsx`**: تقييد عرض العمود بـ `maxWidth: 680` ومركزته (`mx: 'auto'`) للشاشات الكبيرة
+
+**الحالة:** ✅ منفذة بالكامل
 
 **الإيداع:** `feat(profile): add profile management and account deletion`
+**الإيداع (تحسينات):** `feat(profile): inline per-field editing, confirmation dialog, username validation, and UX improvements`
 
 ---
 

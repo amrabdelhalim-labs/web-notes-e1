@@ -9,6 +9,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { Note, NoteType, NoteInput, UpdateNoteInput } from '@/app/types';
+import { DEFAULT_PAGE_SIZE } from '@/app/config';
 import {
   getNotesApi,
   getNoteApi,
@@ -44,7 +45,7 @@ interface UseNotesReturn {
 }
 
 export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
-  const { pageSize = 10, autoFetch = true } = options;
+  const { pageSize = DEFAULT_PAGE_SIZE, autoFetch = true } = options;
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(false);

@@ -14,6 +14,12 @@ const DATABASE_URL =
   process.env.MONGODB_URI ||
   'mongodb://localhost:27017/mynotes';
 
+if (process.env.NODE_ENV !== 'test' && !process.env.DATABASE_URL && !process.env.MONGODB_URI) {
+  console.warn(
+    '[mongodb] DATABASE_URL not set — using default fallback (dev only). Set it in .env.local for production.',
+  );
+}
+
 /**
  * Global cache type — survives HMR in development.
  */
@@ -45,6 +51,7 @@ export async function connectDB(): Promise<typeof mongoose> {
   if (!cached.promise) {
     cached.promise = mongoose.connect(DATABASE_URL, {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 5_000,
     });
   }
 

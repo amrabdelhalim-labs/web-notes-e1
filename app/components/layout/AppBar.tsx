@@ -95,10 +95,15 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
               anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
               transformOrigin={{ vertical: 'top', horizontal: 'left' }}
             >
-              <MenuItem disabled>
-                <Typography variant="body2" color="text.secondary">
+              <MenuItem disabled sx={{ flexDirection: 'column', alignItems: 'flex-start', py: 1.5, px: 2, gap: 0.25 }}>
+                <Typography variant="subtitle2" fontWeight={700} color="text.primary" sx={{ lineHeight: 1.3 }}>
                   {user.displayName || user.username}
                 </Typography>
+                {user.displayName && (
+                  <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+                    @{user.username}
+                  </Typography>
+                )}
               </MenuItem>
               <Divider />
               <MenuItem onClick={handleProfile}>

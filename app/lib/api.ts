@@ -122,14 +122,15 @@ export function updateUserApi(id: string, input: UpdateUserInput) {
   });
 }
 
-export function deleteUserApi(id: string) {
+export function deleteUserApi(id: string, password: string) {
   return fetchApi<{ message: string }>(`/api/users/${id}`, {
     method: 'DELETE',
+    body: JSON.stringify({ password }),
   });
 }
 
 export function changePasswordApi(id: string, input: ChangePasswordInput) {
-  return fetchApi<{ message: string }>(`/api/users/${id}`, {
+  return fetchApi<{ data: User; message: string }>(`/api/users/${id}`, {
     method: 'PUT',
     body: JSON.stringify(input),
   });

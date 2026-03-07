@@ -38,13 +38,18 @@ function buildTheme(mode: PaletteMode) {
     palette: {
       mode,
       // ── Primary ─────────────────────────────────────────────────────────
-      // Light: #1565c0  (Blue 800)  → contrast vs white  = 6.67:1  ✅ AAA
-      // Dark : #42a5f5  (Blue 400)  → contrast vs #121212 = 5.17:1 ✅ AA
+      // Light: #1565c0  (Blue 800)  → white text   : 5.84:1 ✅ AA
+      // Dark : #42a5f5  (Blue 400)  → dark navy text: 7.57:1 ✅ AAA
+      //   NOTE: white (#fff) on #42a5f5 is only 2.64:1 (❌ WCAG fail).
+      //   contrastText uses dark ink in dark mode so filled buttons and the
+      //   AppBar (which inherits primary.contrastText) always meet AA.
       primary: {
         main: isDark ? '#42a5f5' : '#1565c0',
         light: isDark ? '#90caf9' : '#1976d2',
         dark: isDark ? '#1976d2' : '#0d47a1',
-        contrastText: '#ffffff',
+        // Dark navy (≈Black-on-blue) gives 7.57:1 on #42a5f5 ✅ AAA
+        // White on #1565c0 gives 5.84:1 ✅ AA
+        contrastText: isDark ? '#0a1929' : '#ffffff',
       },
       // ── Secondary ───────────────────────────────────────────────────────
       // Light: #7b1fa2 (Purple 800) → contrast vs white  = 7.08:1 ✅ AAA
