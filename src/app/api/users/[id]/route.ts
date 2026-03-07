@@ -33,7 +33,7 @@ function serializeUser(doc: {
   username: string;
   email: string;
   displayName?: string;
-  language: 'ar' | 'en';
+  language: 'ar' | 'en' | 'unset';
   createdAt: Date;
   updatedAt: Date;
 }): User {

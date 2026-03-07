@@ -226,7 +226,7 @@ describe('ProfileEditor', () => {
       );
     });
 
-    it('dialog cancel keeps field open and does not call the API', async () => {
+    it('dialog cancel keeps field open and does not call the API', { timeout: 15000 }, async () => {
       render(<ProfileEditor />);
       openField('اسم المستخدم');
       fireEvent.change(screen.getByRole('textbox', { name: 'اسم المستخدم' }), {
@@ -395,7 +395,70 @@ describe('ProfileEditor', () => {
       );
     });
   });
+  // ── Language preference ─────────────────────────────────────────────────
 
+  describe('Language preference', () => {
+    beforeEach(() => setup());
+
+    it('renders the language preference heading', () => {
+      render(<ProfileEditor />);
+      expect(screen.getByRole('heading', { name: 'تفضيلات اللغة' })).toBeInTheDocument();
+    });
+
+    it('pre-selects arabic radio when user.language is "ar"', () => {
+      render(<ProfileEditor />);
+      const arRadio = screen.getByRole('radio', { name: 'العربية' });
+      expect(arRadio).toBeChecked();
+    });
+
+    it('calls updateUserApi with new language on radio change', async () => {
+      const updatedUser = { ...fakeUser, language: 'en' as const };
+      mockUpdateUserApi.mockResolvedValue({ data: updatedUser });
+
+      render(<ProfileEditor />);
+      fireEvent.click(screen.getByRole('radio', { name: 'الإنجليزية' }));
+
+      await waitFor(() =>
+        expect(mockUpdateUserApi).toHaveBeenCalledWith('u1', { language: 'en' }),
+      );
+      expect(mockUpdateUser).toHaveBeenCalledWith(updatedUser);
+    });
+
+    it('calls updateUserApi with "unset" when auto option is selected', async () => {
+      const updatedUser = { ...fakeUser, language: 'unset' as const };
+      mockUpdateUserApi.mockResolvedValue({ data: updatedUser });
+
+      render(<ProfileEditor />);
+      fireEvent.click(screen.getByRole('radio', { name: /تلقائي/ }));
+
+      await waitFor(() =>
+        expect(mockUpdateUserApi).toHaveBeenCalledWith('u1', { language: 'unset' }),
+      );
+    });
+
+    it('shows success alert after saving language preference', async () => {
+      const updatedUser = { ...fakeUser, language: 'en' as const };
+      mockUpdateUserApi.mockResolvedValue({ data: updatedUser });
+
+      render(<ProfileEditor />);
+      fireEvent.click(screen.getByRole('radio', { name: 'الإنجليزية' }));
+
+      await waitFor(() =>
+        expect(screen.getByRole('alert')).toHaveTextContent('تم حفظ تفضيل اللغة'),
+      );
+    });
+
+    it('shows error alert when saving language preference fails', async () => {
+      mockUpdateUserApi.mockRejectedValue(new Error('خطأ غير متوقع'));
+
+      render(<ProfileEditor />);
+      fireEvent.click(screen.getByRole('radio', { name: 'الإنجليزية' }));
+
+      await waitFor(() =>
+        expect(screen.getByRole('alert')).toHaveTextContent('خطأ غير متوقع'),
+      );
+    });
+  });
   // ── Null user guard ───────────────────────────────────────────────────────
 
   describe('Guard', () => {

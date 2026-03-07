@@ -12,7 +12,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Tooltip from '@mui/material/Tooltip';
 import Divider from '@mui/material/Divider';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import StickyNote2Icon from '@mui/icons-material/StickyNote2';
@@ -85,7 +85,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
   return (
     <MainLayout>
       <Button
-        startIcon={<ArrowForwardIcon />}
+        startIcon={<ArrowBackIcon sx={(theme) => ({ transform: theme.direction === 'rtl' ? 'scaleX(-1)' : undefined })} />}
         onClick={() => router.push('/notes')}
         sx={{ mb: 2 }}
       >

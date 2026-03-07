@@ -24,6 +24,11 @@ import Divider from '@mui/material/Divider';
 import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Radio from '@mui/material/Radio';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
@@ -36,6 +41,7 @@ import DialogActions from '@mui/material/DialogActions';
 import { useAuth } from '@/app/hooks/useAuth';
 import { updateUserApi, changePasswordApi } from '@/app/lib/api';
 import { useTranslations } from 'next-intl';
+import type { UserLanguagePref } from '@/app/types';
 
 // ─── Shared validation ───────────────────────────────────────────────────────────
 
@@ -279,6 +285,34 @@ export default function ProfileEditor() {
   const [passwordMsg, setPasswordMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
 
+  // ── Language preference ───────────────────────────────────────────────
+  const [langPref, setLangPref] = useState<UserLanguagePref>(() => user?.language ?? 'unset');
+  const [langSaving, setLangSaving] = useState(false);
+  const [langMsg, setLangMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Keep langPref in sync if user updates from another path
+  useEffect(() => {
+    if (user) setLangPref(user.language);
+  }, [user?.language]);
+
+  const saveLangPref = useCallback(
+    async (pref: UserLanguagePref) => {
+      if (!user) return;
+      setLangSaving(true);
+      setLangMsg(null);
+      try {
+        const res = await updateUserApi(user._id, { language: pref });
+        updateUser(res.data);
+        setLangMsg({ type: 'success', text: t('languageSaveSuccess') });
+      } catch (err) {
+        setLangMsg({ type: 'error', text: err instanceof Error ? err.message : t('saveFailed') });
+      } finally {
+        setLangSaving(false);
+      }
+    },
+    [user, updateUser, t],
+  );
+
   // ── Per-field save ────────────────────────────────────────────────────
   const saveField = useCallback(
     async (field: 'username' | 'email' | 'displayName', val: string) => {
@@ -379,6 +413,44 @@ export default function ProfileEditor() {
             onSave={(val) => saveField('displayName', val)}
             t={t}
           />
+        </CardContent>
+      </Card>
+
+      {/* ── Language Preference ───────────────────────────────────────── */}
+      <Card>
+        <CardContent sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            {t('languagePrefTitle')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" mb={2}>
+            {t('languagePrefHint')}
+          </Typography>
+
+          {langMsg && (
+            <Alert severity={langMsg.type} sx={{ mb: 2 }}>
+              {langMsg.text}
+            </Alert>
+          )}
+
+          <FormControl component="fieldset" disabled={langSaving}>
+            <FormLabel component="legend" sx={{ mb: 1, fontSize: '0.875rem' }}>
+              {t('languagePrefLabel')}
+            </FormLabel>
+            <RadioGroup
+              value={langPref}
+              onChange={(e) => {
+                const val = e.target.value as UserLanguagePref;
+                setLangPref(val);
+                saveLangPref(val);
+              }}
+            >
+              <FormControlLabel value="ar" control={<Radio />} label={t('languageAr')} />
+              <FormControlLabel value="en" control={<Radio />} label={t('languageEn')} />
+              <FormControlLabel value="unset" control={<Radio />} label={t('languageUnset')} />
+            </RadioGroup>
+          </FormControl>
+
+          {langSaving && <CircularProgress size={18} sx={{ mt: 1 }} />}
         </CardContent>
       </Card>
 

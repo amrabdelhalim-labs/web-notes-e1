@@ -210,6 +210,10 @@ describe('validateUpdateUserInput', () => {
   it('accepts valid language "en"', () => {
     expect(validateUpdateUserInput({ language: 'en' })).toEqual([]);
   });
+
+  it('accepts "unset" as valid language preference', () => {
+    expect(validateUpdateUserInput({ language: 'unset' as 'ar' })).toEqual([]);
+  });
 });
 
 // ─── validateChangePasswordInput ────────────────────────────────────────────

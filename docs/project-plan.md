@@ -2,7 +2,7 @@
 
 > **المستودع:** `web-notes-e1`
 > **نوع المشروع:** تطبيق ويب تقدمي (PWA) — Full-Stack SSR
-> **الحالة:** المراحل ٠-٦ مكتملة — ٢٦٠ اختبار ✅
+> **الحالة:** المراحل ٠-٧ مكتملة — ٢٧٨ اختبار ✅
 
 ---
 
@@ -113,135 +113,141 @@ web-notes-e1/
 ├── format.mjs
 ├── LICENSE
 ├── next.config.js              ← ملف JS وليس TS (توافق Heroku)
-├── instrumentation.ts          ← Next.js startup hook (server log: port + MongoDB)
 ├── package.json
 ├── tsconfig.json
+├── vitest.config.ts
+├── eslint.config.mjs
 ├── README.md
 ├── validate-workflow.mjs
 │
-├── app/                        ← Next.js App Router
-│   ├── layout.tsx              ← التخطيط الجذري (html lang, dir, Providers)
-│   ├── page.tsx                ← الصفحة الرئيسية (إعادة توجيه → /notes أو /login)
-│   ├── globals.css
-│   ├── providers.tsx           ← ThemeProviderWrapper > AuthProvider > children
-│   ├── config.ts               ← الثوابت والإعدادات المركزية
-│   ├── types.ts                ← جميع واجهات TypeScript
-│   │
-│   ├── login/
-│   │   └── page.tsx            ← صفحة تسجيل الدخول
-│   ├── register/
-│   │   └── page.tsx            ← صفحة إنشاء حساب
-│   ├── notes/
-│   │   ├── page.tsx            ← صفحة الملاحظات (قائمة + بحث + تصفية + حذف)
-│   │   ├── new/
-│   │   │   └── page.tsx        ← صفحة إنشاء ملاحظة جديدة
-│   │   └── [id]/
-│   │       ├── page.tsx        ← صفحة عرض ملاحظة (قراءة فقط)
-│   │       └── edit/
-│   │           └── page.tsx    ← صفحة تعديل ملاحظة
-│   ├── profile/
-│   │   └── page.tsx            ← صفحة الملف الشخصي (stub — المرحلة ٦)
-│   │
-│   ├── api/                    ← Next.js Route Handlers
-│   │   ├── auth/
-│   │   │   ├── register/
-│   │   │   │   └── route.ts
+├── src/                        ← مصدر التطبيق (بنية src/ — المرحلة ٧)
+│   ├── app/                    ← Next.js App Router
+│   │   ├── layout.tsx              ← التخطيط الجذري (html lang, dir, Providers)
+│   │   ├── page.tsx                ← الصفحة الرئيسية (redirect → /[locale])
+│   │   ├── globals.css
+│   │   ├── providers.tsx           ← ThemeProviderWrapper > AuthProvider > children
+│   │   ├── config.ts               ← الثوابت والإعدادات المركزية
+│   │   ├── types.ts                ← جميع واجهات TypeScript
+│   │   │
+│   │   ├── [locale]/              ← التوجيه حسب اللغة (ar | en)
+│   │   │   ├── layout.tsx          ← تخطيط اللغة (lang + dir + NextIntlClientProvider)
 │   │   │   ├── login/
-│   │   │   │   └── route.ts
-│   │   │   └── me/
+│   │   │   │   └── page.tsx        ← صفحة تسجيل الدخول
+│   │   │   ├── register/
+│   │   │   │   └── page.tsx        ← صفحة إنشاء حساب
+│   │   │   ├── notes/
+│   │   │   │   ├── page.tsx        ← صفحة الملاحظات (قائمة + بحث + تصفية + حذف)
+│   │   │   │   ├── new/
+│   │   │   │   │   └── page.tsx    ← صفحة إنشاء ملاحظة جديدة
+│   │   │   │   └── [id]/
+│   │   │   │       ├── page.tsx    ← صفحة عرض ملاحظة (قراءة فقط)
+│   │   │   │       └── edit/
+│   │   │   │           └── page.tsx ← صفحة تعديل ملاحظة
+│   │   │   └── profile/
+│   │   │       └── page.tsx        ← صفحة الملف الشخصي
+│   │   │
+│   │   ├── api/                    ← Next.js Route Handlers
+│   │   │   ├── auth/
+│   │   │   │   ├── register/
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── login/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── me/
+│   │   │   │       └── route.ts
+│   │   │   ├── users/
+│   │   │   │   └── [id]/
+│   │   │   │       └── route.ts
+│   │   │   ├── notes/
+│   │   │   │   ├── route.ts        ← GET (قائمة) + POST (إنشاء)
+│   │   │   │   └── [id]/
+│   │   │   │       └── route.ts    ← GET + PUT + DELETE
+│   │   │   ├── push/
+│   │   │   │   ├── subscribe/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── send/
+│   │   │   │       └── route.ts
+│   │   │   └── health/
 │   │   │       └── route.ts
-│   │   ├── users/
-│   │   │   └── [id]/
-│   │   │       └── route.ts
-│   │   ├── notes/
-│   │   │   ├── route.ts        ← GET (قائمة) + POST (إنشاء)
-│   │   │   └── [id]/
-│   │   │       └── route.ts    ← GET + PUT + DELETE
-│   │   ├── push/
-│   │   │   ├── subscribe/
-│   │   │   │   └── route.ts
-│   │   │   └── send/
-│   │   │       └── route.ts
-│   │   └── health/
-│   │       └── route.ts
+│   │   │
+│   │   ├── components/             ← مكونات واجهة المستخدم
+│   │   │   ├── layout/
+│   │   │   │   ├── AppBar.tsx      ← شريط التطبيق (عنوان + سمة + لغة + قائمة مستخدم)
+│   │   │   │   ├── SideBar.tsx     ← قائمة جانبية (responsive drawer)
+│   │   │   │   ├── MainLayout.tsx  ← تخطيط رئيسي (AppBar + SideBar + محتوى)
+│   │   │   │   └── EmotionCacheProvider.tsx ← CacheProvider مع دعم RTL/LTR ديناميكي
+│   │   │   ├── auth/
+│   │   │   │   └── PrivateRoute.tsx ← حماية الصفحات (redirect to /[locale]/login)
+│   │   │   ├── notes/
+│   │   │   │   ├── NoteCard.tsx         ← بطاقة ملاحظة (عنوان + نوع + تاريخ + معاينة)
+│   │   │   │   ├── NoteList.tsx         ← قائمة الملاحظات (Grid + بحث + تصفية + ترقيم)
+│   │   │   │   ├── NoteEditorForm.tsx   ← نموذج مشترك للإنشاء والتعديل (صفحة كاملة)
+│   │   │   │   ├── RichTextEditor.tsx   ← محرر نصوص متقدم (Tiptap + RTL كامل)
+│   │   │   │   ├── VoiceRecorder.tsx    ← مسجل صوتي (MediaRecorder + إيقاف/استئناف)
+│   │   │   │   └── DeleteConfirmDialog.tsx ← حوار تأكيد الحذف
+│   │   │   ├── profile/
+│   │   │   │   ├── ProfileEditor.tsx
+│   │   │   │   └── DeleteAccountDialog.tsx
+│   │   │   └── common/
+│   │   │       ├── LanguageToggle.tsx   ← زر تبديل اللغة (المرحلة ٧)
+│   │   │       ├── LocaleSwitchPromptDialog.tsx ← حوار اقتراح تبديل اللغة بعد تسجيل الدخول
+│   │   │       └── ThemeToggle.tsx
+│   │   │
+│   │   ├── context/
+│   │   │   ├── ThemeContext.tsx     ← MUI Theme + RTL/LTR + light/dark
+│   │   │   └── AuthContext.tsx      ← AuthProvider + JWT state + login/register/logout
+│   │   │
+│   │   ├── hooks/
+│   │   │   ├── useAuth.ts          ← خطاف المصادقة
+│   │   │   ├── useThemeMode.ts     ← خطاف تبديل السمة
+│   │   │   ├── useNotes.ts         ← خطاف إدارة الملاحظات (CRUD + بحث + تصفية)
+│   │   │   └── usePushNotifications.ts
+│   │   │
+│   │   ├── lib/
+│   │   │   ├── api.ts              ← طبقة HTTP Client (fetchApi + typed helpers)
+│   │   │   ├── apiErrors.ts        ← معالجة أخطاء API
+│   │   │   ├── mongodb.ts          ← اتصال MongoDB (singleton)
+│   │   │   ├── auth.ts             ← دوال JWT + bcrypt
+│   │   │   ├── navigation.ts       ← غلاف createNavigation من next-intl (المرحلة ٧)
+│   │   │   └── webpush.ts          ← إعداد web-push
+│   │   │
+│   │   ├── models/                 ← نماذج Mongoose
+│   │   │   ├── User.ts
+│   │   │   ├── Note.ts             ← + pre('save') consistency guard
+│   │   │   └── Subscription.ts
+│   │   │
+│   │   ├── repositories/           ← طبقة الوصول للبيانات
+│   │   │   ├── repository.interface.ts
+│   │   │   ├── base.repository.ts
+│   │   │   ├── user.repository.ts
+│   │   │   ├── note.repository.ts
+│   │   │   ├── subscription.repository.ts
+│   │   │   └── index.ts
+│   │   │
+│   │   ├── validators/
+│   │   │   └── index.ts
+│   │   │
+│   │   ├── middlewares/
+│   │   │   └── auth.middleware.ts
+│   │   │
+│   │   ├── utils/
+│   │   │   ├── audio.ts            ← مساعدات تحويل الصوت (blobToBase64, createAudioUrl, formatDuration)
+│   │   │   └── notes.ts            ← مساعدات مشتركة (stripHtml, formatDateShort, formatDateLong)
+│   │   │
+│   │   └── tests/
+│   │       ├── setup.ts
+│   │       ├── utils.tsx
+│   │       └── *.test.{ts,tsx}    ← 21 ملف اختبار — 278 اختبار ✅
 │   │
-│   ├── components/             ← مكونات واجهة المستخدم
-│   │   ├── layout/
-│   │   │   ├── AppBar.tsx      ← شريط التطبيق (عنوان + سمة + قائمة مستخدم)
-│   │   │   ├── SideBar.tsx     ← قائمة جانبية (responsive drawer)
-│   │   │   └── MainLayout.tsx  ← تخطيط رئيسي (AppBar + SideBar + محتوى)
-│   │   ├── auth/
-│   │   │   └── PrivateRoute.tsx ← حماية الصفحات (redirect to /login)
-│   │   ├── notes/
-│   │   │   ├── NoteCard.tsx         ← بطاقة ملاحظة (عنوان + نوع + تاريخ + معاينة + تنقل)
-│   │   │   ├── NoteList.tsx         ← قائمة الملاحظات (Grid + بحث + تصفية + ترقيم)
-│   │   │   ├── NoteEditorForm.tsx   ← نموذج مشترك للإنشاء والتعديل (صفحة كاملة)
-│   │   │   ├── RichTextEditor.tsx   ← محرر نصوص متقدم (Tiptap + تمرير داخلي)
-│   │   │   ├── VoiceRecorder.tsx    ← مسجل صوتي (MediaRecorder + إيقاف/استئناف + مشغل ناتيف)
-│   │   │   └── DeleteConfirmDialog.tsx ← حوار تأكيد الحذف
-│   │   ├── profile/
-│   │   │   ├── ProfileEditor.tsx
-│   │   │   └── DeleteAccountButton.tsx
-│   │   └── common/
-│   │       ├── Alert.tsx
-│   │       ├── Spinner.tsx
-│   │       ├── ThemeToggle.tsx
-│   │       └── LanguageToggle.tsx
+│   ├── i18n/                      ← إعداد next-intl (المرحلة ٧)
+│   │   ├── request.ts              ← getRequestConfig (تحميل ملفات الترجمة حسب اللغة)
+│   │   └── routing.ts              ← تعريف المسارات (locales: ['ar','en']، defaultLocale: 'ar')
 │   │
-│   ├── context/
-│   │   ├── ThemeContext.tsx     ← MUI Theme + RTL + light/dark + CacheProvider
-│   │   └── AuthContext.tsx      ← AuthProvider + JWT state + login/register/logout
+│   ├── messages/                   ← ملفات الترجمة (المرحلة ٧)
+│   │   ├── ar.json
+│   │   └── en.json
 │   │
-│   ├── hooks/
-│   │   ├── useAuth.ts          ← خطاف المصادقة
-│   │   ├── useThemeMode.ts     ← خطاف تبديل السمة
-│   │   ├── useNotes.ts         ← خطاف إدارة الملاحظات (CRUD + بحث + تصفية)
-│   │   └── usePushNotifications.ts
-│   │
-│   ├── lib/
-│   │   ├── api.ts              ← طبقة HTTP Client (fetchApi + typed helpers)
-│   │   ├── apiErrors.ts        ← معالجة أخطاء API
-│   │   ├── mongodb.ts          ← اتصال MongoDB (singleton)
-│   │   ├── auth.ts             ← دوال JWT + bcrypt
-│   │   └── webpush.ts          ← إعداد web-push
-│   │
-│   ├── models/                 ← نماذج Mongoose
-│   │   ├── User.ts
-│   │   ├── Note.ts             ← + pre('save') consistency guard
-│   │   └── Subscription.ts
-│   │
-│   ├── repositories/           ← طبقة الوصول للبيانات
-│   │   ├── repository.interface.ts
-│   │   ├── base.repository.ts
-│   │   ├── user.repository.ts
-│   │   ├── note.repository.ts
-│   │   ├── subscription.repository.ts
-│   │   └── index.ts
-│   │
-│   ├── validators/
-│   │   └── index.ts
-│   │
-│   ├── middlewares/
-│   │   └── auth.middleware.ts
-│   │
-│   ├── utils/
-│   │   ├── audio.ts            ← مساعدات تحويل الصوت (blobToBase64, createAudioUrl, formatDuration)
-│   │   └── notes.ts            ← مساعدات مشتركة (stripHtml, formatDateShort, formatDateLong)
-│   │
-│   └── tests/
-│       ├── setupTests.ts
-│       ├── config.test.ts
-│       ├── types.test.ts
-│       ├── api.test.ts
-│       ├── repositories.test.ts
-│       ├── validators.test.ts
-│       ├── useAuth.test.tsx
-│       ├── useThemeMode.test.tsx
-│       └── components.test.tsx
-│
-├── messages/                   ← ملفات الترجمة (next-intl — المرحلة ٧)
-│   ├── ar.json
-│   └── en.json
+│   ├── proxy.ts                   ← proxy التوجيه حسب اللغة (next-intl) — تمت إعادة التسمية من middleware.ts (Next.js 16)
+│   └── instrumentation.ts         ← خطاف بدء الخادم (port + MongoDB status)
 │
 ├── public/
 │   ├── manifest.json
@@ -723,26 +729,127 @@ web-notes-e1/
 
 #### المهام:
 
-- [ ] **٧.١** إعداد `next-intl`:
-  - تكوين `i18n.ts` مع اللغات المدعومة (ar, en)
-  - تكوين middleware للتوجيه حسب اللغة
-  - تحديث `next.config.js` مع إعداد `createNextIntlPlugin`
-- [ ] **٧.٢** إنشاء ملفات الترجمة:
-  - `messages/ar.json` — جميع النصوص بالعربية
-  - `messages/en.json` — جميع النصوص بالإنجليزية
-- [ ] **٧.٣** تحديث بنية المسارات لدعم `[locale]`:
-  - نقل الصفحات إلى `app/[locale]/`
-  - تحديث `layout.tsx` لضبط `lang` و `dir` ديناميكياً
-- [ ] **٧.٤** إنشاء `app/components/common/LanguageToggle.tsx`:
-  - زر تبديل اللغة في AppBar
-  - حفظ تفضيل اللغة
-- [ ] **٧.٥** تحديث جميع المكونات لاستخدام `useTranslations()`:
-  - استبدال النصوص الثابتة بمفاتيح ترجمة
-  - ضبط اتجاه الصفحة (RTL/LTR) حسب اللغة
-- [ ] **٧.٦** تحديث رسائل التحقق من المدخلات لدعم اللغتين
-- [ ] **٧.٧** التحقق من عمل التبديل بين اللغتين
+- [x] **٧.١** إعداد `next-intl`:
+  - إنشاء `src/i18n/routing.ts` — تعريف `locales: ['ar', 'en']` و `defaultLocale: 'ar'`
+  - إنشاء `src/i18n/request.ts` — `getRequestConfig` لتحميل ملفات الترجمة
+  - إنشاء `src/proxy.ts` — proxy التوجيه التلقائي حسب اللغة (أُعيد تسميته من `middleware.ts` متوافقاً مع Next.js 16)
+  - تحديث `next.config.js` باستخدام `createNextIntlPlugin('./src/i18n/request.ts')`
+- [x] **٧.٢** إنشاء ملفات الترجمة:
+  - `src/messages/ar.json` — جميع النصوص بالعربية (150+ مفتاح)
+  - `src/messages/en.json` — جميع النصوص بالإنجليزية (150+ مفتاح)
+  - النطاقات: AppBar، SideBar، NoteList، NoteCard، NoteEditorForm، DeleteConfirmDialog، ProfileEditor، DeleteAccountDialog، RegisterPage، LoginPage
+- [x] **٧.٣** تحديث بنية المسارات لدعم `[locale]`:
+  - نقل الصفحات إلى `src/app/[locale]/` (login، register، notes، profile)
+  - إنشاء `src/app/[locale]/layout.tsx` — يضبط `lang` و `dir` ديناميكياً + `NextIntlClientProvider`
+  - حذف الصفحات الجذرية القديمة (app/login، app/register، app/notes، app/profile)
+- [x] **٧.٤** إنشاء خدمات التنقل والتبديل:
+  - `src/app/lib/navigation.ts` — غلاف `createNavigation` لتغليف `useRouter`، `usePathname`، `Link`، `redirect` بدعم اللغة
+  - `src/app/components/common/LanguageToggle.tsx` — زر تبديل اللغة في AppBar (تسلسل `/ar/...` ↔ `/en/...`)
+- [x] **٧.٥** تحديث جميع المكونات التسعة لاستخدام `useTranslations()`:
+  - `AppBar.tsx` — أضاف `<LanguageToggle />` + `useTranslations('AppBar')`
+  - `SideBar.tsx` — `useTranslations('SideBar')` + `useRouter` من `navigation.ts`
+  - `NoteList.tsx` — `useTranslations('NoteList')`
+  - `NoteCard.tsx` — `useTranslations('NoteCard')` + `useRouter` من `navigation.ts`
+  - `NoteEditorForm.tsx` — `useTranslations('NoteEditorForm')`
+  - `DeleteConfirmDialog.tsx` — `useTranslations('DeleteConfirmDialog')`
+  - `ProfileEditor.tsx` — `useTranslations('ProfileEditor')` + `validateUsername(val, t)` مع `TFunc`
+  - `DeleteAccountDialog.tsx` — `useTranslations('DeleteAccountDialog')` + `useRouter`
+  - `PrivateRoute.tsx` — `useRouter` من `navigation.ts`
+- [x] **٧.٦** تحديث `ThemeContext.tsx` لدعم RTL/LTR ديناميكياً:
+  - `useLocale()` لتحديد اتجاه النص تلقائياً
+  - `EmotionCacheProvider` يقبل `dir` prop مع خيارات `RTL_OPTIONS`/`LTR_OPTIONS` منفصلة
+  - `buildTheme(mode, dir)` — تمرير الاتجاه للسمة
+- [x] **٧.٧** إعادة هيكلة المشروع إلى `src/` (أفضل الممارسات):
+  - نقل `app/` → `src/app/`، `messages/` → `src/messages/`، `i18n/` → `src/i18n/`
+  - نقل `middleware.ts` و `instrumentation.ts` إلى `src/`
+  - تحديث `tsconfig.json`: `"@/*": ["./src/*"]`
+  - تحديث `vitest.config.ts`: مسارات الـ alias وملفات الاختبارات إلى `src/`
+  - ملفات الإعداد تبقى في الجذر: `next.config.js`، `tsconfig.json`، `package.json`
+- [x] **٧.٨** تحديث البنية التحتية للاختبارات:
+  - `tests/setup.ts` — `vi.mock('@/app/lib/navigation', ...)` عالمياً + `import React`
+  - `tests/utils.tsx` — تغليف `AllProviders` بـ `NextIntlClientProvider`
+  - تحديث 11 ملف اختبار: استبدال `vi.mock('next/navigation')` بـ `vi.mock('@/app/lib/navigation')`
+  - تحديث 7 ملفات: مسارات الاستيراد من `@/app/[locale]/...`
+  - إضافة `vi.mock('next-intl', ...)` في `ThemeContext.test.tsx`
+  - إصلاح `MainLayout.tsx`: `useRouter` من `navigation.ts` بدلاً من `next/navigation`
+- [x] **٧.٩** التحقق من اكتمال التنفيذ:
+  - `npx tsc --noEmit` → لا أخطاء TypeScript (exit code 0)
+  - `npx vitest run` → **271 اختبار ✅** جميعها ناجحة (أصبحت **278** بعد مكملات UX)
 
-**الإيداع:** `feat(i18n): add Arabic and English language support with next-intl`
+**الحالة:** ✅ منفذة بالكامل
+
+**الإيداعات:**
+1. `feat(i18n): add next-intl routing, locale layout, and LanguageToggle`
+2. `feat(i18n): translate all components with useTranslations and update navigation`
+3. `refactor(structure): move source files to src/ directory`
+4. `fix(i18n+tests): resolve TypeScript errors and test failures after Phase 7 migration`
+
+---
+
+### مكملات مرحلة 7: تحسينات UX ثنائية الاتجاه ونظام تفضيل اللغة
+
+**الهدف:** تحسينات تجربة المستخدم بعد إكمال الدعم الثنائي
+
+#### المهام:
+
+- [x] **٢٧.1** ترجمة اسم التطبيق في `AppBar`:
+  - حذف `APP_NAME_AR` الثابت
+  - `const tApp = useTranslations('App')` + `{tApp('name')}` — يظهر "ملاحظاتي" بالعربية و"MyNotes" بالإنجليزية
+- [x] **٢٧.2** أيقونات الرجوع مدركة للاتجاه:
+  - في 3 صفحات: `notes/new`، `notes/[id]`، `notes/[id]/edit`
+  - استبدال `ArrowForwardIcon` → `ArrowBackIcon` + `sx={(theme) => ({ transform: theme.direction === 'rtl' ? 'scaleX(-1)' : undefined })}`
+  - في RTL: السهم يشير لليمين (← مقلوب) بما يتوافق مع مبدأ "الرجوع" في القراءة العربية
+- [x] **٢٧.3** `RichTextEditor` — تحويل كامل لتaتجاه ثنائي:
+  - حالة `contentDir` (`'rtl'|'ltr'`) مهيّأة من `useLocale()`
+  - زر تبديل اتجاه المحتوى في شريط الأدوات (`FormatTextdirectionRToLIcon` / `LToRIcon`)
+  - جميع تلميحات شريط الأدوات (12 مفتاح) تُترجم عبر `useTranslations('RichTextEditor')`
+  - نطاق `RichTextEditor` أضيف إلى `ar.json` + `en.json` (14 مفتاح)
+- [x] **٢٧.4** نظام تفضيل اللغة — طبقات ثلاث:
+  - **نوع `UserLanguagePref`**: `'ar' | 'en' | 'unset'` (افتراضي `'unset'`) في `types.ts`
+  - **نموذج `User`**: تحديث enum `language` ليشمل `'unset'`
+  - **`AuthContext`**: إضافة `pendingLocaleSuggestion` + `clearLocaleSuggestion`
+    - بعد تسجيل الدخول: إذا كان `user.language ≠ 'unset' && ≠ locale` تُطلق الاقتراح
+  - **`LocaleSwitchPromptDialog`** (مكون جديد): حوار يسأل المستخدم عند تسجيل الدخول
+    - "نعم، بدّل" → `router.replace` باللغة المفضلة (جلسة فقط، لا يحفظ في DB)
+    - "لا، أبقِها" → إغلاق الحوار فقط
+  - **`providers.tsx`**: إضافة `<LocaleSwitchPromptDialog />` داخل `AuthProvider`
+  - **`ProfileEditor`**: بطاقة "تفضيلات اللغة" بعد بيانات المستخدم
+    - خيارات Radio: العربية / الإنجليزية / تلقائي (unset)
+    - تحفظ فورياً في DB عبر `updateUserApi`
+  - **الترجمات**: نطاقا جديدان `LocaleSwitchPrompt` + مفاتيح لغة في `ProfileEditor`
+
+**الحالة:** ✅ منفذة بالكامل
+
+**الإيداعات:**
+1. `docs(plan): update project-plan for Phase 7 completion`
+2. `feat(ux): RTL-aware icons, translatable app name, bidirectional editor`
+3. `feat(i18n): user language preference with browser detection and login prompt`
+
+---
+
+### إصلاحات ما بعد المرحلة ٧: Routing + Next.js 16 Proxy
+
+**الهدف:** معالجة أخطاء 404 في التوجيه وتحديث الملفات وفق Next.js 16
+
+#### المهام:
+
+- [x] **ب٧.١** إصلاح `src/app/page.tsx` — الصفحة الجذرية:
+  - **المشكلة:** كانت `'use client'` تستخدم `useRouter` من `next/navigation` (غير مدرك للغة) وتعيد التوجيه إلى `/notes` (مسار غير موجود — الصحيح `/ar/notes`)
+  - **الإصلاح:** تحويلها إلى Server Component بسيط يستدعي `redirect('/ar')` كحاجز احتياطي خلف middleware الـ next-intl الذي يتولى `/ → /ar` أصلاً
+  - النتيجة: `GET /` يُرجع `307 → /ar` ✅
+- [x] **ب٧.٢** إعادة تسمية `src/middleware.ts` → `src/proxy.ts`:
+  - **السبب:** Next.js 16 رفع تحذير deprecation: `"The middleware file convention is deprecated. Please use proxy instead."`
+  - المحتوى مطابق (نفس `createMiddleware(routing)` + نفس config.matcher)
+  - تحديث الشجرة وقسم 7.1 في ملف الخطط وفق الاسم الجديد
+- [x] **ب٧.٣** حذف `app/` الفارغ من جذر المشروع:
+  - كان يحتوي فقط على مجلدات فارغة (`components/auth/`, `components/layout/`, `components/notes/`, `context/`, `tests/`) بلا أي ملفات
+  - حذف كامل بلا أثر على الكود
+
+**الحالة:** ✅ منفذة بالكامل
+
+**الاختبارات:** 278/278 ✅ — `tsc --noEmit`: 0 أخطاء ✅
+
+**الإيداع:** `fix(routing): replace broken root page redirect + rename middleware to proxy`
 
 ---
 
@@ -986,7 +1093,7 @@ web-notes-e1/
 | `email` | String | البريد الإلكتروني | فريد، مطلوب، صيغة صحيحة |
 | `password` | String | كلمة المرور (مشفرة bcrypt) | مطلوب، 6+ أحرف |
 | `displayName` | String | اسم العرض | اختياري |
-| `language` | String | اللغة المفضلة | `'ar'` \| `'en'`، افتراضي `'ar'` |
+| `language` | String | تفضيل اللغة | `'ar'` \| `'en'` \| `'unset'`، افتراضي `'unset'` |
 | `createdAt` | Date | تاريخ الإنشاء | تلقائي |
 | `updatedAt` | Date | تاريخ آخر تحديث | تلقائي |
 

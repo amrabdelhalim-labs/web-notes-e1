@@ -28,7 +28,6 @@ import { useAuth } from '@/app/hooks/useAuth';
 import { useRouter } from '@/app/lib/navigation';
 import { useTranslations } from 'next-intl';
 import LanguageToggle from '@/app/components/common/LanguageToggle';
-import { APP_NAME_AR } from '@/app/config';
 
 interface AppBarProps {
   onMenuClick: () => void;
@@ -39,6 +38,7 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const t = useTranslations('AppBar');
+  const tApp = useTranslations('App');
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
@@ -77,7 +77,7 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
           noWrap
           sx={{ flexGrow: 1, fontWeight: 700, minWidth: 0 }}
         >
-          {APP_NAME_AR}
+          {tApp('name')}
         </Typography>
 
         {/* Theme toggle */}

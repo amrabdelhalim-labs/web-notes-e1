@@ -37,8 +37,8 @@ const userSchema = new Schema<IUser>(
     },
     language: {
       type: String,
-      enum: ['ar', 'en'],
-      default: 'ar',
+      enum: ['ar', 'en', 'unset'],
+      default: 'unset',
     },
   },
   { timestamps: true }

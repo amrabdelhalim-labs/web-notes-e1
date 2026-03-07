@@ -126,7 +126,14 @@
       "tooShort": "اسم المستخدم يجب أن يكون 3 أحرف على الأقل",
       "hasSpaces": "لا يسمح بالمسافات في اسم المستخدم",
       "invalidChars": "اسم المستخدم يقبل فقط حروفاً صغيرة (a-z)، أرقاماً، ورموز (. _ -)"
-    }
+    },
+    "languagePrefTitle": "تفضيلات اللغة",
+    "languagePrefHint": "اللغة المحفوظة تُعرض فقط عند تسجيل الدخول. لتبديل اللغة خلال الجلسة، استخدم زر اللغة في شريط التطبيق.",
+    "languagePrefLabel": "لغة التطبيق المفضلة",
+    "languageAr": "العربية",
+    "languageEn": "الإنجليزية",
+    "languageUnset": "تلقائي (حسب المتصفح / الجلسة)",
+    "languageSaveSuccess": "تم حفظ تفضيل اللغة بنجاح ✔️"
   },
   "DeleteAccountDialog": {
     "openButton": "حذف الحساب نهائياً",
@@ -176,5 +183,29 @@
     "editTitle": "تعديل: {title}",
     "editFallback": "تعديل الملاحظة",
     "notFound": "لم يتم العثور على الملاحظة"
+  },
+  "RichTextEditor": {
+    "switchToLTR": "كتابة من اليسار (إنجليزي)",
+    "switchToRTL": "كتابة من اليمين (عربي)",
+    "bold": "عريض (Ctrl+B)",
+    "italic": "مائل (Ctrl+I)",
+    "underline": "تسطير (Ctrl+U)",
+    "strikethrough": "يتوسطه خط",
+    "highlight": "تمييز",
+    "heading1": "عنوان رئيسي",
+    "heading2": "عنوان فرعي",
+    "bulletList": "قائمة نقطية",
+    "orderedList": "قائمة مرقمة",
+    "alignRight": "محاذاة لليمين",
+    "alignCenter": "توسيط",
+    "alignLeft": "محاذاة لليسار"
+  },
+  "LocaleSwitchPrompt": {
+    "title": "تبديل لغة الجلسة",
+    "body": "تفضيلك المحفوظ هو لغة ال{lang}. هل تريد التبديل إليها الآن؟",
+    "arabic": "عربية",
+    "english": "إنجليزية",
+    "switchNow": "نعم، بدّل",
+    "keepCurrent": "لا، أبقِها"
   }
 }

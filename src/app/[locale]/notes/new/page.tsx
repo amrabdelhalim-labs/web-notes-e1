@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useTranslations } from 'next-intl';
 import MainLayout from '@/app/components/layout/MainLayout';
 import NoteEditorForm from '@/app/components/notes/NoteEditorForm';
@@ -33,7 +33,7 @@ export default function NewNotePage() {
     <MainLayout>
       <Box sx={{ mb: 3 }}>
         <Button
-          startIcon={<ArrowForwardIcon />}
+          startIcon={<ArrowBackIcon sx={(theme) => ({ transform: theme.direction === 'rtl' ? 'scaleX(-1)' : undefined })} />}
           onClick={handleCancel}
           sx={{ mb: 1 }}
         >

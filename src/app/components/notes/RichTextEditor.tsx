@@ -14,7 +14,8 @@
  * Content is stored as HTML string which fits the existing `content` field.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -38,6 +39,8 @@ import FormatAlignCenterIcon from '@mui/icons-material/FormatAlignCenter';
 import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
 import HighlightIcon from '@mui/icons-material/Highlight';
 import TitleIcon from '@mui/icons-material/Title';
+import FormatTextdirectionRToLIcon from '@mui/icons-material/FormatTextdirectionRToL';
+import FormatTextdirectionLToRIcon from '@mui/icons-material/FormatTextdirectionLToR';
 import type { Editor } from '@tiptap/react';
 
 interface RichTextEditorProps {
@@ -61,7 +64,14 @@ interface RichTextEditorProps {
 
 // ─── Toolbar ─────────────────────────────────────────────────────────────────
 
-function EditorToolbar({ editor }: { editor: Editor | null }) {
+interface EditorToolbarProps {
+  editor: Editor | null;
+  contentDir: 'rtl' | 'ltr';
+  onDirChange: (dir: 'rtl' | 'ltr') => void;
+}
+
+function EditorToolbar({ editor, contentDir, onDirChange }: EditorToolbarProps) {
+  const t = useTranslations('RichTextEditor');
   if (!editor) return null;
 
   return (
@@ -75,9 +85,26 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
         borderColor: 'divider',
       }}
     >
+      {/* Content direction toggle: lets users write Arabic (RTL) or English (LTR) */}
+      <Tooltip title={contentDir === 'rtl' ? t('switchToLTR') : t('switchToRTL')}>
+        <ToggleButton
+          value="dir"
+          size="small"
+          selected={contentDir === 'rtl'}
+          onChange={() => onDirChange(contentDir === 'rtl' ? 'ltr' : 'rtl')}
+          aria-label={contentDir === 'rtl' ? t('switchToLTR') : t('switchToRTL')}
+        >
+          {contentDir === 'rtl'
+            ? <FormatTextdirectionRToLIcon fontSize="small" />
+            : <FormatTextdirectionLToRIcon fontSize="small" />}
+        </ToggleButton>
+      </Tooltip>
+
+      <Divider flexItem orientation="vertical" sx={{ mx: 0.5 }} />
+
       {/* Inline styles */}
       <ToggleButtonGroup size="small">
-        <Tooltip title="عريض (Ctrl+B)">
+        <Tooltip title={t('bold')}>
           <ToggleButton
             value="bold"
             selected={editor.isActive('bold')}
@@ -86,7 +113,7 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
             <FormatBoldIcon fontSize="small" />
           </ToggleButton>
         </Tooltip>
-        <Tooltip title="مائل (Ctrl+I)">
+        <Tooltip title={t('italic')}>
           <ToggleButton
             value="italic"
             selected={editor.isActive('italic')}
@@ -95,7 +122,7 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
             <FormatItalicIcon fontSize="small" />
           </ToggleButton>
         </Tooltip>
-        <Tooltip title="تسطير (Ctrl+U)">
+        <Tooltip title={t('underline')}>
           <ToggleButton
             value="underline"
             selected={editor.isActive('underline')}
@@ -104,7 +131,7 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
             <FormatUnderlinedIcon fontSize="small" />
           </ToggleButton>
         </Tooltip>
-        <Tooltip title="يتوسطه خط">
+        <Tooltip title={t('strikethrough')}>
           <ToggleButton
             value="strike"
             selected={editor.isActive('strike')}
@@ -113,7 +140,7 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
             <StrikethroughSIcon fontSize="small" />
           </ToggleButton>
         </Tooltip>
-        <Tooltip title="تمييز">
+        <Tooltip title={t('highlight')}>
           <ToggleButton
             value="highlight"
             selected={editor.isActive('highlight')}
@@ -128,7 +155,7 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
 
       {/* Headings */}
       <ToggleButtonGroup size="small">
-        <Tooltip title="عنوان رئيسي">
+        <Tooltip title={t('heading1')}>
           <ToggleButton
             value="h2"
             selected={editor.isActive('heading', { level: 2 })}
@@ -137,7 +164,7 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
             <TitleIcon fontSize="small" />
           </ToggleButton>
         </Tooltip>
-        <Tooltip title="عنوان فرعي">
+        <Tooltip title={t('heading2')}>
           <ToggleButton
             value="h3"
             selected={editor.isActive('heading', { level: 3 })}
@@ -152,7 +179,7 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
 
       {/* Lists */}
       <ToggleButtonGroup size="small">
-        <Tooltip title="قائمة نقطية">
+        <Tooltip title={t('bulletList')}>
           <ToggleButton
             value="bulletList"
             selected={editor.isActive('bulletList')}
@@ -161,7 +188,7 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
             <FormatListBulletedIcon fontSize="small" />
           </ToggleButton>
         </Tooltip>
-        <Tooltip title="قائمة مرقمة">
+        <Tooltip title={t('orderedList')}>
           <ToggleButton
             value="orderedList"
             selected={editor.isActive('orderedList')}
@@ -176,7 +203,7 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
 
       {/* Alignment */}
       <ToggleButtonGroup size="small">
-        <Tooltip title="محاذاة لليمين">
+        <Tooltip title={t('alignRight')}>
           <ToggleButton
             value="right"
             selected={editor.isActive({ textAlign: 'right' })}
@@ -185,7 +212,7 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
             <FormatAlignRightIcon fontSize="small" />
           </ToggleButton>
         </Tooltip>
-        <Tooltip title="توسيط">
+        <Tooltip title={t('alignCenter')}>
           <ToggleButton
             value="center"
             selected={editor.isActive({ textAlign: 'center' })}
@@ -194,7 +221,7 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
             <FormatAlignCenterIcon fontSize="small" />
           </ToggleButton>
         </Tooltip>
-        <Tooltip title="محاذاة لليسار">
+        <Tooltip title={t('alignLeft')}>
           <ToggleButton
             value="left"
             selected={editor.isActive({ textAlign: 'left' })}
@@ -218,6 +245,14 @@ export default function RichTextEditor({
   maxHeight,
   readOnly = false,
 }: RichTextEditorProps) {
+  const locale = useLocale();
+  // Content direction: defaults to the app locale's natural direction.
+  // The user can toggle it in the toolbar to write English inside an Arabic note
+  // or vice-versa. This state is local to the note session and is NOT persisted.
+  const [contentDir, setContentDir] = useState<'rtl' | 'ltr'>(
+    () => (locale === 'ar' ? 'rtl' : 'ltr'),
+  );
+
   // Stable ref for onChange so the editor closure never goes stale
   const onChangeRef = useRef(onChange);
   useEffect(() => { onChangeRef.current = onChange; });
@@ -231,19 +266,20 @@ export default function RichTextEditor({
       Underline,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
-        defaultAlignment: 'right',
+        defaultAlignment: contentDir === 'rtl' ? 'right' : 'left',
       }),
       Placeholder.configure({ placeholder }),
       Highlight,
     ],
     content,
     editable: !readOnly,
-    // `dir="rtl"` on the editor DOM element is required for correct cursor
-    // placement and caret direction. CSS `direction: rtl` alone is NOT enough
-    // — the browser uses the HTML attribute to handle bidirectional input.
+    // The HTML `dir` attribute drives cursor placement and caret direction.
+    // It is set to the current contentDir state on init; subsequent changes
+    // are applied via a useEffect that mutates the DOM attribute directly
+    // (Tiptap does not re-run editorProps when options change after mount).
     editorProps: {
       attributes: {
-        dir: 'rtl',
+        dir: contentDir,
         spellcheck: 'true',
       },
     },
@@ -278,6 +314,22 @@ export default function RichTextEditor({
     }
   }, [readOnly, editor]);
 
+  // Sync the HTML dir attribute on the editor element when content direction
+  // changes. A boolean ref prevents the initial mount from resetting alignments
+  // that are already stored in the loaded content.
+  const isFirstDirSync = useRef(true);
+  useEffect(() => {
+    if (!editor) return;
+    editor.view.dom.setAttribute('dir', contentDir);
+    if (isFirstDirSync.current) {
+      isFirstDirSync.current = false;
+      return; // skip on mount — let stored content alignments stand
+    }
+    // On explicit user switch, apply the matching default alignment to the
+    // current selection so newly typed text starts in the right direction.
+    editor.commands.setTextAlign(contentDir === 'rtl' ? 'right' : 'left');
+  }, [contentDir, editor]);
+
   return (
     <Paper
       variant="outlined"
@@ -290,7 +342,13 @@ export default function RichTextEditor({
         },
       }}
     >
-      {!readOnly && <EditorToolbar editor={editor} />}
+      {!readOnly && (
+        <EditorToolbar
+          editor={editor}
+          contentDir={contentDir}
+          onDirChange={setContentDir}
+        />
+      )}
       <Box
         sx={(theme) => ({
           '& .tiptap': {

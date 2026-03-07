@@ -126,7 +126,14 @@
       "tooShort": "Username must be at least 3 characters",
       "hasSpaces": "Spaces are not allowed in usernames",
       "invalidChars": "Username may only contain lowercase letters (a-z), digits, and symbols (. _ -)"
-    }
+    },
+    "languagePrefTitle": "Language preference",
+    "languagePrefHint": "Your saved preference is applied when you log in. Use the language toggle in the app bar to change the session language.",
+    "languagePrefLabel": "Preferred app language",
+    "languageAr": "Arabic",
+    "languageEn": "English",
+    "languageUnset": "Auto (follow browser / session)",
+    "languageSaveSuccess": "Language preference saved \u2714\ufe0f"
   },
   "DeleteAccountDialog": {
     "openButton": "Delete account permanently",
@@ -176,5 +183,29 @@
     "editTitle": "Edit: {title}",
     "editFallback": "Edit note",
     "notFound": "Note not found"
+  },
+  "RichTextEditor": {
+    "switchToLTR": "Write left-to-right (English)",
+    "switchToRTL": "Write right-to-left (Arabic)",
+    "bold": "Bold (Ctrl+B)",
+    "italic": "Italic (Ctrl+I)",
+    "underline": "Underline (Ctrl+U)",
+    "strikethrough": "Strikethrough",
+    "highlight": "Highlight",
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "bulletList": "Bullet list",
+    "orderedList": "Numbered list",
+    "alignRight": "Align right",
+    "alignCenter": "Center",
+    "alignLeft": "Align left"
+  },
+  "LocaleSwitchPrompt": {
+    "title": "Switch session language",
+    "body": "Your saved preference is {lang}. Do you want to switch to it now?",
+    "arabic": "Arabic",
+    "english": "English",
+    "switchNow": "Yes, switch",
+    "keepCurrent": "No, keep current"
   }
 }

@@ -2,6 +2,8 @@ import { Document, Types } from 'mongoose';
 
 // ─── Shared Types ────────────────────────────────────────────────────────────
 export type SupportedLocale = 'ar' | 'en';
+/** 'unset' means the user has not set a preference — browser/URL locale is used. */
+export type UserLanguagePref = SupportedLocale | 'unset';
 export type NoteType = 'text' | 'voice';
 
 // ─── Client-Side Types (serialisable — JSON safe) ───────────────────────────
@@ -10,7 +12,7 @@ export interface User {
   username: string;
   email: string;
   displayName?: string;
-  language: SupportedLocale;
+  language: UserLanguagePref;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,7 +40,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   displayName?: string;
-  language: SupportedLocale;
+  language: UserLanguagePref;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -121,7 +123,7 @@ export interface UpdateUserInput {
   username?: string;
   email?: string;
   displayName?: string;
-  language?: SupportedLocale;
+  language?: UserLanguagePref;
 }
 
 export interface ChangePasswordInput {

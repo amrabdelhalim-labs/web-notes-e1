@@ -133,7 +133,7 @@ export function validateUpdateUserInput(input: UpdateUserInput): string[] {
     errors.push('اسم العرض يجب ألا يتجاوز 50 حرف');
   }
 
-  if (input.language !== undefined && !['ar', 'en'].includes(input.language)) {
+  if (input.language !== undefined && !['ar', 'en', 'unset'].includes(input.language)) {
     errors.push('اللغة المختارة غير مدعومة');
   }
 

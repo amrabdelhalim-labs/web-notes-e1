@@ -1,36 +1,13 @@
-'use client';
-
 /**
- * Root page — redirects authenticated users to /notes,
- * unauthenticated users to /login.
+ * Root page — server-side redirect to the default locale.
+ *
+ * The next-intl middleware normally handles the / → /ar redirect, but this
+ * server-side redirect acts as a belt-and-suspenders fallback and avoids the
+ * previous client-only redirect that used a non-locale-aware router and sent
+ * the user to /notes (which doesn't exist — the real path is /ar/notes).
  */
+import { redirect } from 'next/navigation';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
-import { useAuth } from '@/app/hooks/useAuth';
-
-export default function Home() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading) {
-      router.replace(user ? '/notes' : '/login');
-    }
-  }, [loading, user, router]);
-
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-      }}
-    >
-      <CircularProgress />
-    </Box>
-  );
+export default function RootPage() {
+  redirect('/ar');
 }

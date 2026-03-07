@@ -2,7 +2,7 @@ import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 
 /**
- * next-intl locale middleware
+ * next-intl locale proxy (formerly middleware)
  *
  * Automatically:
  *   - Redirects requests without a locale prefix to the default locale (/ar)

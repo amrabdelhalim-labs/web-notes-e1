@@ -18,7 +18,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { User } from '@/app/types';
+import { useLocale } from 'next-intl';
+import type { User, SupportedLocale } from '@/app/types';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -37,6 +38,14 @@ export interface AuthContextValue {
   updateUser: (updated: User) => void;
   /** Clear session and redirect to /login. */
   logout: () => void;
+  /**
+   * Set when the logged-in user's saved language preference differs from the
+   * current URL locale. A prompt should be shown asking if the user wants to
+   * switch. Cleared by calling clearLocaleSuggestion().
+   */
+  pendingLocaleSuggestion: SupportedLocale | null;
+  /** Dismiss the locale-switch suggestion without switching. */
+  clearLocaleSuggestion: () => void;
 }
 
 const TOKEN_KEY = 'auth-token';
@@ -49,6 +58,8 @@ export const AuthContext = createContext<AuthContextValue>({
   register: async () => {},
   updateUser: () => {},
   logout: () => {},
+  pendingLocaleSuggestion: null,
+  clearLocaleSuggestion: () => {},
 });
 
 // ─── Fetch helper ───────────────────────────────────────────────────────────
@@ -75,12 +86,14 @@ async function apiFetch<T>(
 // ─── Provider ───────────────────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const locale = useLocale() as SupportedLocale;
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem(TOKEN_KEY);
   });
   const [loading, setLoading] = useState(true);
+  const [pendingLocaleSuggestion, setPendingLocaleSuggestion] = useState<SupportedLocale | null>(null);
   const didInit = useRef(false);
 
   /** Fetch /api/auth/me and update user state. */
@@ -118,7 +131,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(TOKEN_KEY, res.data.token);
     setToken(res.data.token);
     setUser(res.data.user);
-  }, []);
+    // Prompt if the user has an explicit language preference that differs from the current locale
+    const pref = res.data.user.language;
+    if (pref !== 'unset' && pref !== locale) {
+      setPendingLocaleSuggestion(pref);
+    }
+  }, [locale]);
 
   const register = useCallback(
     async (username: string, email: string, password: string) => {
@@ -137,6 +155,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
+    setPendingLocaleSuggestion(null);
+  }, []);
+
+  const clearLocaleSuggestion = useCallback(() => {
+    setPendingLocaleSuggestion(null);
   }, []);
 
   const updateUser = useCallback((updated: User) => {
@@ -144,8 +167,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, token, loading, login, register, updateUser, logout }),
-    [user, token, loading, login, register, updateUser, logout],
+    () => ({ user, token, loading, login, register, updateUser, logout, pendingLocaleSuggestion, clearLocaleSuggestion }),
+    [user, token, loading, login, register, updateUser, logout, pendingLocaleSuggestion, clearLocaleSuggestion],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
