@@ -33,6 +33,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -42,6 +44,8 @@ import { useAuth } from '@/app/hooks/useAuth';
 import { updateUserApi, changePasswordApi } from '@/app/lib/api';
 import { useTranslations } from 'next-intl';
 import type { UserLanguagePref } from '@/app/types';
+import { usePushNotifications } from '@/app/hooks/usePushNotifications';
+import { usePwaStatus } from '@/app/hooks/usePwaStatus';
 
 // ─── Shared validation ───────────────────────────────────────────────────────────
 
@@ -290,6 +294,13 @@ export default function ProfileEditor() {
   const [langSaving, setLangSaving] = useState(false);
   const [langMsg, setLangMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // ── Push notifications ────────────────────────────────────────────────
+  const tp = useTranslations('PushNotifications');
+  const { status: pushStatus, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
+  const { swState } = usePwaStatus();
+  
+  const swNotReady = swState !== 'active';
+
   // Keep langPref in sync if user updates from another path
   useEffect(() => {
     if (user) setLangPref(user.language);
@@ -451,6 +462,55 @@ export default function ProfileEditor() {
           </FormControl>
 
           {langSaving && <CircularProgress size={18} sx={{ mt: 1 }} />}
+        </CardContent>
+      </Card>
+
+      {/* ── Push Notifications ────────────────────────────────────────── */}
+      <Card>
+        <CardContent sx={{ p: 3 }}>
+          <Stack direction="row" alignItems="center" gap={1} mb={1}>
+            <NotificationsIcon color="primary" />
+            <Typography variant="h6">{tp('title')}</Typography>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" mb={2}>
+            {tp('hint')}
+          </Typography>
+
+          {swNotReady && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="body2">{tp('requiresServiceWorker')}</Typography>
+              <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                {tp('serviceWorkerStatus')}: {swState === 'unsupported' ? tp('swUnsupported') : swState === 'checking' ? tp('swChecking') : swState === 'installing' ? tp('swInstalling') : tp('swInactive')}
+              </Typography>
+            </Alert>
+          )}
+          
+          {!swNotReady && pushStatus === 'unsupported' && (
+            <Typography variant="body2" color="text.secondary">
+              {tp('unsupported')}
+            </Typography>
+          )}
+          {!swNotReady && pushStatus === 'denied' && (
+            <Typography variant="body2" color="error">
+              {tp('denied')}
+            </Typography>
+          )}
+          {!swNotReady && (pushStatus === 'unsubscribed' || pushStatus === 'subscribed') && (
+            <Button
+              variant={pushStatus === 'subscribed' ? 'outlined' : 'contained'}
+              color={pushStatus === 'subscribed' ? 'inherit' : 'primary'}
+              startIcon={pushStatus === 'subscribed' ? <NotificationsOffIcon /> : <NotificationsIcon />}
+              onClick={pushStatus === 'subscribed' ? pushUnsubscribe : pushSubscribe}
+            >
+              {pushStatus === 'subscribed' ? tp('unsubscribe') : tp('subscribe')}
+            </Button>
+          )}
+          {pushStatus === 'loading' && <CircularProgress size={24} />}
+          {pushStatus === 'subscribed' && (
+            <Typography variant="caption" color="success.main" display="block" mt={1}>
+              ✔ {tp('subscribed')}
+            </Typography>
+          )}
         </CardContent>
       </Card>
 

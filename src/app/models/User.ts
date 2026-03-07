@@ -44,9 +44,7 @@ const userSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-// ─── Indexes ─────────────────────────────────────────────────────────────────
-userSchema.index({ email: 1 }, { unique: true });
-userSchema.index({ username: 1 }, { unique: true });
+// Indexes: `unique: true` on the field definitions already creates unique indexes.
 
 /**
  * Prevent model recompilation during HMR in Next.js development.

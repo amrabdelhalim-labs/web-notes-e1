@@ -78,7 +78,7 @@ export class BaseRepository<T extends Document> implements IRepository<T> {
   }
 
   async update(id: string, data: UpdateQuery<T>): Promise<T | null> {
-    return this.model.findByIdAndUpdate(id, data, { new: true });
+    return this.model.findByIdAndUpdate(id, data, { returnDocument: 'after' });
   }
 
   async updateWhere(

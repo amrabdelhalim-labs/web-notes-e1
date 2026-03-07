@@ -31,6 +31,22 @@ vi.mock('@/app/lib/api', () => ({
   changePasswordApi: (...args: unknown[]) => mockChangePasswordApi(...args),
 }));
 
+vi.mock('@/app/hooks/usePushNotifications', () => ({
+  usePushNotifications: () => ({
+    status: 'unsupported',
+    subscribe: vi.fn(),
+    unsubscribe: vi.fn(),
+  }),
+}));
+
+vi.mock('@/app/hooks/usePwaStatus', () => ({
+  usePwaStatus: () => ({
+    swState: 'active',
+    installState: 'not-installable',
+    isReady: true,
+  }),
+}));
+
 import { useAuth } from '@/app/hooks/useAuth';
 
 // ─── Fixtures ──────────────────────────────────────────────────────────────

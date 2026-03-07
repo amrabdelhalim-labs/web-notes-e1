@@ -207,5 +207,51 @@
     "english": "English",
     "switchNow": "Yes, switch",
     "keepCurrent": "No, keep current"
+  },
+  "OfflineBanner": {
+    "offlineMessage": "You are offline — browsing cached notes",
+    "backOnlineMessage": "Back online — syncing your changes...",
+    "onlineStatus": "Connected to the internet",
+    "offlineStatus": "No internet connection"
+  },
+  "ConnectionStatus": {
+    "connectionStatus": "Connection Status",
+    "online": "Online",
+    "offline": "Offline",
+    "connectedDescription": "All features available",
+    "offlineDescription": "Browse mode — changes will sync later",
+    "synced": "Synced",
+    "syncPending": "Sync Pending",
+    "allSynced": "All changes saved",
+    "pendingOperations": "{count} operations pending sync",
+    "syncNow": "Sync Now",
+    "syncing": "Syncing...",
+    "pwaTitle": "PWA Status",
+    "swActive": "Active",
+    "swInstalling": "Installing...",
+    "swInactive": "Not registered",
+    "swUnsupported": "Not supported",
+    "swChecking": "Checking...",
+    "swLabel": "Service Worker",
+    "installStandalone": "Installed as app",
+    "installInstallable": "Available to install",
+    "installNotInstallable": "Not installable",
+    "installLabel": "Install state"
+  },
+  "PushNotifications": {
+    "title": "Push Notifications",
+    "hint": "Receive a notification when a new device signs into your account",
+    "subscribe": "Enable notifications",
+    "unsubscribe": "Disable notifications",
+    "subscribed": "Notifications enabled",
+    "unsupported": "Your browser does not support push notifications",
+    "denied": "Notification permission denied — enable it in browser settings",
+    "loading": "Loading...",
+    "requiresServiceWorker": "Push notifications are only available when the Service Worker is active",
+    "serviceWorkerStatus": "Service Worker Status",
+    "swUnsupported": "Not supported",
+    "swChecking": "Checking",
+    "swInstalling": "Installing",
+    "swInactive": "Not active"
   }
 }

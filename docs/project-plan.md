@@ -2,7 +2,7 @@
 
 > **المستودع:** `web-notes-e1`
 > **نوع المشروع:** تطبيق ويب تقدمي (PWA) — Full-Stack SSR
-> **الحالة:** المراحل ٠-٧ مكتملة — ٢٧٨ اختبار ✅
+> **الحالة:** المراحل ٠-١٠ مكتملة — ٣٣٣ اختبار ✅
 
 ---
 
@@ -90,7 +90,7 @@
 | Prettier | تنسيق الكود (2 مسافات، LF، فاصلة منقوطة) |
 | Vitest | تشغيل الاختبارات |
 | @testing-library/react | اختبار المكونات |
-| GitHub Actions | CI/CD |
+| Heroku | نشر تلقائي من الفرع الرئيسي |
 
 ---
 
@@ -112,7 +112,7 @@ web-notes-e1/
 ├── CONTRIBUTING.md
 ├── format.mjs
 ├── LICENSE
-├── next.config.js              ← ملف JS وليس TS (توافق Heroku)
+├── next.config.mjs             ← ملف ESM لتجنب تحذيرات CJS/ESM
 ├── package.json
 ├── tsconfig.json
 ├── vitest.config.ts
@@ -190,7 +190,9 @@ web-notes-e1/
 │   │   │   └── common/
 │   │   │       ├── LanguageToggle.tsx   ← زر تبديل اللغة (المرحلة ٧)
 │   │   │       ├── LocaleSwitchPromptDialog.tsx ← حوار اقتراح تبديل اللغة بعد تسجيل الدخول
-│   │   │       └── ThemeToggle.tsx
+│   │   │       ├── ThemeToggle.tsx      ← زر تبديل السمة (مستخرج من AppBar)
+│   │   │       ├── OfflineBanner.tsx    ← شريط تنبيه حالة الاتصال (في تدفق الصفحة)
+│   │   │       └── ConnectionIndicator.tsx ← مؤشر حالة الاتصال والمزامنة (AppBar)
 │   │   │
 │   │   ├── context/
 │   │   │   ├── ThemeContext.tsx     ← MUI Theme + RTL/LTR + light/dark
@@ -199,7 +201,9 @@ web-notes-e1/
 │   │   ├── hooks/
 │   │   │   ├── useAuth.ts          ← خطاف المصادقة
 │   │   │   ├── useThemeMode.ts     ← خطاف تبديل السمة
-│   │   │   ├── useNotes.ts         ← خطاف إدارة الملاحظات (CRUD + بحث + تصفية)
+│   │   │   ├── useNotes.ts         ← خطاف إدارة الملاحظات (CRUD + بحث + تصفية + offline)
+│   │   │   ├── useOfflineStatus.ts ← خطاف حالة الاتصال (online/offline)
+│   │   │   ├── useSyncStatus.ts    ← خطاف حالة المزامنة (Dexie pending ops)
 │   │   │   └── usePushNotifications.ts
 │   │   │
 │   │   ├── lib/
@@ -208,7 +212,9 @@ web-notes-e1/
 │   │   │   ├── mongodb.ts          ← اتصال MongoDB (singleton)
 │   │   │   ├── auth.ts             ← دوال JWT + bcrypt
 │   │   │   ├── navigation.ts       ← غلاف createNavigation من next-intl (المرحلة ٧)
-│   │   │   └── webpush.ts          ← إعداد web-push
+│   │   │   ├── webpush.ts          ← إعداد web-push
+│   │   │   ├── db.ts               ← IndexedDB عبر Dexie (التخزين المحلي offline)
+│   │   │   └── ui-constants.ts     ← ثوابت التخطيط المركزية (DRAWER_WIDTH, Z_INDEX, TRANSITIONS, SHADOWS)
 │   │   │
 │   │   ├── models/                 ← نماذج Mongoose
 │   │   │   ├── User.ts
@@ -236,7 +242,7 @@ web-notes-e1/
 │   │   └── tests/
 │   │       ├── setup.ts
 │   │       ├── utils.tsx
-│   │       └── *.test.{ts,tsx}    ← 21 ملف اختبار — 278 اختبار ✅
+│   │       └── *.test.{ts,tsx}    ← 30 ملف اختبار — 333 اختبار ✅
 │   │
 │   ├── i18n/                      ← إعداد next-intl (المرحلة ٧)
 │   │   ├── request.ts              ← getRequestConfig (تحميل ملفات الترجمة حسب اللغة)
@@ -246,6 +252,7 @@ web-notes-e1/
 │   │   ├── ar.json
 │   │   └── en.json
 │   │
+│   ├── sw.ts                      ← Service Worker المصدري (@serwist — يُجمّع إلى public/sw.js)
 │   ├── proxy.ts                   ← proxy التوجيه حسب اللغة (next-intl) — تمت إعادة التسمية من middleware.ts (Next.js 16)
 │   └── instrumentation.ts         ← خطاف بدء الخادم (port + MongoDB status)
 │
@@ -409,7 +416,7 @@ web-notes-e1/
     ↓
 المرحلة ١١: جودة الكود والتنسيق
     ↓
-المرحلة ١٢: CI/CD والنشر
+المرحلة ١٢: النشر (تلقائي عبر Heroku)
     ↓
 المرحلة ١٣: التوثيق الشامل
 ```
@@ -859,33 +866,37 @@ web-notes-e1/
 
 #### المهام:
 
-- [ ] **٨.١** إعداد Service Worker:
-  - تكوين `@serwist/next` أو `next-pwa`
+- [x] **٨.١** إعداد Service Worker:
+  - تكوين `@serwist/next`
   - إعداد استراتيجيات التخزين المؤقت (Cache Strategies):
     - HTML: NetworkFirst
     - CSS/JS: StaleWhileRevalidate
     - الصور والأيقونات: CacheFirst
-    - API: NetworkFirst مع fallback
-- [ ] **٨.٢** إنشاء `public/manifest.json`:
+    - API: NetworkOnly
+- [x] **٨.٢** إنشاء `public/manifest.json`:
   - اسم التطبيق (ملاحظاتي / My Notes)
   - الأيقونات بجميع الأحجام
   - ألوان السمة
   - وضع العرض (standalone)
   - اتجاه الشاشة
-- [ ] **٨.٣** إنشاء أيقونات التطبيق بجميع الأحجام المطلوبة
-- [ ] **٨.٤** إعداد التخزين المحلي (IndexedDB عبر Dexie):
+- [x] **٨.٣** إنشاء أيقونات التطبيق بجميع الأحجام المطلوبة
+- [x] **٨.٤** إعداد التخزين المحلي (IndexedDB عبر Dexie):
   - قاعدة بيانات محلية للملاحظات
   - مخزن مؤقت (offline store)
   - تتبع حالة المزامنة لكل ملاحظة
-- [ ] **٨.٥** تنفيذ المزامنة الخلفية (Background Sync):
+- [x] **٨.٥** تنفيذ المزامنة الخلفية (Background Sync):
   - تسجيل أحداث المزامنة في Service Worker
   - مزامنة الملاحظات المحلية مع الخادم عند عودة الاتصال
   - معالجة التعارضات (الآخر يفوز أو إشعار المستخدم)
-- [ ] **٨.٦** تحديث طبقة API لدعم Offline:
+- [x] **٨.٦** تحديث طبقة API لدعم Offline:
   - حفظ العمليات محلياً عند فقدان الاتصال
-  - عرض حالة الاتصال للمستخدم
+  - عرض حالة الاتصال للمستخدم (OfflineBanner — في تدفق الصفحة)
+  - إنشاء `ConnectionIndicator.tsx` في AppBar (قائمة + حالة اتصال + حالة مزامنة)
+  - إنشاء `useSyncStatus.ts` — خطاف Dexie لعدد العمليات المعلقة
+  - إنشاء `lib/ui-constants.ts` — ثوابت التخطيط المركزية (DRAWER_WIDTH، Z_INDEX، TRANSITIONS، SHADOWS)
+  - تحسين نظام الألوان في `ThemeContext.tsx` (WCAG AAA لجميع النصوص)
   - مزامنة تلقائية عند عودة الاتصال
-- [ ] **٨.٧** اختبار:
+- [x] **٨.٧** اختبار:
   - التثبيت على الهاتف والحاسوب
   - العمل بدون اتصال (إنشاء ملاحظة + تعديل + حذف)
   - المزامنة بعد عودة الاتصال
@@ -900,27 +911,27 @@ web-notes-e1/
 
 #### المهام:
 
-- [ ] **٩.١** إنشاء `app/lib/webpush.ts`:
+- [x] **٩.١** إنشاء `app/lib/webpush.ts`:
   - إعداد web-push مع مفاتيح VAPID
   - دوال إرسال الإشعارات
-- [ ] **٩.٢** إنشاء `app/api/push/subscribe/route.ts`:
+- [x] **٩.٢** إنشاء `app/api/push/subscribe/route.ts`:
   - تسجيل اشتراك الإشعارات (حفظ في قاعدة البيانات)
   - ربط الاشتراك بالمستخدم والجهاز
-- [ ] **٩.٣** إنشاء `app/api/push/send/route.ts`:
+- [x] **٩.٣** إنشاء `app/api/push/send/route.ts`:
   - إرسال إشعار لجميع أجهزة المستخدم
   - حذف الاشتراكات المنتهية الصلاحية
-- [ ] **٩.٤** تحديث `app/api/auth/login/route.ts`:
+- [x] **٩.٤** تحديث `app/api/auth/login/route.ts`:
   - عند تسجيل الدخول: إرسال إشعار لجميع أجهزة المستخدم الأخرى
   - محتوى الإشعار: "تم تسجيل الدخول إلى حسابك من جهاز جديد"
-- [ ] **٩.٥** إنشاء `app/hooks/usePushNotifications.ts`:
+- [x] **٩.٥** إنشاء `app/hooks/usePushNotifications.ts`:
   - طلب إذن الإشعارات
   - تسجيل الاشتراك
   - إلغاء الاشتراك
-- [ ] **٩.٦** تحديث Service Worker لمعالجة أحداث push:
+- [x] **٩.٦** تحديث Service Worker لمعالجة أحداث push:
   - عرض الإشعار بمحتوى مخصص
   - معالجة النقر على الإشعار (فتح التطبيق)
-- [ ] **٩.٧** إضافة زر تفعيل/إلغاء الإشعارات في الملف الشخصي
-- [ ] **٩.٨** اختبار الإشعارات على أجهزة متعددة
+- [x] **٩.٧** إضافة زر تفعيل/إلغاء الإشعارات في الملف الشخصي
+- [x] **٩.٨** اختبار الإشعارات على أجهزة متعددة
 
 **الإيداع:** `feat(push): add push notifications for login alerts on other devices`
 
@@ -932,28 +943,41 @@ web-notes-e1/
 
 #### المهام:
 
-- [ ] **١٠.١** إعداد Vitest:
+- [x] **١٠.١** إعداد Vitest:
   - تكوين `vitest.config.ts` (globals, jsdom, setupFiles, coverage)
   - إنشاء `app/tests/setupTests.ts` (localStorage mock, matchMedia mock, fetch mock)
-- [ ] **١٠.٢** اختبارات الإعدادات والأنواع:
+- [x] **١٠.٢** اختبارات الإعدادات والأنواع:
   - `config.test.ts` — الثوابت والإعدادات المركزية
   - `types.test.ts` — التحقق من شكل الأنواع
-- [ ] **١٠.٣** اختبارات التحقق:
+- [x] **١٠.٣** اختبارات التحقق:
   - `validators.test.ts` — جميع دوال التحقق من المدخلات
-- [ ] **١٠.٤** اختبارات طبقة API:
-  - `api.test.ts` — دوال HTTP Client
-- [ ] **١٠.٥** اختبارات المستودعات:
-  - `repositories.test.ts` — عمليات CRUD لكل مستودع
-- [ ] **١٠.٦** اختبارات الخطافات:
+- [x] **١٠.٤** اختبارات طبقة API:
+  - `apiClient.test.ts` — دوال HTTP Client
+- [x] **١٠.٥** اختبارات الخطافات:
   - `useAuth.test.tsx` — سلوك خطاف المصادقة
-  - `useThemeMode.test.tsx` — سلوك خطاف السمة
-- [ ] **١٠.٧** اختبارات المكونات:
-  - `components.test.tsx` — المكونات الرئيسية
-- [ ] **١٠.٨** إنشاء أوامر الاختبار في `package.json`:
+  - `ThemeContext.test.tsx` — سياق السمة
+  - `useNotes.test.ts` — خطاف الملاحظات
+  - `useOfflineStatus.test.ts` — خطاف حالة الاتصال
+  - `useSyncStatus.test.ts` — خطاف حالة المزامنة (Dexie pending ops)
+- [x] **١٠.٦** اختبارات المكونات:
+  - `AppBar.test.tsx` — شريط التطبيق
+  - `SideBar.test.tsx` — القائمة الجانبية
+  - `ThemeToggle.test.tsx` — زر تبديل السمة
+  - `LanguageToggle.test.tsx` — زر تبديل اللغة
+  - `OfflineBanner.test.tsx` — شريط حالة الاتصال
+  - `ConnectionIndicator.test.tsx` — مؤشر حالة الاتصال والمزامنة (AppBar)
+  - `NoteCard.test.tsx`, `NoteList.test.tsx`, `NoteEditorForm.test.tsx`
+  - `DeleteConfirmDialog.test.tsx`, `DeleteAccountDialog.test.tsx`
+  - `ProfileEditor.test.tsx`, `ProfilePage.test.tsx`
+  - `PrivateRoute.test.tsx`
+  - صفحات: `NotesPage`, `NoteDetailPage`, `EditNotePage`, `NewNotePage`, `login`, `register`
+- [x] **١٠.٧** إنشاء أوامر الاختبار في `package.json`:
   - `test` — تشغيل جميع الاختبارات
   - `test:watch` — وضع المراقبة
   - `test:coverage` — التغطية
-- [ ] **١٠.٩** التحقق من نجاح جميع الاختبارات
+- [x] **١٠.٨** التحقق من نجاح جميع الاختبارات
+
+**الاختبارات:** 333/333 ✅ — 30 ملف اختبار
 
 **الإيداع:** `test: add comprehensive test suite with Vitest`
 
@@ -993,25 +1017,20 @@ web-notes-e1/
 
 ---
 
-### المرحلة ١٢: CI/CD والنشر
+### المرحلة ١٢: النشر
 
-**الهدف:** إعداد خط أنابيب CI/CD للاختبار والنشر التلقائي
+**الهدف:** نشر التطبيق على Heroku
+
+> **ملاحظة:** النشر يتم تلقائياً عبر Heroku من الفرع الرئيسي (main) — لا يحتاج إعداد GitHub Actions.
+> عند دفع الكود إلى الفرع الرئيسي، يقوم Heroku بالبناء والنشر تلقائياً.
 
 #### المهام:
 
-- [ ] **١٢.١** إنشاء `.github/workflows/build-and-deploy.yml`:
-  - المُشغّلات: push إلى main + workflow_dispatch
-  - خدمة MongoDB (service container)
-  - خطوات: checkout → setup node → npm ci → test → build → deploy
-- [ ] **١٢.٢** إعداد النشر:
-  - **الخادم (API):** Heroku أو Render (من فرع orphan `server`)
-  - **الواجهة (Web):** Vercel أو GitHub Pages (من فرع orphan `web`)
-  - ملاحظة: بما أن المشروع Next.js يمكن نشره كوحدة واحدة على Vercel
-- [ ] **١٢.٣** إنشاء `validate-workflow.mjs` — فحص محلي لصحة ملف Workflow
-- [ ] **١٢.٤** إنشاء `.github/workflows/README.md` — دليل إعداد CI/CD
-- [ ] **١٢.٥** اختبار الخط بالكامل (push → tests → build → deploy)
+- [x] **١٢.١** ربط المستودع بتطبيق Heroku
+- [x] **١٢.٢** إعداد متغيرات البيئة على Heroku (MONGODB_URI, JWT_SECRET, VAPID keys)
+- [x] **١٢.٣** إنشاء `validate-workflow.mjs` — فحص محلي لصحة المشروع
 
-**الإيداع:** `ci: add GitHub Actions workflow for testing and deployment`
+**الإيداع:** `deploy: configure Heroku auto-deploy from main branch`
 
 ---
 

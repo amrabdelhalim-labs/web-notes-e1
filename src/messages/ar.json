@@ -207,5 +207,51 @@
     "english": "إنجليزية",
     "switchNow": "نعم، بدّل",
     "keepCurrent": "لا، أبقِها"
+  },
+  "OfflineBanner": {
+    "offlineMessage": "أنت غير متصل بالإنترنت — يمكنك الاطلاع على ملاحظاتك المحفوظة",
+    "backOnlineMessage": "عاد الاتصال — جاري مزامنة تغييراتك...",
+    "onlineStatus": "متصل بالإنترنت",
+    "offlineStatus": "غير متصل بالإنترنت"
+  },
+  "ConnectionStatus": {
+    "connectionStatus": "حالة الاتصال",
+    "online": "متصل بالإنترنت",
+    "offline": "غير متصل بالإنترنت",
+    "connectedDescription": "جميع الميزات متاحة",
+    "offlineDescription": "وضع التصفح فقط — التغييرات ستُزامن لاحقاً",
+    "synced": "تمت المزامنة",
+    "syncPending": "في انتظار المزامنة",
+    "allSynced": "جميع التغييرات محفوظة",
+    "pendingOperations": "{count} عمليات في انتظار المزامنة",
+    "syncNow": "مزامنة الآن",
+    "syncing": "جارِس المزامنة...",
+    "pwaTitle": "حالة تطبيق الويب التقدمي",
+    "swActive": "نشط",
+    "swInstalling": "جاري التثبيت...",
+    "swInactive": "غير مسجّل",
+    "swUnsupported": "غير مدعوم",
+    "swChecking": "جاري الفحص...",
+    "swLabel": "عامل الخدمة",
+    "installStandalone": "مثبتة كتطبيق",
+    "installInstallable": "متاحة للتثبيت",
+    "installNotInstallable": "غير متاحة للتثيت",
+    "installLabel": "حالة التثبيت"
+  },
+  "PushNotifications": {
+    "title": "الإشعارات الفورية",
+    "hint": "تلقّ إشعاراً عند تسجيل دخول جهاز جديد إلى حسابك",
+    "subscribe": "تفعيل الإشعارات",
+    "unsubscribe": "إيقاف الإشعارات",
+    "subscribed": "الإشعارات مفعّلة",
+    "unsupported": "المتصفح لا يدعم الإشعارات",
+    "denied": "تم رفض إذن الإشعارات — قم بتفعيله من إعدادات المتصفح",
+    "loading": "جاري التحميل...",
+    "requiresServiceWorker": "الإشعارات الفورية متاحة فقط عندما يكون عامل الخدمة (Service Worker) نشطاً",
+    "serviceWorkerStatus": "حالة عامل الخدمة",
+    "swUnsupported": "غير مدعوم",
+    "swChecking": "جاري الفحص",
+    "swInstalling": "جاري التثبيت",
+    "swInactive": "غير نشط"
   }
 }
