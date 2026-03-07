@@ -135,3 +135,23 @@ export function changePasswordApi(id: string, input: ChangePasswordInput) {
     body: JSON.stringify(input),
   });
 }
+
+// ─── Push Notifications ──────────────────────────────────────────────────────
+
+export function subscribePushApi(sub: {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+  deviceInfo?: string;
+}) {
+  return fetchApi<{ message: string }>('/api/push/subscribe', {
+    method: 'POST',
+    body: JSON.stringify(sub),
+  });
+}
+
+export function unsubscribePushApi(endpoint: string) {
+  return fetchApi<{ message: string }>('/api/push/subscribe', {
+    method: 'DELETE',
+    body: JSON.stringify({ endpoint }),
+  });
+}

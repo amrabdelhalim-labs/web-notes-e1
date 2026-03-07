@@ -34,7 +34,7 @@ const subscriptionSchema = new Schema<ISubscription>(
 
 // ─── Indexes ─────────────────────────────────────────────────────────────────
 subscriptionSchema.index({ user: 1 });
-subscriptionSchema.index({ endpoint: 1 }, { unique: true });
+// `unique: true` on the endpoint field already creates its unique index.
 
 /**
  * Prevent model recompilation during HMR in Next.js development.

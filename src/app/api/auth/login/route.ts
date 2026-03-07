@@ -57,6 +57,12 @@ export async function POST(
       updatedAt: foundUser.updatedAt.toISOString(),
     };
 
+    // ── Fire-and-forget push notification to other devices ────────────────
+    // We import lazily so missing VAPID keys only error for push, not login.
+    notifyOtherDevices(foundUser._id.toString()).catch((err) =>
+      console.warn('Push notification after login failed (non-fatal):', err),
+    );
+
     return NextResponse.json(
       { data: { token, user }, message: 'تم تسجيل الدخول بنجاح' },
       { status: 200 }
@@ -65,4 +71,35 @@ export async function POST(
     console.error('Login error:', error);
     return serverError();
   }
+}
+
+// ─── Push helper ─────────────────────────────────────────────────────────────
+
+async function notifyOtherDevices(userId: string): Promise<void> {
+  if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) return;
+
+  const { getSubscriptionRepository } = await import('@/app/repositories/subscription.repository');
+  const { sendPushNotification } = await import('@/app/lib/webpush');
+  const { type: PushSubscriptionType, ..._ } = await import('web-push').then(
+    () => ({ type: '' }),
+  );
+  void _;
+  void PushSubscriptionType;
+
+  const subRepo = getSubscriptionRepository();
+  const subscriptions = await subRepo.findByUser(userId);
+
+  await Promise.allSettled(
+    subscriptions.map(async (sub) => {
+      const pushSub = { endpoint: sub.endpoint, keys: sub.keys } as import('web-push').PushSubscription;
+      const success = await sendPushNotification(pushSub, {
+        title: 'ملاحظاتي — تسجيل دخول',
+        body: 'تم تسجيل الدخول إلى حسابك من جهاز جديد',
+        url: '/ar/notes',
+      });
+      if (!success) {
+        await subRepo.deleteByEndpoint(sub.endpoint);
+      }
+    }),
+  );
 }
