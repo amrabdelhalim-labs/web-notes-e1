@@ -13,6 +13,7 @@ import { getPendingOps, hasPendingOps } from '@/app/lib/db';
 export function useSyncStatus() {
   const [pendingCount, setPendingCount] = useState(0);
   const [isChecking, setIsChecking] = useState(false);
+  const [hasFailures, setHasFailures] = useState(false);
 
   const checkPendingOps = async () => {
     try {
@@ -21,8 +22,10 @@ export function useSyncStatus() {
       if (hasPending) {
         const ops = await getPendingOps();
         setPendingCount(ops.length);
+        setHasFailures(ops.some((op) => (op.failureCount ?? 0) > 0));
       } else {
         setPendingCount(0);
+        setHasFailures(false);
       }
     } catch (error) {
       console.error('Error checking pending operations:', error);
@@ -43,6 +46,7 @@ export function useSyncStatus() {
     pendingCount,
     isChecking,
     hasPending: pendingCount > 0,
+    hasFailures,
     refresh: checkPendingOps,
   };
 }

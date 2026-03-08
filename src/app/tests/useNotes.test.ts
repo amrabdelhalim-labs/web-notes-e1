@@ -17,6 +17,21 @@ vi.mock('@/app/lib/api', () => ({
   deleteNoteApi: vi.fn(),
 }));
 
+let mockOnlineStatus = true;
+vi.mock('@/app/hooks/useOfflineStatus', () => ({
+  useOfflineStatus: () => mockOnlineStatus,
+}));
+
+vi.mock('@/app/lib/db', () => ({
+  getCachedNotes: vi.fn().mockResolvedValue([]),
+  cacheNotes: vi.fn().mockResolvedValue(undefined),
+  enqueuePendingOp: vi.fn().mockResolvedValue(undefined),
+  getPendingOps: vi.fn().mockResolvedValue([]),
+  removePendingOp: vi.fn().mockResolvedValue(undefined),
+  removeCachedNote: vi.fn().mockResolvedValue(undefined),
+  incrementPendingOpFailure: vi.fn().mockResolvedValue(undefined),
+}));
+
 import {
   getNotesApi,
   getNoteApi,
@@ -24,6 +39,23 @@ import {
   updateNoteApi,
   deleteNoteApi,
 } from '@/app/lib/api';
+
+import {
+  getCachedNotes,
+  enqueuePendingOp,
+  getPendingOps,
+  removePendingOp,
+  removeCachedNote,
+  incrementPendingOpFailure,
+  cacheNotes,
+} from '@/app/lib/db';
+
+const mockGetCachedNotes = vi.mocked(getCachedNotes);
+const mockEnqueuePendingOp = vi.mocked(enqueuePendingOp);
+const mockGetPendingOps = vi.mocked(getPendingOps);
+const mockRemovePendingOp = vi.mocked(removePendingOp);
+const mockRemoveCachedNote = vi.mocked(removeCachedNote);
+const mockIncrementPendingOpFailure = vi.mocked(incrementPendingOpFailure);
 
 const mockGetNotes = vi.mocked(getNotesApi);
 const mockGetNote = vi.mocked(getNoteApi);
@@ -51,7 +83,16 @@ const oneNoteResponse = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Restore defaults after clearAllMocks wipes call history but not implementations
+  mockOnlineStatus = true;
   mockGetNotes.mockResolvedValue(emptyResponse);
+  mockGetCachedNotes.mockResolvedValue([]);
+  mockEnqueuePendingOp.mockResolvedValue(undefined);
+  mockGetPendingOps.mockResolvedValue([]);
+  mockRemovePendingOp.mockResolvedValue(undefined);
+  mockRemoveCachedNote.mockResolvedValue(undefined);
+  mockIncrementPendingOpFailure.mockResolvedValue(undefined);
+  vi.mocked(cacheNotes).mockResolvedValue(undefined);
 });
 
 // ─── Initial state & auto-fetch ─────────────────────────────────────────────
@@ -227,5 +268,329 @@ describe('CRUD', () => {
 
     expect(mockGetNote).toHaveBeenCalledWith('n1');
     expect(note.title).toBe('Test Note');
+  });
+
+  it('getNote falls back to cache when server fails', async () => {
+    mockGetNote.mockRejectedValueOnce(new Error('Network error'));
+    // getCachedNotes is mocked at module level to return empty; we override via the db mock
+    // Since Dexie is not mocked, getCachedNotes returns [] → getNote should throw
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    await expect(act(() => result.current.getNote('missing'))).rejects.toThrow();
+  });
+
+  it('getNote re-throws 401 auth errors without trying cache', async () => {
+    mockGetNote.mockRejectedValueOnce(new Error('401 Unauthorized'));
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    await expect(act(() => result.current.getNote('n1'))).rejects.toThrow('401');
+  });
+});
+
+// ─── Offline mode — CRUD enqueues pending ops ────────────────────────────────
+
+describe('offline CRUD', () => {
+  beforeEach(() => {
+    mockOnlineStatus = false;
+    mockGetCachedNotes.mockResolvedValue([sampleNote]);
+  });
+
+  it('createNote offline: adds temp note optimistically and enqueues op', async () => {
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    const created = await act(() =>
+      result.current.createNote({ title: 'Offline Note', type: 'text', content: 'c' }),
+    );
+
+    expect(created._id).toMatch(/^tmp_/);
+    expect(mockEnqueuePendingOp).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'create', noteTitle: 'Offline Note' }),
+    );
+  });
+
+  it('createNote offline: does NOT call createNoteApi', async () => {
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() =>
+      result.current.createNote({ title: 'X', type: 'text', content: '' }),
+    );
+    expect(vi.mocked(createNoteApi)).not.toHaveBeenCalled();
+  });
+
+  it('updateNote offline: applies update optimistically and enqueues op with snapshot', async () => {
+    mockGetNotes.mockResolvedValue(oneNoteResponse);
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(() => result.current.updateNote('n1', { title: 'New Title' }));
+
+    expect(mockEnqueuePendingOp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'update',
+        noteId: 'n1',
+        noteTitle: 'Test Note',
+      }),
+    );
+  });
+
+  it('deleteNote offline: removes from state, calls removeCachedNote, enqueues op', async () => {
+    mockGetNotes.mockResolvedValue(oneNoteResponse);
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(() => result.current.deleteNote('n1'));
+
+    expect(mockRemoveCachedNote).toHaveBeenCalledWith('n1');
+    expect(mockEnqueuePendingOp).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'delete', noteId: 'n1' }),
+    );
+  });
+});
+
+// ─── Optimistic UI — online rollback ─────────────────────────────────────────
+
+describe('optimistic UI (online)', () => {
+  it('createNote: shows temp note before API resolves', async () => {
+    let resolveCreate!: (v: unknown) => void;
+    vi.mocked(createNoteApi).mockReturnValueOnce(
+      new Promise((res) => { resolveCreate = res; }) as ReturnType<typeof createNoteApi>,
+    );
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    // Start the create — don't await
+    act(() => { void result.current.createNote({ title: 'Opt', type: 'text', content: '' }); });
+
+    // Temp note should appear immediately
+    await waitFor(() =>
+      expect(result.current.notes.some((n) => n._id.startsWith('tmp_'))).toBe(true),
+    );
+
+    // Resolve the API
+    resolveCreate({ data: sampleNote, message: 'ok' });
+    await waitFor(() =>
+      expect(result.current.notes.some((n) => n._id === 'n1')).toBe(true),
+    );
+  });
+
+  it('createNote: rolls back temp note on API failure', async () => {
+    vi.mocked(createNoteApi).mockRejectedValueOnce(new Error('Server error'));
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    await expect(act(() =>
+      result.current.createNote({ title: 'Rollback', type: 'text', content: '' }),
+    )).rejects.toThrow();
+
+    expect(result.current.notes.every((n) => !n._id.startsWith('tmp_'))).toBe(true);
+  });
+
+  it('updateNote: rolls back to original note on API failure', async () => {
+    mockGetNotes.mockResolvedValue(oneNoteResponse);
+    vi.mocked(updateNoteApi).mockRejectedValueOnce(new Error('Server error'));
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await expect(act(() =>
+      result.current.updateNote('n1', { title: 'Bad Update' }),
+    )).rejects.toThrow();
+
+    const note = result.current.notes.find((n) => n._id === 'n1');
+    expect(note?.title).toBe('Test Note');
+  });
+
+  it('deleteNote: restores note on API failure', async () => {
+    mockGetNotes.mockResolvedValue(oneNoteResponse);
+    vi.mocked(deleteNoteApi).mockRejectedValueOnce(new Error('Server error'));
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await expect(act(() => result.current.deleteNote('n1'))).rejects.toThrow();
+
+    expect(result.current.notes.some((n) => n._id === 'n1')).toBe(true);
+  });
+});
+
+// ─── processQueue ─────────────────────────────────────────────────────────────
+
+describe('processQueue', () => {
+  it('on success calls removePendingOp (not incrementPendingOpFailure)', async () => {
+    mockGetPendingOps.mockResolvedValue([
+      { id: 7, type: 'create', payload: { title: 'Q', type: 'text', content: '' }, timestamp: Date.now() },
+    ]);
+    vi.mocked(createNoteApi).mockResolvedValue({ data: sampleNote, message: 'ok' });
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    await act(() => result.current.processQueue());
+
+    expect(mockRemovePendingOp).toHaveBeenCalledWith(7);
+    expect(mockIncrementPendingOpFailure).not.toHaveBeenCalled();
+  });
+
+  it('on failure calls incrementPendingOpFailure (not removePendingOp)', async () => {
+    mockGetPendingOps.mockResolvedValue([
+      { id: 8, type: 'create', payload: { title: 'Q', type: 'text', content: '' }, timestamp: Date.now() },
+    ]);
+    vi.mocked(createNoteApi).mockRejectedValueOnce(new Error('fail'));
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    await act(() => result.current.processQueue());
+
+    expect(mockIncrementPendingOpFailure).toHaveBeenCalledWith(8);
+    expect(mockRemovePendingOp).not.toHaveBeenCalled();
+  });
+
+  it('skips API call for op with no payload, but still removes it from queue', async () => {
+    mockGetPendingOps.mockResolvedValue([
+      { id: 9, type: 'create', timestamp: Date.now() }, // no payload
+    ]);
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    // No API call made (payload was missing)
+    expect(vi.mocked(createNoteApi)).not.toHaveBeenCalled();
+    // The malformed op should be removed so it doesn't block the queue forever
+    expect(mockRemovePendingOp).toHaveBeenCalledWith(9);
+  });
+});
+
+// ─── Offline filter / applyLocalFilter ───────────────────────────────────────
+
+describe('offline filter (applyLocalFilter)', () => {
+  const textNote  = { ...sampleNote, _id: 'n1', title: 'Hello World', type: 'text'  as const };
+  const voiceNote = { ...sampleNote, _id: 'n2', title: 'Voice memo',  type: 'voice' as const };
+  const textNote2 = { ...sampleNote, _id: 'n3', title: 'Another text', type: 'text' as const };
+
+  beforeEach(() => {
+    mockOnlineStatus = false;
+    mockGetCachedNotes.mockResolvedValue([textNote, voiceNote, textNote2]);
+    // Offline — getNotesApi should not be called
+    mockGetNotes.mockResolvedValue(emptyResponse);
+  });
+
+  it('shows all cached notes when no filter/search', async () => {
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.notes).toHaveLength(3);
+  });
+
+  it('filters by type offline', async () => {
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => result.current.setTypeFilter('voice'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.notes).toHaveLength(1);
+    expect(result.current.notes[0].type).toBe('voice');
+  });
+
+  it('filters by search query offline', async () => {
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => result.current.setSearchQuery('hello'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.notes).toHaveLength(1);
+    expect(result.current.notes[0].title).toBe('Hello World');
+  });
+
+  it('combines type + search query offline', async () => {
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => { result.current.setTypeFilter('text'); });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => { result.current.setSearchQuery('another'); });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.notes).toHaveLength(1);
+    expect(result.current.notes[0]._id).toBe('n3');
+  });
+
+  it('returns empty list when no match found offline', async () => {
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => result.current.setSearchQuery('zzznomatch'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.notes).toHaveLength(0);
+  });
+});
+
+// ─── Undo event listener ─────────────────────────────────────────────────────
+
+describe('undo event listener (notes:undo-op)', () => {
+  it('create undo: removes the temp note from state', async () => {
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    // Plant a temp note directly via optimistic path (offline)
+    mockOnlineStatus = false;
+    const tempNote = await act(() =>
+      result.current.createNote({ title: 'To undo', type: 'text', content: '' }),
+    );
+
+    expect(result.current.notes.some((n) => n._id === tempNote._id)).toBe(true);
+
+    // Dispatch undo event
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('notes:undo-op', {
+          detail: { op: { type: 'create', tempId: tempNote._id, timestamp: Date.now() } },
+        }),
+      );
+    });
+
+    await waitFor(() =>
+      expect(result.current.notes.every((n) => n._id !== tempNote._id)).toBe(true),
+    );
+  });
+
+  it('update undo: restores the original note snapshot', async () => {
+    mockGetNotes.mockResolvedValue(oneNoteResponse);
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const snapshot = { ...sampleNote, title: 'Original Title' };
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('notes:undo-op', {
+          detail: {
+            op: { type: 'update', noteId: 'n1', noteSnapshot: snapshot, timestamp: Date.now() },
+          },
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      const note = result.current.notes.find((n) => n._id === 'n1');
+      expect(note?.title).toBe('Original Title');
+    });
+  });
+
+  it('delete undo: re-adds the snapshot note to state', async () => {
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    const snapshot = sampleNote;
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('notes:undo-op', {
+          detail: {
+            op: { type: 'delete', noteId: 'n1', noteSnapshot: snapshot, timestamp: Date.now() },
+          },
+        }),
+      );
+    });
+
+    await waitFor(() =>
+      expect(result.current.notes.some((n) => n._id === 'n1')).toBe(true),
+    );
   });
 });

@@ -24,6 +24,9 @@ import {
   enqueuePendingOp,
   getPendingOps,
   removePendingOp,
+  removeCachedNote,
+  incrementPendingOpFailure,
+  type PendingOperation,
 } from '@/app/lib/db';
 
 interface UseNotesOptions {
@@ -54,6 +57,26 @@ interface UseNotesReturn {
   processQueue: () => Promise<void>;
 }
 
+/**
+ * Client-side filter helper — used for offline mode so search/filter still work
+ * against the locally cached notes.
+ */
+function applyLocalFilter(notes: Note[], type: NoteType | '', query: string): Note[] {
+  let result = notes;
+  if (type) {
+    result = result.filter((n) => n.type === type);
+  }
+  if (query.trim()) {
+    const q = query.trim().toLowerCase();
+    result = result.filter(
+      (n) =>
+        n.title.toLowerCase().includes(q) ||
+        (typeof n.content === 'string' && n.content.toLowerCase().includes(q)),
+    );
+  }
+  return result;
+}
+
 export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
   const { pageSize = DEFAULT_PAGE_SIZE, autoFetch = true } = options;
 
@@ -67,45 +90,83 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
   const [searchQuery, setSearchQuery] = useState('');
 
   const isOnline = useOfflineStatus();
+  const notesRef = useRef<Note[]>([]);
+  notesRef.current = notes;
   const didMount = useRef(false);
   const prevOnline = useRef(true);
+  /**
+   * Fetch notes with offline-first strategy:
+   * 1. Load from cache immediately (instant UI)
+   * 2. If online, fetch from server in background and update cache
+   * 3. Never show error if we have cached data (graceful degradation)
+   */
 
   const fetchNotes = useCallback(async () => {
     setLoading(true);
     setError(null);
+    
+    // Step 1: Always load from cache first for instant UI
+    let cachedData: typeof notes = [];
     try {
-      if (!isOnline) {
-        const cached = await getCachedNotes();
-        setNotes(cached);
-        setCount(cached.length);
-        setTotalPages(1);
-        return;
+      cachedData = await getCachedNotes();
+      if (cachedData.length > 0) {
+        // Apply client-side filter/search on cached data (works offline too)
+        const filtered = applyLocalFilter(cachedData, typeFilter, searchQuery);
+        const pageSlice = filtered.slice((page - 1) * pageSize, page * pageSize);
+        setNotes(pageSlice);
+        setCount(filtered.length);
+        setTotalPages(Math.max(1, Math.ceil(filtered.length / pageSize)));
       }
-      const res = await getNotesApi({
-        page,
-        limit: pageSize,
-        type: typeFilter || undefined,
-        q: searchQuery || undefined,
-      });
-      setNotes(res.data.notes);
-      setCount(res.data.count);
-      setTotalPages(res.data.totalPages);
-      cacheNotes(res.data.notes).catch(() => {}); // best-effort background cache
-    } catch (err) {
-      // API failed — fall back to Dexie cache if available
-      try {
-        const cached = await getCachedNotes();
-        if (cached.length > 0) {
-          setNotes(cached);
-          setCount(cached.length);
-          setTotalPages(1);
-          return;
-        }
-      } catch { /* ignore secondary failure */ }
-      setError(err instanceof Error ? err.message : 'حدث خطأ أثناء جلب الملاحظات');
-    } finally {
-      setLoading(false);
+    } catch {
+      // Cache read failed - not critical, continue
     }
+    
+    // Step 2: If online, fetch fresh data from server in background
+    if (isOnline) {
+      try {
+        const res = await getNotesApi({
+          page,
+          limit: pageSize,
+          type: typeFilter || undefined,
+          q: searchQuery || undefined,
+        });
+
+        // Re-inject any optimistic creates still pending sync
+        const allPendingOps = await getPendingOps();
+        const pendingCreates = allPendingOps
+          .filter((op) => op.type === 'create' && op.tempId && op.payload)
+          .map((op) => ({
+            _id: op.tempId!,
+            title: (op.payload as NoteInput).title ?? '',
+            content: (op.payload as NoteInput).content,
+            type: (op.payload as NoteInput).type ?? 'text',
+            user: '',
+            createdAt: new Date(op.timestamp).toISOString(),
+            updatedAt: new Date(op.timestamp).toISOString(),
+          } as Note));
+        const serverIds = new Set(res.data.notes.map((n) => n._id));
+        const uniqueTemps = pendingCreates.filter((n) => !serverIds.has(n._id));
+        // Update UI with fresh server data + any unsynced creates
+        setNotes([...uniqueTemps, ...res.data.notes]);
+        setCount(res.data.count + uniqueTemps.length);
+        setTotalPages(res.data.totalPages);
+
+        // Update cache in background (fire and forget)
+        cacheNotes(res.data.notes).catch(() => {});
+      } catch (err) {
+        // Server fetch failed — only surface error when there is nothing to show
+        if (cachedData.length === 0) {
+          setError(err instanceof Error ? err.message : 'حدث خطأ أثناء جلب الملاحظات');
+        }
+        // Otherwise keep showing cached data silently
+      }
+    } else if (cachedData.length === 0) {
+      // Offline with no cached data at all — tell the user explicitly
+      setError('لا يوجد اتصال بالإنترنت ولا توجد ملاحظات محفوظة للعرض');
+    }
+    // else: offline but we have cached data — show it silently (OfflineBanner already visible)
+
+    setLoading(false);
   }, [page, pageSize, typeFilter, searchQuery, isOnline]);
 
   // Reset page to 1 when filter/search changes
@@ -131,56 +192,118 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
   }, [page, typeFilter, searchQuery]);
 
   const createNote = useCallback(async (input: NoteInput): Promise<Note> => {
+    // Optimistic: show the note immediately with a temp id
+    const tempId = `tmp_${crypto.randomUUID()}`;
+    const tempNote: Note = {
+      _id: tempId,
+      title: input.title,
+      content: input.content,
+      type: input.type,
+      user: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setNotes((prev) => [tempNote, ...prev]);
+    setCount((c) => c + 1);
+
     if (!isOnline) {
-      const tempId = `tmp_${crypto.randomUUID()}`;
-      const tempNote: Note = {
-        _id: tempId,
-        title: input.title,
-        content: input.content,
-        type: input.type,
-        user: '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setNotes((prev) => [tempNote, ...prev]);
-      setCount((c) => c + 1);
-      await enqueuePendingOp({ type: 'create', tempId, payload: input, timestamp: Date.now() });
+      await enqueuePendingOp({
+        type: 'create',
+        tempId,
+        payload: input,
+        noteTitle: input.title,
+        timestamp: Date.now(),
+      });
       return tempNote;
     }
-    const res = await createNoteApi(input);
-    await fetchNotes();
-    return res.data;
-  }, [fetchNotes, isOnline]);
+
+    try {
+      const res = await createNoteApi(input);
+      // Replace temp note with the real server note
+      setNotes((prev) => prev.map((n) => (n._id === tempId ? res.data : n)));
+      cacheNotes([res.data]).catch(() => {});
+      return res.data;
+    } catch (err) {
+      // Rollback optimistic insert on failure
+      setNotes((prev) => prev.filter((n) => n._id !== tempId));
+      setCount((c) => Math.max(0, c - 1));
+      throw err;
+    }
+  }, [isOnline]);
 
   const updateNote = useCallback(
     async (id: string, input: UpdateNoteInput): Promise<Note> => {
+      // Capture snapshot before mutation (for rollback or undo)
+      const currentNote = notesRef.current.find((n) => n._id === id);
+      const optimisticNote: Note = currentNote
+        ? { ...currentNote, ...input, updatedAt: new Date().toISOString() }
+        : { _id: id, title: '', type: 'text', user: '', createdAt: '', updatedAt: new Date().toISOString(), ...input };
+
+      setNotes((prev) => prev.map((n) => (n._id === id ? optimisticNote : n)));
+
       if (!isOnline) {
-        const updated: Note = { _id: id, title: '', type: 'text', user: '', createdAt: '', updatedAt: new Date().toISOString(), ...input };
-        setNotes((prev) =>
-          prev.map((n) => (n._id === id ? { ...n, ...input, updatedAt: new Date().toISOString() } : n)),
-        );
-        await enqueuePendingOp({ type: 'update', noteId: id, payload: input, timestamp: Date.now() });
-        return updated;
+        await enqueuePendingOp({
+          type: 'update',
+          noteId: id,
+          payload: input,
+          noteTitle: currentNote?.title ?? (input as { title?: string }).title,
+          noteSnapshot: currentNote,
+          timestamp: Date.now(),
+        });
+        return optimisticNote;
       }
-      const res = await updateNoteApi(id, input);
-      await fetchNotes();
-      return res.data;
+
+      try {
+        const res = await updateNoteApi(id, input);
+        setNotes((prev) => prev.map((n) => (n._id === id ? res.data : n)));
+        cacheNotes([res.data]).catch(() => {});
+        return res.data;
+      } catch (err) {
+        // Rollback on failure
+        if (currentNote) {
+          setNotes((prev) => prev.map((n) => (n._id === id ? currentNote : n)));
+        } else {
+          setNotes((prev) => prev.filter((n) => n._id !== id));
+        }
+        throw err;
+      }
     },
-    [fetchNotes, isOnline],
+    [isOnline],
   );
 
   const deleteNote = useCallback(
     async (id: string): Promise<void> => {
+      // Capture snapshot for rollback or undo
+      const noteToDelete = notesRef.current.find((n) => n._id === id);
+      setNotes((prev) => prev.filter((n) => n._id !== id));
+      setCount((c) => Math.max(0, c - 1));
+
       if (!isOnline) {
-        setNotes((prev) => prev.filter((n) => n._id !== id));
-        setCount((c) => Math.max(0, c - 1));
-        await enqueuePendingOp({ type: 'delete', noteId: id, timestamp: Date.now() });
+        // Remove from local cache so it won't reappear on page reload
+        removeCachedNote(id).catch(() => {});
+        await enqueuePendingOp({
+          type: 'delete',
+          noteId: id,
+          noteTitle: noteToDelete?.title,
+          noteSnapshot: noteToDelete,
+          timestamp: Date.now(),
+        });
         return;
       }
-      await deleteNoteApi(id);
-      await fetchNotes();
+
+      try {
+        await deleteNoteApi(id);
+        removeCachedNote(id).catch(() => {});
+      } catch (err) {
+        // Rollback on failure
+        if (noteToDelete) {
+          setNotes((prev) => [noteToDelete, ...prev]);
+          setCount((c) => c + 1);
+        }
+        throw err;
+      }
     },
-    [fetchNotes, isOnline],
+    [isOnline],
   );
 
   const processQueue = useCallback(async () => {
@@ -189,16 +312,24 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
     for (const op of ops) {
       try {
         if (op.type === 'create' && op.payload) {
-          await createNoteApi(op.payload as NoteInput);
+          const res = await createNoteApi(op.payload as NoteInput);
+          // Replace the optimistic temp note in state with the real server note
+          if (op.tempId) {
+            setNotes((prev) => prev.map((n) => (n._id === op.tempId ? res.data : n)));
+          }
+          cacheNotes([res.data]).catch(() => {});
         } else if (op.type === 'update' && op.noteId && !op.noteId.startsWith('tmp_') && op.payload) {
-          await updateNoteApi(op.noteId, op.payload as UpdateNoteInput);
+          const res = await updateNoteApi(op.noteId, op.payload as UpdateNoteInput);
+          setNotes((prev) => prev.map((n) => (n._id === op.noteId ? res.data : n)));
+          cacheNotes([res.data]).catch(() => {});
         } else if (op.type === 'delete' && op.noteId && !op.noteId.startsWith('tmp_')) {
           await deleteNoteApi(op.noteId);
         }
+        // Only remove from queue on success
         if (op.id !== undefined) await removePendingOp(op.id);
       } catch {
-        // Remove the failed op to avoid blocking subsequent ops
-        if (op.id !== undefined) await removePendingOp(op.id);
+        // Keep the op in queue, just mark it as failed for display purposes
+        if (op.id !== undefined) await incrementPendingOpFailure(op.id);
       }
     }
     await fetchNotes();
@@ -219,9 +350,43 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
     return () => window.removeEventListener('notes:process-offline-queue', handler);
   }, [processQueue]);
 
+  // Revert optimistic state when user undoes a pending operation from the drawer
+  useEffect(() => {
+    const handleUndoOp = (e: Event) => {
+      const op = (e as CustomEvent<{ op: PendingOperation }>).detail?.op;
+      if (!op) return;
+      if (op.type === 'create' && op.tempId) {
+        setNotes((prev) => prev.filter((n) => n._id !== op.tempId));
+        setCount((c) => Math.max(0, c - 1));
+      } else if (op.type === 'update' && op.noteId && op.noteSnapshot) {
+        setNotes((prev) => prev.map((n) => (n._id === op.noteId ? op.noteSnapshot! : n)));
+      } else if (op.type === 'delete' && op.noteId && op.noteSnapshot) {
+        setNotes((prev) => [op.noteSnapshot!, ...prev]);
+        setCount((c) => c + 1);
+      }
+    };
+    window.addEventListener('notes:undo-op', handleUndoOp);
+    return () => window.removeEventListener('notes:undo-op', handleUndoOp);
+  }, []);
+
   const getNote = useCallback(async (id: string): Promise<Note> => {
-    const res = await getNoteApi(id);
-    return res.data;
+    try {
+      const res = await getNoteApi(id);
+      return res.data;
+    } catch (err) {
+      // Re-throw auth failures immediately — no point looking in cache
+      const isAuthError = err instanceof Error && err.message.includes('401');
+      if (isAuthError) throw err;
+
+      // Network / server error — try local cache as fallback
+      try {
+        const cached = await getCachedNotes();
+        const found = cached.find((n) => n._id === id);
+        if (found) return found;
+      } catch { /* ignore db errors */ }
+
+      throw new Error('تعذر تحميل الملاحظة. تحقق من اتصالك بالإنترنت.');
+    }
   }, []);
 
   return {
