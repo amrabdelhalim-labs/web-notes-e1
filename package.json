@@ -2,11 +2,22 @@
   "name": "web-notes-e1",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.x",
+    "npm": ">=10.x"
+  },
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "format": "node scripts/format.mjs",
+    "format:check": "node scripts/format.mjs --check",
+    "validate": "node scripts/validate-workflow.mjs",
+    "smoke": "node scripts/http-smoke.mjs"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
