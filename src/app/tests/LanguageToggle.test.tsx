@@ -21,8 +21,15 @@ vi.mock('next-intl', async (importOriginal) => {
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ replace: mockReplace }),
   usePathname: () => '/notes',
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) =>
-    React.createElement('a', { href, ...props }, children),
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => React.createElement('a', { href, ...props }, children),
   redirect: vi.fn(),
 }));
 

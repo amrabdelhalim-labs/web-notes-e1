@@ -30,10 +30,7 @@ function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
 
-export async function fetchApi<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+export async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -52,17 +49,17 @@ export async function fetchApi<T>(
 // ─── Auth ───────────────────────────────────────────────────────────────────
 
 export function loginApi(input: LoginInput) {
-  return fetchApi<{ data: { token: string; user: User } }>(
-    '/api/auth/login',
-    { method: 'POST', body: JSON.stringify(input) },
-  );
+  return fetchApi<{ data: { token: string; user: User } }>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
 }
 
 export function registerApi(input: RegisterInput) {
-  return fetchApi<{ data: { token: string; user: User } }>(
-    '/api/auth/register',
-    { method: 'POST', body: JSON.stringify(input) },
-  );
+  return fetchApi<{ data: { token: string; user: User } }>('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
 }
 
 export function getMeApi() {
@@ -75,12 +72,7 @@ interface NotesListResponse {
   data: { notes: Note[]; count: number; page: number; totalPages: number };
 }
 
-export function getNotesApi(params?: {
-  page?: number;
-  limit?: number;
-  type?: string;
-  q?: string;
-}) {
+export function getNotesApi(params?: { page?: number; limit?: number; type?: string; q?: string }) {
   const sp = new URLSearchParams();
   if (params?.page) sp.set('page', String(params.page));
   if (params?.limit) sp.set('limit', String(params.limit));

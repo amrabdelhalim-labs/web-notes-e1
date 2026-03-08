@@ -140,9 +140,7 @@ export function validateUpdateUserInput(input: UpdateUserInput): string[] {
   return errors;
 }
 
-export function validateChangePasswordInput(
-  input: ChangePasswordInput
-): string[] {
+export function validateChangePasswordInput(input: ChangePasswordInput): string[] {
   const errors: string[] = [];
 
   if (!input.currentPassword || input.currentPassword.trim().length < 1) {

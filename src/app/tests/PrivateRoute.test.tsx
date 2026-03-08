@@ -13,8 +13,15 @@ const mockReplace = vi.fn();
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ replace: mockReplace }),
   usePathname: () => '/notes',
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) =>
-    React.createElement('a', { href, ...props }, children),
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => React.createElement('a', { href, ...props }, children),
   redirect: vi.fn(),
 }));
 
@@ -37,7 +44,7 @@ describe('PrivateRoute', () => {
     render(
       <PrivateRoute>
         <div>Protected Content</div>
-      </PrivateRoute>,
+      </PrivateRoute>
     );
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
     expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
@@ -49,7 +56,7 @@ describe('PrivateRoute', () => {
     render(
       <PrivateRoute>
         <div>Protected Content</div>
-      </PrivateRoute>,
+      </PrivateRoute>
     );
 
     await waitFor(() => {
@@ -64,7 +71,7 @@ describe('PrivateRoute', () => {
     render(
       <PrivateRoute>
         <div>Protected Content</div>
-      </PrivateRoute>,
+      </PrivateRoute>
     );
     expect(screen.getByText('Protected Content')).toBeInTheDocument();
   });
@@ -75,7 +82,7 @@ describe('PrivateRoute', () => {
     render(
       <PrivateRoute>
         <div>Content</div>
-      </PrivateRoute>,
+      </PrivateRoute>
     );
     expect(mockReplace).not.toHaveBeenCalled();
   });

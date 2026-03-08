@@ -45,12 +45,7 @@ export default function OfflineBanner() {
   }, [isOnline]);
 
   return (
-    <Box
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-      sx={{ width: '100%' }}
-    >
+    <Box role="status" aria-live="polite" aria-atomic="true" sx={{ width: '100%' }}>
       {/* Offline banner */}
       <Collapse in={!isOnline} unmountOnExit>
         <Alert

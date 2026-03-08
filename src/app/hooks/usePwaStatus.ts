@@ -27,9 +27,7 @@ export interface PwaStatus {
 
 export function usePwaStatus(): PwaStatus {
   const [swState, setSwState] = useState<SwState>(
-    typeof navigator !== 'undefined' && 'serviceWorker' in navigator
-      ? 'checking'
-      : 'unsupported',
+    typeof navigator !== 'undefined' && 'serviceWorker' in navigator ? 'checking' : 'unsupported'
   );
 
   const [isStandalone, setIsStandalone] = useState<boolean>(() => {
@@ -58,7 +56,7 @@ export function usePwaStatus(): PwaStatus {
     const readStandalone = () => {
       setIsStandalone(
         window.matchMedia('(display-mode: standalone)').matches ||
-          ('standalone' in navigator && (navigator as { standalone?: boolean }).standalone === true),
+          ('standalone' in navigator && (navigator as { standalone?: boolean }).standalone === true)
       );
     };
 

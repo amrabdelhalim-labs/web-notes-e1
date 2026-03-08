@@ -88,7 +88,12 @@ export default function NoteList({
               ),
             },
           }}
-          sx={{ flexGrow: 1, width: { xs: '100%', sm: 'auto' }, minWidth: { sm: 200 }, maxWidth: { sm: 350 } }}
+          sx={{
+            flexGrow: 1,
+            width: { xs: '100%', sm: 'auto' },
+            minWidth: { sm: 200 },
+            maxWidth: { sm: 350 },
+          }}
         />
 
         <Box
@@ -121,7 +126,11 @@ export default function NoteList({
             </ToggleButton>
           </ToggleButtonGroup>
 
-          <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+          >
             {t('noteCount', { count })}
           </Typography>
         </Box>
@@ -142,9 +151,7 @@ export default function NoteList({
             {t('emptyTitle')}
           </Typography>
           <Typography variant="body2" color="text.disabled">
-            {searchQuery || typeFilter
-              ? t('emptyFilterHint')
-              : t('emptyCreateHint')}
+            {searchQuery || typeFilter ? t('emptyFilterHint') : t('emptyCreateHint')}
           </Typography>
         </Box>
       )}

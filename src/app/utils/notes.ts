@@ -28,7 +28,10 @@ export function stripHtml(html: string): string {
   }
 
   // SSR fallback: strip all tags then collapse whitespace
-  return spaced.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  return spaced
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**

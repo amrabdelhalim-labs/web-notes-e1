@@ -46,9 +46,7 @@ export default function DeleteConfirmDialog({
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>{t('title')}</DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          {t('body', { noteTitle: title })}
-        </DialogContentText>
+        <DialogContentText>{t('body', { noteTitle: title })}</DialogContentText>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} disabled={loading}>

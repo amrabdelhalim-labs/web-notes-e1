@@ -189,7 +189,10 @@ describe('useDevices', () => {
 
     it('updates existing device instead of duplicating', async () => {
       mockGetDevicesApi.mockResolvedValue({ data: [fakeDevice] });
-      mockTrustDeviceApi.mockResolvedValue({ data: { ...fakeDevice, name: 'Updated' }, message: 'ok' });
+      mockTrustDeviceApi.mockResolvedValue({
+        data: { ...fakeDevice, name: 'Updated' },
+        message: 'ok',
+      });
 
       const { result } = renderHook(() => useDevices());
       await waitFor(() => expect(result.current.loading).toBe(false));

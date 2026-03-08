@@ -74,7 +74,7 @@ export default function DeleteAccountDialog() {
         setSubmitting(false);
       }
     },
-    [user, password, logout, router],
+    [user, password, logout, router]
   );
 
   return (

@@ -217,11 +217,22 @@ export default function VoiceRecorder({
         </Typography>
 
         {/* Controls */}
-        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" justifyContent="center">
-
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          flexWrap="wrap"
+          justifyContent="center"
+        >
           {/* Idle */}
           {phase === 'idle' && (
-            <Button variant="contained" color="error" startIcon={<MicIcon />} onClick={startRecording} size="large">
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<MicIcon />}
+              onClick={startRecording}
+              size="large"
+            >
               بدء التسجيل
             </Button>
           )}
@@ -229,10 +240,21 @@ export default function VoiceRecorder({
           {/* Recording → Pause + Stop */}
           {phase === 'recording' && (
             <>
-              <Button variant="outlined" color="warning" startIcon={<PauseIcon />} onClick={pauseRecording}>
+              <Button
+                variant="outlined"
+                color="warning"
+                startIcon={<PauseIcon />}
+                onClick={pauseRecording}
+              >
                 إيقاف مؤقت
               </Button>
-              <Button variant="contained" color="error" startIcon={<StopIcon />} onClick={stopRecording} sx={{ animation: 'pulse 1.5s infinite' }}>
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<StopIcon />}
+                onClick={stopRecording}
+                sx={{ animation: 'pulse 1.5s infinite' }}
+              >
                 إنهاء التسجيل
               </Button>
             </>
@@ -241,10 +263,20 @@ export default function VoiceRecorder({
           {/* Paused → Resume + Stop */}
           {phase === 'paused' && (
             <>
-              <Button variant="contained" color="error" startIcon={<MicIcon />} onClick={resumeRecording}>
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<MicIcon />}
+                onClick={resumeRecording}
+              >
                 استئناف
               </Button>
-              <Button variant="outlined" color="error" startIcon={<StopIcon />} onClick={stopRecording}>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<StopIcon />}
+                onClick={stopRecording}
+              >
                 إنهاء التسجيل
               </Button>
             </>
@@ -271,8 +303,18 @@ export default function VoiceRecorder({
         {/* Recording indicator */}
         {phase === 'recording' && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: 'error.main', animation: 'pulse 1s infinite' }} />
-            <Typography variant="body2" color="error">جار التسجيل...</Typography>
+            <Box
+              sx={{
+                width: 12,
+                height: 12,
+                borderRadius: '50%',
+                bgcolor: 'error.main',
+                animation: 'pulse 1s infinite',
+              }}
+            />
+            <Typography variant="body2" color="error">
+              جار التسجيل...
+            </Typography>
           </Box>
         )}
 

@@ -13,8 +13,15 @@ const mockPush = vi.fn();
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   usePathname: () => '/notes/n1',
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) =>
-    React.createElement('a', { href, ...props }, children),
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => React.createElement('a', { href, ...props }, children),
   redirect: vi.fn(),
 }));
 
@@ -67,7 +74,10 @@ beforeEach(() => {
 // React 19's use() reads synchronously if promise has 'status'+'value' set
 function resolvedParams(id: string): Promise<{ id: string }> {
   const value = { id };
-  const p = Promise.resolve(value) as Promise<{ id: string }> & { status: string; value: { id: string } };
+  const p = Promise.resolve(value) as Promise<{ id: string }> & {
+    status: string;
+    value: { id: string };
+  };
   p.status = 'fulfilled';
   p.value = value;
   return p;

@@ -44,9 +44,7 @@ export function notFoundError(
 }
 
 /** 409 — Conflict (e.g., duplicate email or username). */
-export function conflictError(
-  message: string
-): NextResponse<ApiResponse<null>> {
+export function conflictError(message: string): NextResponse<ApiResponse<null>> {
   return apiError('CONFLICT', message, 409);
 }
 

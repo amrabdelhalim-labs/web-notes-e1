@@ -109,7 +109,7 @@ self.addEventListener('sync', (event: SyncEvent) => {
         clients.forEach((client) => {
           client.postMessage({ type: 'PROCESS_OFFLINE_QUEUE' });
         });
-      }),
+      })
     );
   }
 });
@@ -129,7 +129,7 @@ self.addEventListener('push', (event: PushEvent) => {
       badge: '/icons/badge-96x96.png',
       data: { url: data.url ?? '/' },
       dir: 'auto',
-    }),
+    })
   );
 });
 
@@ -148,6 +148,6 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
       }
       // Otherwise open a new tab
       return self.clients.openWindow(url);
-    }),
+    })
   );
 });

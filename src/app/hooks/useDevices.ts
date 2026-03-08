@@ -67,7 +67,9 @@ export function useDevices(): UseDevicesReturn {
           // Don't show error when we have cached data
           return;
         }
-      } catch { /* ignore db errors */ }
+      } catch {
+        /* ignore db errors */
+      }
       setError(err instanceof Error ? err.message : 'فشل تحميل الأجهزة');
     } finally {
       setLoading(false);
@@ -78,49 +80,55 @@ export function useDevices(): UseDevicesReturn {
     fetchDevices();
   }, [fetchDevices]);
 
-  const trustCurrent = useCallback(async (password: string) => {
-    try {
-      setError(null);
-      const res = await trustDeviceApi({
-        deviceId: deviceInfo.deviceId,
-        password,
-        name: deviceInfo.name,
-        browser: deviceInfo.browser,
-        os: deviceInfo.os,
-      });
-      // Add or update in local list
-      setDevices((prev) => {
-        const idx = prev.findIndex((d) => d.deviceId === res.data.deviceId);
-        if (idx >= 0) {
-          const updated = [...prev];
-          updated[idx] = { ...res.data, isCurrent: true };
-          return updated;
-        }
-        return [...prev, { ...res.data, isCurrent: true }];
-      });
-      localStorage.setItem(TRUSTED_KEY, 'true');
-      publishTrustChanged(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'فشل الوثوق بالجهاز');
-      throw err;
-    }
-  }, [deviceInfo]);
-
-  const removeDevice = useCallback(async (deviceId: string, password: string) => {
-    try {
-      setError(null);
-      await deleteDeviceApi(deviceId, password);
-      setDevices((prev) => prev.filter((d) => d.deviceId !== deviceId));
-      // If removing current device, clear trust flag
-      if (deviceId === deviceInfo.deviceId) {
-        localStorage.removeItem(TRUSTED_KEY);
-        publishTrustChanged(false);
+  const trustCurrent = useCallback(
+    async (password: string) => {
+      try {
+        setError(null);
+        const res = await trustDeviceApi({
+          deviceId: deviceInfo.deviceId,
+          password,
+          name: deviceInfo.name,
+          browser: deviceInfo.browser,
+          os: deviceInfo.os,
+        });
+        // Add or update in local list
+        setDevices((prev) => {
+          const idx = prev.findIndex((d) => d.deviceId === res.data.deviceId);
+          if (idx >= 0) {
+            const updated = [...prev];
+            updated[idx] = { ...res.data, isCurrent: true };
+            return updated;
+          }
+          return [...prev, { ...res.data, isCurrent: true }];
+        });
+        localStorage.setItem(TRUSTED_KEY, 'true');
+        publishTrustChanged(true);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'فشل الوثوق بالجهاز');
+        throw err;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'فشل إزالة الجهاز');
-      throw err;
-    }
-  }, [deviceInfo.deviceId]);
+    },
+    [deviceInfo]
+  );
+
+  const removeDevice = useCallback(
+    async (deviceId: string, password: string) => {
+      try {
+        setError(null);
+        await deleteDeviceApi(deviceId, password);
+        setDevices((prev) => prev.filter((d) => d.deviceId !== deviceId));
+        // If removing current device, clear trust flag
+        if (deviceId === deviceInfo.deviceId) {
+          localStorage.removeItem(TRUSTED_KEY);
+          publishTrustChanged(false);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'فشل إزالة الجهاز');
+        throw err;
+      }
+    },
+    [deviceInfo.deviceId]
+  );
 
   const isTrusted = devices.some((d) => d.deviceId === deviceInfo.deviceId);
 

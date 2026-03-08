@@ -41,12 +41,7 @@ import { useTranslations } from 'next-intl';
 import { useOfflineStatus, CONNECTIVITY_CHECK_EVENT } from '@/app/hooks/useOfflineStatus';
 import { useSyncStatus } from '@/app/hooks/useSyncStatus';
 import { usePwaStatus } from '@/app/hooks/usePwaStatus';
-import {
-  getPendingOps,
-  removePendingOp,
-  cacheNotes,
-  type PendingOperation,
-} from '@/app/lib/db';
+import { getPendingOps, removePendingOp, cacheNotes, type PendingOperation } from '@/app/lib/db';
 
 const TRUSTED_KEY = 'device-trusted';
 const TRUST_CHANGED_EVENT = 'device-trust-changed';
@@ -97,7 +92,7 @@ export default function ConnectionIndicator() {
 
   const handleManualSync = async () => {
     if (!isOnline || !hasPending) return;
-    
+
     setIsSyncing(true);
     try {
       // Trigger sync via service worker message or direct call
@@ -106,9 +101,9 @@ export default function ConnectionIndicator() {
       }
       // Also trigger via custom event for useNotes hook
       window.dispatchEvent(new CustomEvent('notes:process-offline-queue'));
-      
+
       // Wait a bit then refresh status
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       await refresh();
     } catch (error) {
       console.error('Manual sync failed:', error);
@@ -122,18 +117,18 @@ export default function ConnectionIndicator() {
     try {
       // 1. Trigger connectivity check
       window.dispatchEvent(new Event(CONNECTIVITY_CHECK_EVENT));
-      
+
       // Wait for connectivity check to complete
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // 2. Trigger sync (if online and has pending)
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({ type: 'PROCESS_OFFLINE_QUEUE' });
       }
       window.dispatchEvent(new CustomEvent('notes:process-offline-queue'));
-      
+
       // Wait then refresh status
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       await refresh();
     } catch (error) {
       console.error('Check and sync failed:', error);
@@ -163,9 +158,9 @@ export default function ConnectionIndicator() {
   const showBadge = hasPending && isOnline;
 
   // Tooltip text based on status
-  const tooltipText = isOnline 
-    ? hasPending 
-      ? t('connectedDescription') 
+  const tooltipText = isOnline
+    ? hasPending
+      ? t('connectedDescription')
       : t('online')
     : t('offline');
 
@@ -182,11 +177,7 @@ export default function ConnectionIndicator() {
             mx: 0.5,
           }}
         >
-          {isOnline ? (
-            <WifiIcon fontSize="small" />
-          ) : (
-            <WifiOffIcon fontSize="small" />
-          )}
+          {isOnline ? <WifiIcon fontSize="small" /> : <WifiOffIcon fontSize="small" />}
           {showBadge && (
             <Box
               sx={{
@@ -222,32 +213,45 @@ export default function ConnectionIndicator() {
         }}
       >
         {/* Connection Status */}
-        <MenuItem 
-          disabled 
-          sx={{ 
+        <MenuItem
+          disabled
+          sx={{
             opacity: 1,
             py: 1.5,
           }}
         >
           <ListItemIcon sx={{ minWidth: 40 }}>
             {isOnline ? (
-              <WifiIcon sx={(theme) => ({ 
-                color: theme.palette.mode === 'dark' ? 'success.main' : 'success.dark',
-              })} fontSize="medium" />
+              <WifiIcon
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? 'success.main' : 'success.dark',
+                })}
+                fontSize="medium"
+              />
             ) : (
-              <WifiOffIcon sx={(theme) => ({ 
-                color: theme.palette.mode === 'dark' ? 'warning.main' : 'warning.dark',
-              })} fontSize="medium" />
+              <WifiOffIcon
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? 'warning.main' : 'warning.dark',
+                })}
+                fontSize="medium"
+              />
             )}
           </ListItemIcon>
           <ListItemText
             primary={
-              <Typography variant="subtitle2" fontWeight={600} sx={(theme) => ({ color: theme.palette.text.primary })}>
+              <Typography
+                variant="subtitle2"
+                fontWeight={600}
+                sx={(theme) => ({ color: theme.palette.text.primary })}
+              >
                 {isOnline ? t('online') : t('offline')}
               </Typography>
             }
             secondary={
-              <Typography variant="caption" sx={(theme) => ({ color: theme.palette.text.secondary })}>
+              <Typography
+                variant="caption"
+                sx={(theme) => ({ color: theme.palette.text.secondary })}
+              >
                 {isOnline ? t('connectedDescription') : t('offlineDescription')}
               </Typography>
             }
@@ -257,28 +261,38 @@ export default function ConnectionIndicator() {
         <Divider />
 
         {/* Sync Status */}
-        <MenuItem 
-          disabled 
-          sx={{ 
+        <MenuItem
+          disabled
+          sx={{
             opacity: 1,
             py: 1.5,
           }}
         >
           <ListItemIcon sx={{ minWidth: 40 }}>
             {hasPending ? (
-              <PendingIcon sx={(theme) => ({ 
-                color: theme.palette.mode === 'dark' ? 'warning.main' : 'warning.dark',
-              })} fontSize="medium" />
+              <PendingIcon
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? 'warning.main' : 'warning.dark',
+                })}
+                fontSize="medium"
+              />
             ) : (
-              <CheckCircleIcon sx={(theme) => ({ 
-                color: theme.palette.mode === 'dark' ? 'success.main' : 'success.dark',
-              })} fontSize="medium" />
+              <CheckCircleIcon
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? 'success.main' : 'success.dark',
+                })}
+                fontSize="medium"
+              />
             )}
           </ListItemIcon>
           <ListItemText
             primary={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="subtitle2" fontWeight={600} sx={(theme) => ({ color: theme.palette.text.primary })}>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight={600}
+                  sx={(theme) => ({ color: theme.palette.text.primary })}
+                >
                   {hasPending ? t('syncPending') : t('synced')}
                 </Typography>
                 {hasPending && (
@@ -286,8 +300,8 @@ export default function ConnectionIndicator() {
                     label={pendingCount}
                     size="small"
                     color="warning"
-                    sx={{ 
-                      height: 20, 
+                    sx={{
+                      height: 20,
                       fontSize: '0.7rem',
                       fontWeight: 700,
                     }}
@@ -296,10 +310,11 @@ export default function ConnectionIndicator() {
               </Box>
             }
             secondary={
-              <Typography variant="caption" sx={(theme) => ({ color: theme.palette.text.secondary })}>
-                {hasPending
-                  ? t('pendingOperations', { count: pendingCount })
-                  : t('allSynced')}
+              <Typography
+                variant="caption"
+                sx={(theme) => ({ color: theme.palette.text.secondary })}
+              >
+                {hasPending ? t('pendingOperations', { count: pendingCount }) : t('allSynced')}
               </Typography>
             }
           />
@@ -711,7 +726,10 @@ export default function ConnectionIndicator() {
             }
             secondary={
               !isTrusted ? (
-                <Typography variant="caption" sx={(theme) => ({ color: theme.palette.text.secondary, fontSize: '0.65rem' })}>
+                <Typography
+                  variant="caption"
+                  sx={(theme) => ({ color: theme.palette.text.secondary, fontSize: '0.65rem' })}
+                >
                   {t('notTrustedHint')}
                 </Typography>
               ) : null

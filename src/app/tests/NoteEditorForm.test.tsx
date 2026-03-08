@@ -9,7 +9,15 @@ import NoteEditorForm from '@/app/components/notes/NoteEditorForm';
 
 // Mock RichTextEditor and VoiceRecorder (complex components with browser APIs)
 vi.mock('@/app/components/notes/RichTextEditor', () => ({
-  default: ({ content, onChange, placeholder }: { content: string; onChange: (v: string) => void; placeholder?: string }) => (
+  default: ({
+    content,
+    onChange,
+    placeholder,
+  }: {
+    content: string;
+    onChange: (v: string) => void;
+    placeholder?: string;
+  }) => (
     <textarea
       data-testid="rich-text-editor"
       value={content}
@@ -136,7 +144,7 @@ describe('submission', () => {
           title: 'My Note',
           type: 'text',
           content: 'Note content',
-        }),
+        })
       );
     });
   });
@@ -156,7 +164,7 @@ describe('submission', () => {
           type: 'voice',
           audioData: 'base64audio',
           audioDuration: 30,
-        }),
+        })
       );
     });
   });
@@ -211,7 +219,7 @@ describe('edit mode', () => {
 
     await waitFor(() => {
       expect(defaultProps.onSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({ title: 'Updated Title' }),
+        expect.objectContaining({ title: 'Updated Title' })
       );
     });
   });

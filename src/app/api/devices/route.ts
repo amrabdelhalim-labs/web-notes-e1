@@ -114,7 +114,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(
       { data: serializeDevice(device), message: 'تم الوثوق بالجهاز بنجاح' },
-      { status: 201 },
+      { status: 201 }
     );
   } catch (error) {
     console.error('Device trust error:', error);

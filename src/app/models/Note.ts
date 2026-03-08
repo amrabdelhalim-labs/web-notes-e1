@@ -62,5 +62,4 @@ noteSchema.pre('save', function () {
 /**
  * Prevent model recompilation during HMR in Next.js development.
  */
-export default mongoose.models.Note ??
-  mongoose.model<INote>('Note', noteSchema);
+export default mongoose.models.Note ?? mongoose.model<INote>('Note', noteSchema);

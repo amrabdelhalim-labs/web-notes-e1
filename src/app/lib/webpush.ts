@@ -29,7 +29,7 @@ function ensureInitialised() {
   if (!publicKey || !privateKey) {
     throw new Error(
       'VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY must be set in environment variables. ' +
-        'Generate them with: node -e "const wp=require(\'web-push\'); console.log(JSON.stringify(wp.generateVAPIDKeys()))"',
+        'Generate them with: node -e "const wp=require(\'web-push\'); console.log(JSON.stringify(wp.generateVAPIDKeys()))"'
     );
   }
 
@@ -56,7 +56,7 @@ export interface PushPayload {
  */
 export async function sendPushNotification(
   subscription: PushSubscription,
-  payload: PushPayload,
+  payload: PushPayload
 ): Promise<boolean> {
   ensureInitialised();
 

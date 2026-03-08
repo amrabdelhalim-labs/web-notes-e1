@@ -43,7 +43,11 @@ describe('useOfflineStatus', () => {
   });
 
   it('returns false when navigator.onLine is false (skips ping)', async () => {
-    Object.defineProperty(navigator, 'onLine', { value: false, writable: true, configurable: true });
+    Object.defineProperty(navigator, 'onLine', {
+      value: false,
+      writable: true,
+      configurable: true,
+    });
     const { result } = renderHook(() => useOfflineStatus());
     await waitFor(() => expect(result.current).toBe(false));
   });
@@ -60,7 +64,11 @@ describe('useOfflineStatus', () => {
   });
 
   it('verifies with ping when "online" event fires', async () => {
-    Object.defineProperty(navigator, 'onLine', { value: false, writable: true, configurable: true });
+    Object.defineProperty(navigator, 'onLine', {
+      value: false,
+      writable: true,
+      configurable: true,
+    });
     mockFetchOffline();
     const { result } = renderHook(() => useOfflineStatus());
     await waitFor(() => expect(result.current).toBe(false));

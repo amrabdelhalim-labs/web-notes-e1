@@ -34,7 +34,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProviderWrapper>
         <ThemeConsumer />
-      </ThemeProviderWrapper>,
+      </ThemeProviderWrapper>
     );
     // Initial render should be light (SSR match)
     expect(screen.getByTestId('mode').textContent).toBe('light');
@@ -44,7 +44,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProviderWrapper>
         <ThemeConsumer />
-      </ThemeProviderWrapper>,
+      </ThemeProviderWrapper>
     );
 
     await act(async () => {
@@ -58,7 +58,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProviderWrapper>
         <ThemeConsumer />
-      </ThemeProviderWrapper>,
+      </ThemeProviderWrapper>
     );
 
     await act(async () => {
@@ -72,7 +72,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProviderWrapper>
         <ThemeConsumer />
-      </ThemeProviderWrapper>,
+      </ThemeProviderWrapper>
     );
 
     await act(async () => {
@@ -86,7 +86,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProviderWrapper>
         <ThemeConsumer />
-      </ThemeProviderWrapper>,
+      </ThemeProviderWrapper>
     );
 
     // Toggle to dark
@@ -107,7 +107,7 @@ describe('ThemeContext', () => {
     render(
       <ThemeProviderWrapper>
         <div data-testid="child">Hello</div>
-      </ThemeProviderWrapper>,
+      </ThemeProviderWrapper>
     );
     expect(screen.getByTestId('child')).toBeInTheDocument();
   });

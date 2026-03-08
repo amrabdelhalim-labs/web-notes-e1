@@ -2,7 +2,7 @@
 
 > **المستودع:** `web-notes-e1`
 > **نوع المشروع:** تطبيق ويب تقدمي (PWA) — Full-Stack SSR
-> **الحالة:** المراحل ٠-١٠ مكتملة + تحسينات الوضع Offline والتجاوب والعمليات المعلقة وإدارة الأجهزة الموثوقة — ٤٧٦ اختبار ✅
+> **الحالة:** المراحل ٠-١١ مكتملة — جودة الكود، تنسيق Prettier، إصلاح XSS، CONTRIBUTING.md، حذف أيقونات Next.js الافتراضية — ٤٧٦ اختبار ✅
 
 ---
 
@@ -105,21 +105,19 @@ web-notes-e1/
 │   └── workflows/
 │       ├── build-and-deploy.yml
 │       └── README.md
-├── .gitattributes
+├── .gitattributes              ← LF enforcement لجميع ملفات النص
 ├── .gitignore
 ├── .env.example
-├── .prettierrc.json
+├── .prettierrc.json            ← تكوين Prettier (singleQuote, LF, tabWidth:2)
 ├── .prettierignore
-├── CONTRIBUTING.md
-├── format.mjs
+├── CONTRIBUTING.md             ← معايير المساهمة والـ commits والمعمارية
 ├── LICENSE
-├── next.config.mjs             ← ملف ESM لتجنب تحذيرات CJS/ESM
+├── next.config.js              ← CJS (لا .mjs) — متوافق مع Heroku
 ├── package.json
 ├── tsconfig.json
 ├── vitest.config.ts
 ├── eslint.config.mjs
 ├── README.md
-├── validate-workflow.mjs
 │
 ├── src/                        ← مصدر التطبيق (بنية src/ — المرحلة ٧)
 │   ├── app/                    ← Next.js App Router
@@ -220,6 +218,7 @@ web-notes-e1/
 │   │   ├── models/                 ← نماذج Mongoose
 │   │   │   ├── User.ts
 │   │   │   ├── Note.ts             ← + pre('save') consistency guard
+│   │   │   ├── Device.ts           ← إدارة الأجهزة الموثوقة
 │   │   │   └── Subscription.ts
 │   │   │
 │   │   ├── repositories/           ← طبقة الوصول للبيانات
@@ -238,12 +237,13 @@ web-notes-e1/
 │   │   │
 │   │   ├── utils/
 │   │   │   ├── audio.ts            ← مساعدات تحويل الصوت (blobToBase64, createAudioUrl, formatDuration)
-│   │   │   └── notes.ts            ← مساعدات مشتركة (stripHtml, formatDateShort, formatDateLong)
+│   │   │   ├── notes.ts            ← مساعدات مشتركة (stripHtml, formatDateShort, formatDateLong)
+│   │   │   └── sanitize.ts         ← تعقيم HTML (XSS protection) قبل dangerouslySetInnerHTML
 │   │   │
 │   │   └── tests/
 │   │       ├── setup.ts
 │   │       ├── utils.tsx
-│   │       └── *.test.{ts,tsx}    ← 30 ملف اختبار — 333 اختبار ✅
+│   │       └── *.test.{ts,tsx}    ← 37 ملف اختبار — 476 اختبار ✅
 │   │
 │   ├── i18n/                      ← إعداد next-intl (المرحلة ٧)
 │   │   ├── request.ts              ← getRequestConfig (تحميل ملفات الترجمة حسب اللغة)
@@ -259,22 +259,26 @@ web-notes-e1/
 │
 ├── public/
 │   ├── manifest.json
-│   ├── robots.txt
-│   ├── _redirects
-│   ├── 404.html
-│   ├── sw.js                   ← Service Worker (أو يُولَّد تلقائياً)
-│   └── icons/
-│       ├── icon-72x72.png
-│       ├── icon-96x96.png
-│       ├── icon-128x128.png
-│       ├── icon-144x144.png
-│       ├── icon-152x152.png
-│       ├── icon-192x192.png
-│       ├── icon-384x384.png
-│       └── icon-512x512.png
+│   ├── sw.js                   ← Service Worker (مولَّد بـ @serwist/next)
+│   └── icons/                  ← أيقونات التطبيق فقط (لا أيقونات Next.js الافتراضية)
+│       ├── badge-96x96.png
+│       ├── icon.png
+│       ├── icon.svg
+│       ├── icon-72x72.png (+.svg)
+│       ├── icon-96x96.png (+.svg)
+│       ├── icon-128x128.png (+.svg)
+│       ├── icon-144x144.png (+.svg)
+│       ├── icon-152x152.png (+.svg)
+│       ├── icon-192x192.png (+.svg)
+│       ├── icon-384x384.png (+.svg)
+│       └── icon-512x512.png (+.svg)
 │
 ├── scripts/
-│   └── http-smoke.mjs          ← اختبارات HTTP محلية (smoke tests)
+│   ├── convert-icons.mjs       ← تحويل أيقونات SVG → PNG
+│   ├── format.mjs              ← تنسيق Prettier عبر المنصات (--check للـ CI)
+│   ├── generate-icons.mjs      ← توليد أيقونات PWA بجميع الأحجام
+│   ├── http-smoke.mjs          ← اختبارات HTTP محلية (smoke tests)
+│   └── validate-workflow.mjs   ← فحص شامل قبل الدفع (tsc + tests + env + files)
 │
 └── docs/
     ├── project-plan.md         ← هذا الملف
@@ -978,7 +982,7 @@ web-notes-e1/
   - `test:coverage` — التغطية
 - [x] **١٠.٨** التحقق من نجاح جميع الاختبارات
 
-**الاختبارات:** 333/333 ✅ — 30 ملف اختبار
+**الاختبارات:** 476/476 ✅ — 37 ملف اختبار
 
 **الإيداع:** `test: add comprehensive test suite with Vitest`
 
@@ -990,31 +994,38 @@ web-notes-e1/
 
 #### المهام:
 
-- [ ] **١١.١** إنشاء `.prettierrc.json` بالتكوين المعياري:
-  ```json
-  {
-    "semi": true,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "printWidth": 100,
-    "bracketSpacing": true,
-    "arrowParens": "always",
-    "endOfLine": "lf"
-  }
-  ```
-- [ ] **١١.٢** إنشاء `.prettierignore`
-- [ ] **١١.٣** إنشاء `.gitattributes` مع `* text=auto eol=lf`
-- [ ] **١١.٤** إنشاء `format.mjs` (سكريبت تنسيق عبر المنصات)
-- [ ] **١١.٥** إضافة أوامر التنسيق في `package.json` (`format`, `format:check`)
-- [ ] **١١.٦** إنشاء `CONTRIBUTING.md` بجميع الأقسام الثمانية المطلوبة
-- [ ] **١١.٧** تشغيل التنسيق على جميع الملفات (`node format.mjs`)
-- [ ] **١١.٨** تشغيل `git add --renormalize .`
-- [ ] **١١.٩** التحقق من نجاح جميع الاختبارات بعد التنسيق
+- [x] **١١.١** إنشاء `.prettierrc.json` بالتكوين المعياري (singleQuote، tabWidth:2، LF، printWidth:100)
+- [x] **١١.٢** إنشاء `.prettierignore` (node_modules، .next، public، package-lock.json)
+- [x] **١١.٣** إنشاء `.gitattributes` مع `* text=auto eol=lf` + علامات ثنائية للصور والخطوط
+- [x] **١١.٤** إنشاء `scripts/format.mjs` (سكريبت تنسيق عبر المنصات — cwd مُصحَّح إلى جذر المشروع)
+- [x] **١١.٥** إنشاء `scripts/validate-workflow.mjs` — فحص شامل قبل الدفع:
+  - التحقق من الملفات الإلزامية (14 ملف)
+  - فحص `package.json` (engines + scripts)
+  - تشغيل `tsc --noEmit`
+  - تشغيل `vitest run`
+  - فحص تغطية `.env.example` للمتغيرات الحرجة
+  - فحص غياب أيقونات Next.js الافتراضية
+- [x] **١١.٦** إضافة أوامر في `package.json`: `test`, `test:watch`, `test:coverage`, `format`, `format:check`, `validate`, `smoke`
+- [x] **١١.٧** إضافة `engines: { node: ">=20.x", npm: ">=10.x" }` في `package.json` (مطلوب لـ Heroku)
+- [x] **١١.٨** إنشاء `CONTRIBUTING.md` بثمانية أقسام: المعمارية، الفروع، Commits، Tags، معايير الكود، قائمة ما قبل الدفع، المتغيرات البيئية، النشر على Heroku
+- [x] **١١.٩** حذف `next.config.mjs` المكرر (الجذر يحتفظ بـ `next.config.js` فقط — CJS متوافق مع Heroku)
+- [x] **١١.١٠** حذف أيقونات Next.js الافتراضية من `public/`: `file.svg`، `globe.svg`، `next.svg`، `vercel.svg`، `window.svg`
+- [x] **١١.١١** إنشاء `src/app/utils/sanitize.ts` — تعقيم HTML بـ DOMParser قبل `dangerouslySetInnerHTML` (حماية XSS)
+- [x] **١١.١٢** تطبيق `sanitizeHtml()` في صفحة تفاصيل الملاحظة (`notes/[id]/page.tsx`)
+- [x] **١١.١٣** تشغيل Prettier على جميع الملفات (121 ملف) — جميعها مُنسَّقة
+- [x] **١١.١٤** إصلاح 6 أخطاء TypeScript في `useNotes.test.ts` (_cachedAt، enqueuePendingOp return type، resolveCreate type)
+- [x] **١١.١٥** إصلاح timeout في `ProfilePage.test.tsx` (أضيف `{ timeout: 15000 }` للاختبار الأول)
+- [x] **١١.١٦** التحقق النهائي: `tsc --noEmit` → 0 أخطاء، `vitest run` → 476/476 ✅، `validate-workflow.mjs` → 29/29 ✅
+
+**الحالة:** ✅ منفذة بالكامل
 
 **الإيداعات:**
-1. `chore(format): add Prettier with LF normalization and format all source`
-2. `docs: add CONTRIBUTING.md with commit, tag, and formatting standards`
+1. `chore(quality): add Prettier, gitattributes, engines, and validate script`
+2. `security(notes): sanitize Rich HTML before rendering with custom DOMParser sanitizer`
+3. `docs: add CONTRIBUTING.md with architecture rules, commit standards, and Heroku notes`
+4. `chore(cleanup): remove duplicate next.config.mjs and default Next.js placeholder SVGs`
+5. `style: run Prettier across all source files (121 files formatted)`
+6. `fix(tests): fix TypeScript errors and ProfilePage timeout in test suite`
 
 ---
 

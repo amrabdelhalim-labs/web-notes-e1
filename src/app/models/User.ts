@@ -49,5 +49,4 @@ const userSchema = new Schema<IUser>(
 /**
  * Prevent model recompilation during HMR in Next.js development.
  */
-export default mongoose.models.User ??
-  mongoose.model<IUser>('User', userSchema);
+export default mongoose.models.User ?? mongoose.model<IUser>('User', userSchema);

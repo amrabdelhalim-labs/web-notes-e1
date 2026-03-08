@@ -13,12 +13,7 @@ import { connectDB } from '@/app/lib/mongodb';
 import { authenticateRequest } from '@/app/middlewares/auth.middleware';
 import { getNoteRepository } from '@/app/repositories/note.repository';
 import { validateUpdateNoteInput } from '@/app/validators';
-import {
-  validationError,
-  forbiddenError,
-  notFoundError,
-  serverError,
-} from '@/app/lib/apiErrors';
+import { validationError, forbiddenError, notFoundError, serverError } from '@/app/lib/apiErrors';
 import type { INote, Note } from '@/app/types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -33,10 +28,7 @@ function serializeNote(doc: INote, includeAudio = false): Note {
     _id: (doc._id as Types.ObjectId).toString(),
     title: doc.title,
     content: doc.content,
-    audioData:
-      includeAudio && doc.audioData
-        ? doc.audioData.toString('base64')
-        : undefined,
+    audioData: includeAudio && doc.audioData ? doc.audioData.toString('base64') : undefined,
     audioDuration: doc.audioDuration,
     type: doc.type,
     user: userId,
@@ -107,7 +99,10 @@ export async function PUT(
     if (ownerId !== auth.userId) return forbiddenError();
 
     // Guard: type is immutable after creation — reject cross-type field updates
-    if (existing.type === 'text' && (body.audioData !== undefined || body.audioDuration !== undefined)) {
+    if (
+      existing.type === 'text' &&
+      (body.audioData !== undefined || body.audioDuration !== undefined)
+    ) {
       return validationError(['الملاحظات النصية لا تقبل بيانات صوتية']);
     }
     if (existing.type === 'voice' && body.content !== undefined) {

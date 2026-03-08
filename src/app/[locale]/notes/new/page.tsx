@@ -22,7 +22,7 @@ export default function NewNotePage() {
       await createNote(data as NoteInput);
       router.push('/notes');
     },
-    [createNote, router],
+    [createNote, router]
   );
 
   const handleCancel = useCallback(() => {
@@ -33,7 +33,11 @@ export default function NewNotePage() {
     <MainLayout>
       <Box sx={{ mb: 3 }}>
         <Button
-          startIcon={<ArrowBackIcon sx={(theme) => ({ transform: theme.direction === 'rtl' ? 'scaleX(-1)' : undefined })} />}
+          startIcon={
+            <ArrowBackIcon
+              sx={(theme) => ({ transform: theme.direction === 'rtl' ? 'scaleX(-1)' : undefined })}
+            />
+          }
           onClick={handleCancel}
           sx={{ mb: 1 }}
         >
@@ -44,11 +48,7 @@ export default function NewNotePage() {
         </Typography>
       </Box>
 
-      <NoteEditorForm
-        mode="create"
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-      />
+      <NoteEditorForm mode="create" onSubmit={handleSubmit} onCancel={handleCancel} />
     </MainLayout>
   );
 }

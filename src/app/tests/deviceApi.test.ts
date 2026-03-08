@@ -46,7 +46,7 @@ describe('Device client API', () => {
           headers: expect.objectContaining({
             Authorization: `Bearer ${TOKEN}`,
           }),
-        }),
+        })
       );
     });
 
@@ -56,7 +56,7 @@ describe('Device client API', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         '/api/devices?currentDeviceId=abc-123',
-        expect.anything(),
+        expect.anything()
       );
     });
 
@@ -69,9 +69,7 @@ describe('Device client API', () => {
     });
 
     it('throws on non-2xx response', async () => {
-      mockFetch.mockReturnValue(
-        jsonResponse({ error: { message: 'غير مصرح' } }, 401),
-      );
+      mockFetch.mockReturnValue(jsonResponse({ error: { message: 'غير مصرح' } }, 401));
       await expect(getDevicesApi()).rejects.toThrow('غير مصرح');
     });
   });
@@ -80,7 +78,13 @@ describe('Device client API', () => {
 
   describe('trustDeviceApi', () => {
     it('sends POST /api/devices with device payload', async () => {
-      const payload = { deviceId: 'dev-001', password: 'testpass', name: 'Chrome', browser: 'Chrome', os: 'Windows' };
+      const payload = {
+        deviceId: 'dev-001',
+        password: 'testpass',
+        name: 'Chrome',
+        browser: 'Chrome',
+        os: 'Windows',
+      };
       mockFetch.mockReturnValue(jsonResponse({ data: payload, message: 'ok' }, 201));
 
       await trustDeviceApi(payload);
@@ -90,7 +94,7 @@ describe('Device client API', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(payload),
-        }),
+        })
       );
     });
 
@@ -103,10 +107,10 @@ describe('Device client API', () => {
     });
 
     it('throws on validation error', async () => {
-      mockFetch.mockReturnValue(
-        jsonResponse({ error: { message: 'معرّف الجهاز غير صالح' } }, 400),
+      mockFetch.mockReturnValue(jsonResponse({ error: { message: 'معرّف الجهاز غير صالح' } }, 400));
+      await expect(trustDeviceApi({ deviceId: 'x', password: 'testpass' })).rejects.toThrow(
+        'معرّف الجهاز غير صالح'
       );
-      await expect(trustDeviceApi({ deviceId: 'x', password: 'testpass' })).rejects.toThrow('معرّف الجهاز غير صالح');
     });
   });
 
@@ -123,7 +127,7 @@ describe('Device client API', () => {
         expect.objectContaining({
           method: 'DELETE',
           body: JSON.stringify({ deviceId: 'dev-001', password: 'testpass' }),
-        }),
+        })
       );
     });
 
@@ -134,9 +138,7 @@ describe('Device client API', () => {
     });
 
     it('throws on 404 not found', async () => {
-      mockFetch.mockReturnValue(
-        jsonResponse({ error: { message: 'الجهاز غير موجود' } }, 404),
-      );
+      mockFetch.mockReturnValue(jsonResponse({ error: { message: 'الجهاز غير موجود' } }, 404));
       await expect(deleteDeviceApi('missing', 'testpass')).rejects.toThrow('الجهاز غير موجود');
     });
   });

@@ -54,7 +54,17 @@ vi.mock('@/app/hooks/useOfflineStatus', () => ({
 const mockTrustCurrent = vi.fn();
 const mockRemoveDevice = vi.fn();
 let mockDevicesReturn = {
-  devices: [] as { _id: string; user: string; deviceId: string; name: string; browser: string; os: string; isCurrent?: boolean; lastSeenAt: string; createdAt: string }[],
+  devices: [] as {
+    _id: string;
+    user: string;
+    deviceId: string;
+    name: string;
+    browser: string;
+    os: string;
+    isCurrent?: boolean;
+    lastSeenAt: string;
+    createdAt: string;
+  }[],
   loading: false,
   error: null as string | null,
   isTrusted: true,
@@ -213,7 +223,7 @@ describe('ProfileEditor', () => {
       openField('اسم المستخدم');
       confirmField('اسم المستخدم');
       await waitFor(() =>
-        expect(screen.queryByRole('textbox', { name: 'اسم المستخدم' })).not.toBeInTheDocument(),
+        expect(screen.queryByRole('textbox', { name: 'اسم المستخدم' })).not.toBeInTheDocument()
       );
       expect(mockUpdateUserApi).not.toHaveBeenCalled();
     });
@@ -228,7 +238,7 @@ describe('ProfileEditor', () => {
         target: { value: 'ahmed2' },
       });
       confirmField('اسم المستخدم'); // opens dialog
-      confirmDialog();               // user approves
+      confirmDialog(); // user approves
 
       await waitFor(() => {
         expect(mockUpdateUserApi).toHaveBeenCalledWith('u1', {
@@ -251,7 +261,7 @@ describe('ProfileEditor', () => {
         target: { value: 'ahmed2' },
       });
       confirmField('اسم المستخدم'); // opens dialog
-      confirmDialog();               // user approves
+      confirmDialog(); // user approves
 
       await waitFor(() => {
         expect(screen.getByRole('status')).toHaveTextContent('تم تحديث اسم المستخدم بنجاح');
@@ -267,14 +277,13 @@ describe('ProfileEditor', () => {
         target: { value: 'taken' },
       });
       confirmField('اسم المستخدم'); // opens dialog
-      confirmDialog();               // user approves — API will reject
+      confirmDialog(); // user approves — API will reject
 
       // Error text is rendered as the TextField helperText, which is only
       // inside the editing block → its presence proves the field stayed open
-      await waitFor(
-        () => expect(screen.getByText('اسم المستخدم محجوز')).toBeInTheDocument(),
-        { timeout: 10000 },
-      );
+      await waitFor(() => expect(screen.getByText('اسم المستخدم محجوز')).toBeInTheDocument(), {
+        timeout: 10000,
+      });
     });
 
     it('dialog cancel keeps field open and does not call the API', { timeout: 15000 }, async () => {
@@ -291,9 +300,7 @@ describe('ProfileEditor', () => {
       cancelDialog(); // user changes their mind
 
       // Dialog closed (MUI transitions), field still in editing mode
-      await waitFor(() =>
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
-      );
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
       expect(screen.getByRole('button', { name: 'تأكيد اسم المستخدم' })).toBeInTheDocument();
       expect(mockUpdateUserApi).not.toHaveBeenCalled();
     });
@@ -303,7 +310,9 @@ describe('ProfileEditor', () => {
     it('rejects username shorter than 3 chars without calling API', () => {
       render(<ProfileEditor />);
       openField('اسم المستخدم');
-      fireEvent.change(screen.getByRole('textbox', { name: 'اسم المستخدم' }), { target: { value: 'ab' } });
+      fireEvent.change(screen.getByRole('textbox', { name: 'اسم المستخدم' }), {
+        target: { value: 'ab' },
+      });
       confirmField('اسم المستخدم');
       expect(screen.getByText(/يجب أن يكون 3/)).toBeInTheDocument();
       expect(mockUpdateUserApi).not.toHaveBeenCalled();
@@ -312,7 +321,9 @@ describe('ProfileEditor', () => {
     it('rejects username with spaces without calling API', () => {
       render(<ProfileEditor />);
       openField('اسم المستخدم');
-      fireEvent.change(screen.getByRole('textbox', { name: 'اسم المستخدم' }), { target: { value: 'ahmed ali' } });
+      fireEvent.change(screen.getByRole('textbox', { name: 'اسم المستخدم' }), {
+        target: { value: 'ahmed ali' },
+      });
       confirmField('اسم المستخدم');
       expect(screen.getByText(/لا يسمح بالمسافات/)).toBeInTheDocument();
       expect(mockUpdateUserApi).not.toHaveBeenCalled();
@@ -321,7 +332,9 @@ describe('ProfileEditor', () => {
     it('rejects username with uppercase letters without calling API', () => {
       render(<ProfileEditor />);
       openField('اسم المستخدم');
-      fireEvent.change(screen.getByRole('textbox', { name: 'اسم المستخدم' }), { target: { value: 'Ahmed' } });
+      fireEvent.change(screen.getByRole('textbox', { name: 'اسم المستخدم' }), {
+        target: { value: 'Ahmed' },
+      });
       confirmField('اسم المستخدم');
       expect(screen.getByText(/حروفاً صغيرة/)).toBeInTheDocument();
       expect(mockUpdateUserApi).not.toHaveBeenCalled();
@@ -332,9 +345,11 @@ describe('ProfileEditor', () => {
       mockUpdateUserApi.mockResolvedValue({ data: updatedUser, message: 'تم' });
       render(<ProfileEditor />);
       openField('اسم المستخدم');
-      fireEvent.change(screen.getByRole('textbox', { name: 'اسم المستخدم' }), { target: { value: 'ahmed_2' } });
+      fireEvent.change(screen.getByRole('textbox', { name: 'اسم المستخدم' }), {
+        target: { value: 'ahmed_2' },
+      });
       confirmField('اسم المستخدم'); // opens dialog
-      confirmDialog();              // user approves
+      confirmDialog(); // user approves
       await waitFor(() => expect(mockUpdateUserApi).toHaveBeenCalled());
     });
 
@@ -347,7 +362,7 @@ describe('ProfileEditor', () => {
       const input = screen.getByRole('textbox', { name: 'البريد الإلكتروني' });
       fireEvent.change(input, { target: { value: 'new@test.com' } });
       fireEvent.keyDown(input, { key: 'Enter' }); // opens dialog
-      confirmDialog();                              // user approves
+      confirmDialog(); // user approves
 
       await waitFor(() => expect(mockUpdateUserApi).toHaveBeenCalled());
     });
@@ -378,7 +393,7 @@ describe('ProfileEditor', () => {
       const { container } = render(<ProfileEditor />);
       fireEvent.submit(container.querySelector('form')!);
       await waitFor(() =>
-        expect(screen.getByRole('alert')).toHaveTextContent('كلمة المرور الحالية مطلوبة'),
+        expect(screen.getByRole('alert')).toHaveTextContent('كلمة المرور الحالية مطلوبة')
       );
     });
 
@@ -387,7 +402,9 @@ describe('ProfileEditor', () => {
       fillPasswordForm('old123', '12', '12');
       fireEvent.submit(container.querySelector('form')!);
       await waitFor(() =>
-        expect(screen.getByRole('alert')).toHaveTextContent('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل'),
+        expect(screen.getByRole('alert')).toHaveTextContent(
+          'كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل'
+        )
       );
     });
 
@@ -396,7 +413,9 @@ describe('ProfileEditor', () => {
       fillPasswordForm('old123', 'newpass', 'different');
       fireEvent.submit(container.querySelector('form')!);
       await waitFor(() =>
-        expect(screen.getByRole('alert')).toHaveTextContent('كلمة المرور الجديدة وتأكيدها غير متطابقتين'),
+        expect(screen.getByRole('alert')).toHaveTextContent(
+          'كلمة المرور الجديدة وتأكيدها غير متطابقتين'
+        )
       );
     });
 
@@ -405,7 +424,9 @@ describe('ProfileEditor', () => {
       fillPasswordForm('samepass', 'samepass', 'samepass');
       fireEvent.submit(container.querySelector('form')!);
       await waitFor(() =>
-        expect(screen.getByRole('alert')).toHaveTextContent('كلمة المرور الجديدة يجب أن تختلف عن الحالية'),
+        expect(screen.getByRole('alert')).toHaveTextContent(
+          'كلمة المرور الجديدة يجب أن تختلف عن الحالية'
+        )
       );
     });
 
@@ -419,7 +440,7 @@ describe('ProfileEditor', () => {
           currentPassword: 'current1',
           newPassword: 'newpass1',
           confirmPassword: 'newpass1',
-        }),
+        })
       );
     });
 
@@ -429,11 +450,9 @@ describe('ProfileEditor', () => {
       fillPasswordForm('current1', 'newpass1', 'newpass1');
       fireEvent.submit(container.querySelector('form')!);
       await waitFor(() =>
-        expect(screen.getByRole('alert')).toHaveTextContent('تم تغيير كلمة المرور بنجاح'),
+        expect(screen.getByRole('alert')).toHaveTextContent('تم تغيير كلمة المرور بنجاح')
       );
-      screen.getAllByLabelText(/كلمة المرور/i).forEach((input) =>
-        expect(input).toHaveValue(''),
-      );
+      screen.getAllByLabelText(/كلمة المرور/i).forEach((input) => expect(input).toHaveValue(''));
     });
 
     it('shows server error on API failure', async () => {
@@ -442,7 +461,7 @@ describe('ProfileEditor', () => {
       fillPasswordForm('wrong', 'newpass1', 'newpass1');
       fireEvent.submit(container.querySelector('form')!);
       await waitFor(() =>
-        expect(screen.getByRole('alert')).toHaveTextContent('كلمة المرور الحالية غير صحيحة'),
+        expect(screen.getByRole('alert')).toHaveTextContent('كلمة المرور الحالية غير صحيحة')
       );
     });
   });
@@ -469,9 +488,7 @@ describe('ProfileEditor', () => {
       render(<ProfileEditor />);
       fireEvent.click(screen.getByRole('radio', { name: 'الإنجليزية' }));
 
-      await waitFor(() =>
-        expect(mockUpdateUserApi).toHaveBeenCalledWith('u1', { language: 'en' }),
-      );
+      await waitFor(() => expect(mockUpdateUserApi).toHaveBeenCalledWith('u1', { language: 'en' }));
       expect(mockUpdateUser).toHaveBeenCalledWith(updatedUser);
     });
 
@@ -483,7 +500,7 @@ describe('ProfileEditor', () => {
       fireEvent.click(screen.getByRole('radio', { name: /تلقائي/ }));
 
       await waitFor(() =>
-        expect(mockUpdateUserApi).toHaveBeenCalledWith('u1', { language: 'unset' }),
+        expect(mockUpdateUserApi).toHaveBeenCalledWith('u1', { language: 'unset' })
       );
     });
 
@@ -495,7 +512,7 @@ describe('ProfileEditor', () => {
       fireEvent.click(screen.getByRole('radio', { name: 'الإنجليزية' }));
 
       await waitFor(() =>
-        expect(screen.getByRole('alert')).toHaveTextContent('تم حفظ تفضيل اللغة'),
+        expect(screen.getByRole('alert')).toHaveTextContent('تم حفظ تفضيل اللغة')
       );
     });
 
@@ -505,9 +522,7 @@ describe('ProfileEditor', () => {
       render(<ProfileEditor />);
       fireEvent.click(screen.getByRole('radio', { name: 'الإنجليزية' }));
 
-      await waitFor(() =>
-        expect(screen.getByRole('alert')).toHaveTextContent('خطأ غير متوقع'),
-      );
+      await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('خطأ غير متوقع'));
     });
   });
   // ── Trusted devices section ────────────────────────────────────────────
@@ -546,9 +561,15 @@ describe('ProfileEditor', () => {
 
     it('hides "trust this device" button when current device is trusted', () => {
       const fakeDevice = {
-        _id: 'd1', user: 'u1', deviceId: 'dev-001', name: 'Chrome — Windows',
-        browser: 'Chrome', os: 'Windows', isCurrent: true,
-        lastSeenAt: '2026-01-01T00:00:00Z', createdAt: '2026-01-01T00:00:00Z',
+        _id: 'd1',
+        user: 'u1',
+        deviceId: 'dev-001',
+        name: 'Chrome — Windows',
+        browser: 'Chrome',
+        os: 'Windows',
+        isCurrent: true,
+        lastSeenAt: '2026-01-01T00:00:00Z',
+        createdAt: '2026-01-01T00:00:00Z',
       };
       mockDevicesReturn = { ...mockDevicesReturn, devices: [fakeDevice], isTrusted: true };
       render(<ProfileEditor />);
@@ -565,7 +586,9 @@ describe('ProfileEditor', () => {
 
       // Dialog opens — fill in password
       const dialog = screen.getByRole('dialog');
-      fireEvent.change(within(dialog).getByLabelText('كلمة المرور'), { target: { value: 'testpass' } });
+      fireEvent.change(within(dialog).getByLabelText('كلمة المرور'), {
+        target: { value: 'testpass' },
+      });
 
       // Click confirm inside the dialog
       fireEvent.click(within(dialog).getByRole('button', { name: 'الوثوق بهذا الجهاز' }));
@@ -576,14 +599,26 @@ describe('ProfileEditor', () => {
     it('renders device list items with name and current badge', () => {
       const devices = [
         {
-          _id: 'd1', user: 'u1', deviceId: 'dev-001', name: 'Chrome — Windows',
-          browser: 'Chrome', os: 'Windows', isCurrent: true,
-          lastSeenAt: '2026-01-01T00:00:00Z', createdAt: '2026-01-01T00:00:00Z',
+          _id: 'd1',
+          user: 'u1',
+          deviceId: 'dev-001',
+          name: 'Chrome — Windows',
+          browser: 'Chrome',
+          os: 'Windows',
+          isCurrent: true,
+          lastSeenAt: '2026-01-01T00:00:00Z',
+          createdAt: '2026-01-01T00:00:00Z',
         },
         {
-          _id: 'd2', user: 'u1', deviceId: 'dev-002', name: 'Firefox — Linux',
-          browser: 'Firefox', os: 'Linux', isCurrent: false,
-          lastSeenAt: '2026-01-02T00:00:00Z', createdAt: '2026-01-02T00:00:00Z',
+          _id: 'd2',
+          user: 'u1',
+          deviceId: 'dev-002',
+          name: 'Firefox — Linux',
+          browser: 'Firefox',
+          os: 'Linux',
+          isCurrent: false,
+          lastSeenAt: '2026-01-02T00:00:00Z',
+          createdAt: '2026-01-02T00:00:00Z',
         },
       ];
       mockDevicesReturn = { ...mockDevicesReturn, devices, isTrusted: true };
@@ -595,11 +630,19 @@ describe('ProfileEditor', () => {
     });
 
     it('opens remove confirmation dialog when delete icon is clicked', () => {
-      const devices = [{
-        _id: 'd1', user: 'u1', deviceId: 'dev-001', name: 'Chrome — Windows',
-        browser: 'Chrome', os: 'Windows', isCurrent: true,
-        lastSeenAt: '2026-01-01T00:00:00Z', createdAt: '2026-01-01T00:00:00Z',
-      }];
+      const devices = [
+        {
+          _id: 'd1',
+          user: 'u1',
+          deviceId: 'dev-001',
+          name: 'Chrome — Windows',
+          browser: 'Chrome',
+          os: 'Windows',
+          isCurrent: true,
+          lastSeenAt: '2026-01-01T00:00:00Z',
+          createdAt: '2026-01-01T00:00:00Z',
+        },
+      ];
       mockDevicesReturn = { ...mockDevicesReturn, devices, isTrusted: true };
       render(<ProfileEditor />);
 
@@ -611,11 +654,19 @@ describe('ProfileEditor', () => {
 
     it('calls removeDevice when remove is confirmed', async () => {
       mockRemoveDevice.mockResolvedValue(undefined);
-      const devices = [{
-        _id: 'd1', user: 'u1', deviceId: 'dev-001', name: 'Chrome — Windows',
-        browser: 'Chrome', os: 'Windows', isCurrent: true,
-        lastSeenAt: '2026-01-01T00:00:00Z', createdAt: '2026-01-01T00:00:00Z',
-      }];
+      const devices = [
+        {
+          _id: 'd1',
+          user: 'u1',
+          deviceId: 'dev-001',
+          name: 'Chrome — Windows',
+          browser: 'Chrome',
+          os: 'Windows',
+          isCurrent: true,
+          lastSeenAt: '2026-01-01T00:00:00Z',
+          createdAt: '2026-01-01T00:00:00Z',
+        },
+      ];
       mockDevicesReturn = { ...mockDevicesReturn, devices, isTrusted: true };
       render(<ProfileEditor />);
 
@@ -625,7 +676,9 @@ describe('ProfileEditor', () => {
 
       // Dialog opens — fill in password
       const dialog = screen.getByRole('dialog');
-      fireEvent.change(within(dialog).getByLabelText('كلمة المرور'), { target: { value: 'testpass' } });
+      fireEvent.change(within(dialog).getByLabelText('كلمة المرور'), {
+        target: { value: 'testpass' },
+      });
 
       // Click the confirm button inside the dialog
       fireEvent.click(within(dialog).getByRole('button', { name: 'إزالة' }));
@@ -634,11 +687,19 @@ describe('ProfileEditor', () => {
     });
 
     it('closes remove dialog on cancel', async () => {
-      const devices = [{
-        _id: 'd1', user: 'u1', deviceId: 'dev-001', name: 'Chrome — Windows',
-        browser: 'Chrome', os: 'Windows', isCurrent: true,
-        lastSeenAt: '2026-01-01T00:00:00Z', createdAt: '2026-01-01T00:00:00Z',
-      }];
+      const devices = [
+        {
+          _id: 'd1',
+          user: 'u1',
+          deviceId: 'dev-001',
+          name: 'Chrome — Windows',
+          browser: 'Chrome',
+          os: 'Windows',
+          isCurrent: true,
+          lastSeenAt: '2026-01-01T00:00:00Z',
+          createdAt: '2026-01-01T00:00:00Z',
+        },
+      ];
       mockDevicesReturn = { ...mockDevicesReturn, devices, isTrusted: true };
       render(<ProfileEditor />);
 
@@ -648,9 +709,7 @@ describe('ProfileEditor', () => {
       // Click cancel in dialog
       fireEvent.click(screen.getByRole('button', { name: 'إلغاء' }));
 
-      await waitFor(() =>
-        expect(screen.queryByText('إزالة الجهاز')).not.toBeInTheDocument(),
-      );
+      await waitFor(() => expect(screen.queryByText('إزالة الجهاز')).not.toBeInTheDocument());
       expect(mockRemoveDevice).not.toHaveBeenCalled();
     });
 
@@ -666,8 +725,13 @@ describe('ProfileEditor', () => {
   describe('Guard', () => {
     it('returns null when user is not logged in', () => {
       (useAuth as Mock).mockReturnValue({
-        user: null, token: null, loading: false,
-        login: vi.fn(), register: vi.fn(), updateUser: vi.fn(), logout: vi.fn(),
+        user: null,
+        token: null,
+        loading: false,
+        login: vi.fn(),
+        register: vi.fn(),
+        updateUser: vi.fn(),
+        logout: vi.fn(),
       });
       const { container } = render(<ProfileEditor />);
       expect(container.firstChild).toBeNull();

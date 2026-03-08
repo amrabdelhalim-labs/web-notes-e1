@@ -30,8 +30,15 @@ const mockReplace = vi.fn();
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace }),
   usePathname: () => '/login',
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) =>
-    React.createElement('a', { href, ...props }, children),
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => React.createElement('a', { href, ...props }, children),
   redirect: vi.fn(),
 }));
 
@@ -125,7 +132,7 @@ describe('LoginPage', () => {
 
       await waitFor(() => {
         expect(screen.getByRole('alert')).toHaveTextContent(
-          'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
+          'كلمة المرور يجب أن تكون 6 أحرف على الأقل'
         );
       });
       expect(mockLogin).not.toHaveBeenCalled();

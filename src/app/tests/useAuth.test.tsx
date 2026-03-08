@@ -28,9 +28,7 @@ function makeContextValue(overrides: Partial<AuthContextValue> = {}): AuthContex
 
 function wrapper(value: AuthContextValue) {
   return function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-    );
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
   };
 }
 

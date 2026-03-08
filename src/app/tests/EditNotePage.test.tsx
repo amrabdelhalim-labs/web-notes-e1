@@ -13,8 +13,15 @@ const mockPush = vi.fn();
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   usePathname: () => '/notes/n1/edit',
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) =>
-    React.createElement('a', { href, ...props }, children),
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => React.createElement('a', { href, ...props }, children),
   redirect: vi.fn(),
 }));
 
@@ -44,7 +51,12 @@ vi.mock('@/app/components/layout/MainLayout', () => ({
 
 // Mock NoteEditorForm
 vi.mock('@/app/components/notes/NoteEditorForm', () => ({
-  default: ({ mode, initialData, onSubmit, onCancel }: {
+  default: ({
+    mode,
+    initialData,
+    onSubmit,
+    onCancel,
+  }: {
     mode: string;
     initialData?: { title: string };
     onSubmit: (data: unknown) => Promise<void>;
@@ -53,8 +65,12 @@ vi.mock('@/app/components/notes/NoteEditorForm', () => ({
     <div data-testid="note-editor">
       <span data-testid="editor-mode">{mode}</span>
       <span data-testid="editor-title">{initialData?.title}</span>
-      <button data-testid="submit-btn" onClick={() => onSubmit({ title: 'Updated' })}>save</button>
-      <button data-testid="cancel-btn" onClick={onCancel}>cancel</button>
+      <button data-testid="submit-btn" onClick={() => onSubmit({ title: 'Updated' })}>
+        save
+      </button>
+      <button data-testid="cancel-btn" onClick={onCancel}>
+        cancel
+      </button>
     </div>
   ),
 }));
@@ -67,7 +83,10 @@ beforeEach(() => {
 // React 19's use() reads synchronously if promise has 'status'+'value' set
 function resolvedParams(id: string): Promise<{ id: string }> {
   const value = { id };
-  const p = Promise.resolve(value) as Promise<{ id: string }> & { status: string; value: { id: string } };
+  const p = Promise.resolve(value) as Promise<{ id: string }> & {
+    status: string;
+    value: { id: string };
+  };
   p.status = 'fulfilled';
   p.value = value;
   return p;

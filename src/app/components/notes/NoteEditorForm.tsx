@@ -150,7 +150,11 @@ export default function NoteEditorForm({
   return (
     <Paper sx={{ p: { xs: 2, sm: 3 } }}>
       <Stack spacing={3}>
-        {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
 
         {!isOnline && (
           <Alert severity="info" variant="outlined">
@@ -224,11 +228,7 @@ export default function NoteEditorForm({
 
         {/* Action buttons */}
         <Stack direction="row" spacing={2} justifyContent="flex-end">
-          <Button
-            startIcon={<CancelIcon />}
-            onClick={onCancel}
-            disabled={loading}
-          >
+          <Button startIcon={<CancelIcon />} onClick={onCancel} disabled={loading}>
             {t('cancel')}
           </Button>
           <Button

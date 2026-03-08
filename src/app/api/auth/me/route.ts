@@ -14,9 +14,7 @@ import { getUserRepository } from '@/app/repositories/user.repository';
 import { notFoundError, serverError } from '@/app/lib/apiErrors';
 import type { User } from '@/app/types';
 
-export async function GET(
-  request: NextRequest
-): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;

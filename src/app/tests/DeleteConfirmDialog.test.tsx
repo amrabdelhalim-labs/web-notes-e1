@@ -62,7 +62,9 @@ describe('DeleteConfirmDialog', () => {
 
   it('shows loading state during confirm', async () => {
     let resolveConfirm: () => void;
-    const slowConfirm = new Promise<void>((resolve) => { resolveConfirm = resolve; });
+    const slowConfirm = new Promise<void>((resolve) => {
+      resolveConfirm = resolve;
+    });
     const props = { ...defaultProps, onConfirm: vi.fn().mockReturnValue(slowConfirm) };
 
     render(<DeleteConfirmDialog {...props} />);

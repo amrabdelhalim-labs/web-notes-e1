@@ -15,8 +15,15 @@ let mockIsOnline = true;
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   usePathname: () => '/notes',
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) =>
-    React.createElement('a', { href, ...props }, children),
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => React.createElement('a', { href, ...props }, children),
   redirect: vi.fn(),
 }));
 

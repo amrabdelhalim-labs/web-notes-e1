@@ -12,16 +12,10 @@ import { connectDB } from '@/app/lib/mongodb';
 import { hashPassword, generateToken } from '@/app/lib/auth';
 import { getUserRepository } from '@/app/repositories/user.repository';
 import { validateRegisterInput } from '@/app/validators';
-import {
-  validationError,
-  conflictError,
-  serverError,
-} from '@/app/lib/apiErrors';
+import { validationError, conflictError, serverError } from '@/app/lib/apiErrors';
 import type { User } from '@/app/types';
 
-export async function POST(
-  request: NextRequest
-): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
 

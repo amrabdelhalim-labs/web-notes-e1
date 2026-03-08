@@ -53,9 +53,12 @@ describe('fetchApi', () => {
     mockSuccess({ data: 'ok' });
     await fetchApi('/api/test');
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
-      headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/test',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+      })
+    );
   });
 
   it('includes Authorization header when token exists', async () => {
@@ -97,10 +100,13 @@ describe('loginApi', () => {
     mockSuccess({ data: { token: 'tok', user: {} } });
     await loginApi({ email: 'a@b.com', password: '123456' });
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/auth/login', expect.objectContaining({
-      method: 'POST',
-      body: JSON.stringify({ email: 'a@b.com', password: '123456' }),
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/auth/login',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ email: 'a@b.com', password: '123456' }),
+      })
+    );
   });
 });
 
@@ -109,9 +115,12 @@ describe('registerApi', () => {
     mockSuccess({ data: { token: 'tok', user: {} } });
     await registerApi({ username: 'user', email: 'a@b.com', password: '123456' });
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/auth/register', expect.objectContaining({
-      method: 'POST',
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/auth/register',
+      expect.objectContaining({
+        method: 'POST',
+      })
+    );
   });
 });
 
@@ -170,9 +179,12 @@ describe('createNoteApi', () => {
     mockSuccess({ data: { _id: 'new' }, message: 'تم الإنشاء' });
     await createNoteApi({ title: 'Note', type: 'text', content: 'Body' });
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/notes', expect.objectContaining({
-      method: 'POST',
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/notes',
+      expect.objectContaining({
+        method: 'POST',
+      })
+    );
   });
 });
 
@@ -181,9 +193,12 @@ describe('updateNoteApi', () => {
     mockSuccess({ data: { _id: 'abc' }, message: 'تم التحديث' });
     await updateNoteApi('abc', { title: 'Updated' });
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/notes/abc', expect.objectContaining({
-      method: 'PUT',
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/notes/abc',
+      expect.objectContaining({
+        method: 'PUT',
+      })
+    );
   });
 });
 
@@ -192,9 +207,12 @@ describe('deleteNoteApi', () => {
     mockSuccess({ message: 'تم الحذف' });
     await deleteNoteApi('abc');
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/notes/abc', expect.objectContaining({
-      method: 'DELETE',
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/notes/abc',
+      expect.objectContaining({
+        method: 'DELETE',
+      })
+    );
   });
 });
 
@@ -205,10 +223,13 @@ describe('updateUserApi', () => {
     mockSuccess({ data: { _id: 'u1' }, message: 'تم التحديث' });
     await updateUserApi('u1', { displayName: 'New Name' });
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/users/u1', expect.objectContaining({
-      method: 'PUT',
-      body: JSON.stringify({ displayName: 'New Name' }),
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/users/u1',
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ displayName: 'New Name' }),
+      })
+    );
   });
 });
 
@@ -217,10 +238,13 @@ describe('deleteUserApi', () => {
     mockSuccess({ message: 'تم الحذف' });
     await deleteUserApi('u1', 'mypassword');
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/users/u1', expect.objectContaining({
-      method: 'DELETE',
-      body: JSON.stringify({ password: 'mypassword' }),
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/users/u1',
+      expect.objectContaining({
+        method: 'DELETE',
+        body: JSON.stringify({ password: 'mypassword' }),
+      })
+    );
   });
 });
 
@@ -234,9 +258,12 @@ describe('changePasswordApi', () => {
     };
     await changePasswordApi('u1', input);
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/users/u1', expect.objectContaining({
-      method: 'PUT',
-      body: JSON.stringify(input),
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/users/u1',
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify(input),
+      })
+    );
   });
 });

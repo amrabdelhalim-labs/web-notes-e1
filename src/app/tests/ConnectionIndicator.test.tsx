@@ -9,8 +9,18 @@ import { render, screen, waitFor, fireEvent } from '@/app/tests/utils';
 import ConnectionIndicator from '@/app/components/common/ConnectionIndicator';
 
 let mockIsOnline = true;
-let mockSyncStatus = { pendingCount: 0, isChecking: false, hasPending: false, hasFailures: false, refresh: vi.fn() };
-let mockPwaStatus = { swState: 'active' as const, installState: 'standalone' as const, isReady: true };
+let mockSyncStatus = {
+  pendingCount: 0,
+  isChecking: false,
+  hasPending: false,
+  hasFailures: false,
+  refresh: vi.fn(),
+};
+let mockPwaStatus = {
+  swState: 'active' as const,
+  installState: 'standalone' as const,
+  isReady: true,
+};
 
 vi.mock('@/app/hooks/useOfflineStatus', () => ({
   useOfflineStatus: () => mockIsOnline,
@@ -34,7 +44,13 @@ import { getPendingOps, removePendingOp, cacheNotes } from '@/app/lib/db';
 
 beforeEach(() => {
   mockIsOnline = true;
-  mockSyncStatus = { pendingCount: 0, isChecking: false, hasPending: false, hasFailures: false, refresh: vi.fn() };
+  mockSyncStatus = {
+    pendingCount: 0,
+    isChecking: false,
+    hasPending: false,
+    hasFailures: false,
+    refresh: vi.fn(),
+  };
   mockPwaStatus = { swState: 'active', installState: 'standalone', isReady: true };
   vi.clearAllMocks();
   vi.mocked(getPendingOps).mockResolvedValue([]);
@@ -49,34 +65,48 @@ describe('ConnectionIndicator', () => {
   });
 
   it('shows badge when there are pending operations', () => {
-    mockSyncStatus = { pendingCount: 3, isChecking: false, hasPending: true, hasFailures: false, refresh: vi.fn() };
+    mockSyncStatus = {
+      pendingCount: 3,
+      isChecking: false,
+      hasPending: true,
+      hasFailures: false,
+      refresh: vi.fn(),
+    };
     render(<ConnectionIndicator />);
     expect(screen.getByLabelText(/حالة الاتصال|Connection Status/i)).toBeInTheDocument();
   });
 
   it('opens menu on button click', async () => {
     render(<ConnectionIndicator />);
-    
+
     const button = screen.getByLabelText(/حالة الاتصال|Connection Status/i);
     fireEvent.click(button);
-    
+
     // Menu should appear (even if we can't query specific content)
     expect(button).toBeInTheDocument();
   });
 
   it('calls refresh when menu opens', async () => {
     const mockRefresh = vi.fn();
-    mockSyncStatus = { pendingCount: 0, isChecking: false, hasPending: false, hasFailures: false, refresh: mockRefresh };
+    mockSyncStatus = {
+      pendingCount: 0,
+      isChecking: false,
+      hasPending: false,
+      hasFailures: false,
+      refresh: mockRefresh,
+    };
     render(<ConnectionIndicator />);
-    
+
     const button = screen.getByLabelText(/حالة الاتصال|Connection Status/i);
     fireEvent.click(button);
 
-    await waitFor(() => {
-      expect(mockRefresh).toHaveBeenCalled();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(mockRefresh).toHaveBeenCalled();
+      },
+      { timeout: 3000 }
+    );
   });
-
 
   it('displays online status when connected', () => {
     mockIsOnline = true;
@@ -91,7 +121,13 @@ describe('ConnectionIndicator', () => {
   });
 
   it('shows sync pending status when there are pending operations', () => {
-    mockSyncStatus = { pendingCount: 2, isChecking: false, hasPending: true, hasFailures: false, refresh: vi.fn() };
+    mockSyncStatus = {
+      pendingCount: 2,
+      isChecking: false,
+      hasPending: true,
+      hasFailures: false,
+      refresh: vi.fn(),
+    };
     render(<ConnectionIndicator />);
     expect(screen.getByLabelText(/حالة الاتصال|Connection Status/i)).toBeInTheDocument();
   });
@@ -101,13 +137,19 @@ describe('ConnectionIndicator', () => {
 
 describe('pending operations list', () => {
   const ops = [
-    { id: 1, type: 'create' as const, noteTitle: 'First',  timestamp: Date.now() },
+    { id: 1, type: 'create' as const, noteTitle: 'First', timestamp: Date.now() },
     { id: 2, type: 'update' as const, noteId: 'n1', noteTitle: 'Second', timestamp: Date.now() },
-    { id: 3, type: 'delete' as const, noteId: 'n2', noteTitle: 'Third',  timestamp: Date.now() },
+    { id: 3, type: 'delete' as const, noteId: 'n2', noteTitle: 'Third', timestamp: Date.now() },
   ];
 
   beforeEach(() => {
-    mockSyncStatus = { pendingCount: 3, isChecking: false, hasPending: true, hasFailures: false, refresh: vi.fn() };
+    mockSyncStatus = {
+      pendingCount: 3,
+      isChecking: false,
+      hasPending: true,
+      hasFailures: false,
+      refresh: vi.fn(),
+    };
     vi.mocked(getPendingOps).mockResolvedValue(ops);
   });
 
@@ -159,16 +201,31 @@ describe('pending operations list', () => {
     });
 
     const undoEvents = (dispatchSpy.mock.calls as [Event][]).filter(
-      ([e]) => e instanceof CustomEvent && e.type === 'notes:undo-op',
+      ([e]) => e instanceof CustomEvent && e.type === 'notes:undo-op'
     );
     expect(undoEvents.length).toBeGreaterThan(0);
     dispatchSpy.mockRestore();
   });
 
   it('undo delete op also calls cacheNotes with noteSnapshot', async () => {
-    const noteSnapshot = { _id: 'n2', title: 'Third', content: '', type: 'text' as const, user: 'u1', createdAt: '', updatedAt: '' };
+    const noteSnapshot = {
+      _id: 'n2',
+      title: 'Third',
+      content: '',
+      type: 'text' as const,
+      user: 'u1',
+      createdAt: '',
+      updatedAt: '',
+    };
     vi.mocked(getPendingOps).mockResolvedValue([
-      { id: 3, type: 'delete', noteId: 'n2', noteTitle: 'Third', noteSnapshot, timestamp: Date.now() },
+      {
+        id: 3,
+        type: 'delete',
+        noteId: 'n2',
+        noteTitle: 'Third',
+        noteSnapshot,
+        timestamp: Date.now(),
+      },
     ]);
     const mockCacheNotes = vi.mocked(cacheNotes);
 
@@ -194,7 +251,13 @@ describe('pending operations list', () => {
       timestamp: Date.now(),
     }));
     vi.mocked(getPendingOps).mockResolvedValue(manyOps);
-    mockSyncStatus = { pendingCount: 7, isChecking: false, hasPending: true, hasFailures: false, refresh: vi.fn() };
+    mockSyncStatus = {
+      pendingCount: 7,
+      isChecking: false,
+      hasPending: true,
+      hasFailures: false,
+      refresh: vi.fn(),
+    };
 
     render(<ConnectionIndicator />);
     fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
@@ -209,7 +272,13 @@ describe('pending operations list', () => {
 
 describe('hasFailures warning', () => {
   it('shows failure warning chip when hasFailures=true', async () => {
-    mockSyncStatus = { pendingCount: 1, isChecking: false, hasPending: true, hasFailures: true, refresh: vi.fn() };
+    mockSyncStatus = {
+      pendingCount: 1,
+      isChecking: false,
+      hasPending: true,
+      hasFailures: true,
+      refresh: vi.fn(),
+    };
     vi.mocked(getPendingOps).mockResolvedValue([
       { id: 1, type: 'create', noteTitle: 'Failed op', timestamp: Date.now(), failureCount: 2 },
     ]);
@@ -218,14 +287,18 @@ describe('hasFailures warning', () => {
     fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/بعض العمليات فشلت|Some operations failed/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/بعض العمليات فشلت|Some operations failed/i)).toBeInTheDocument();
     });
   });
 
   it('does NOT show failure chip when hasFailures=false', async () => {
-    mockSyncStatus = { pendingCount: 1, isChecking: false, hasPending: true, hasFailures: false, refresh: vi.fn() };
+    mockSyncStatus = {
+      pendingCount: 1,
+      isChecking: false,
+      hasPending: true,
+      hasFailures: false,
+      refresh: vi.fn(),
+    };
     vi.mocked(getPendingOps).mockResolvedValue([
       { id: 1, type: 'create', noteTitle: 'OK op', timestamp: Date.now() },
     ]);
@@ -234,7 +307,9 @@ describe('hasFailures warning', () => {
     fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
 
     await waitFor(() => {
-      expect(screen.queryByText(/بعض العمليات فشلت|Some operations failed/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/بعض العمليات فشلت|Some operations failed/i)
+      ).not.toBeInTheDocument();
     });
   });
 });

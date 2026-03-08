@@ -44,10 +44,7 @@ interface LocaleLayoutProps {
   params: Promise<{ locale: string }>;
 }
 
-export default async function LocaleLayout({
-  children,
-  params,
-}: LocaleLayoutProps) {
+export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
   const { locale } = await params;
 
   // Reject any unrecognised locale segment
@@ -81,10 +78,7 @@ export default async function LocaleLayout({
           }}
         />
       </head>
-      <body
-        className={`${cairo.variable} ${geistMono.variable}`}
-        suppressHydrationWarning
-      >
+      <body className={`${cairo.variable} ${geistMono.variable}`} suppressHydrationWarning>
         {/*
           NextIntlClientProvider makes translations available to all
           Client Components via useTranslations() without prop drilling.

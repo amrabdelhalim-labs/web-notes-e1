@@ -12,7 +12,14 @@
  * Avoids "save all" anti-pattern; gives instant per-field feedback.
  */
 
-import { useState, useCallback, useEffect, useRef, type KeyboardEvent, type SyntheticEvent } from 'react';
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  type KeyboardEvent,
+  type SyntheticEvent,
+} from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -62,8 +69,7 @@ type TFunc = (key: string) => string;
 function validateUsername(val: string, t: TFunc): string | null {
   if (val.length < 3) return t('usernameErrors.tooShort');
   if (/\s/.test(val)) return t('usernameErrors.hasSpaces');
-  if (!/^[a-z0-9._-]+$/.test(val))
-    return t('usernameErrors.invalidChars');
+  if (!/^[a-z0-9._-]+$/.test(val)) return t('usernameErrors.invalidChars');
   return null;
 }
 
@@ -81,7 +87,17 @@ interface EditableFieldProps {
   t: ReturnType<typeof useTranslations>;
 }
 
-function EditableField({ label, fieldId, value, type = 'text', helperText, readOnly, onSave, validate, t }: EditableFieldProps) {
+function EditableField({
+  label,
+  fieldId,
+  value,
+  type = 'text',
+  helperText,
+  readOnly,
+  onSave,
+  validate,
+  t,
+}: EditableFieldProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const [saving, setSaving] = useState(false);
@@ -96,7 +112,9 @@ function EditableField({ label, fieldId, value, type = 'text', helperText, readO
     if (successMsg) {
       successTimer.current = setTimeout(() => setSuccessMsg(null), 3000);
     }
-    return () => { if (successTimer.current) clearTimeout(successTimer.current); };
+    return () => {
+      if (successTimer.current) clearTimeout(successTimer.current);
+    };
   }, [successMsg]);
 
   const handleEdit = () => {
@@ -114,11 +132,17 @@ function EditableField({ label, fieldId, value, type = 'text', helperText, readO
   // Step 1: validate + open confirmation dialog
   const handleConfirm = () => {
     const trimmed = draft.trim();
-    if (trimmed === value.trim()) { setEditing(false); return; }
+    if (trimmed === value.trim()) {
+      setEditing(false);
+      return;
+    }
 
     if (validate) {
       const validationErr = validate(trimmed);
-      if (validationErr) { setError(validationErr); return; }
+      if (validationErr) {
+        setError(validationErr);
+        return;
+      }
     }
 
     // All client-side checks pass — ask the user to confirm
@@ -255,7 +279,9 @@ function EditableField({ label, fieldId, value, type = 'text', helperText, readO
               <Box component="span" sx={{ color: 'error.main', flexShrink: 0 }}>
                 {type === 'password' ? '••••••' : value || '—'}
               </Box>
-              <Box component="span" sx={{ color: 'text.secondary', flexShrink: 0 }}>→</Box>
+              <Box component="span" sx={{ color: 'text.secondary', flexShrink: 0 }}>
+                →
+              </Box>
               <Box component="span" sx={{ color: 'success.main', flexShrink: 0 }}>
                 {type === 'password' ? '••••••' : pendingVal}
               </Box>
@@ -297,7 +323,10 @@ export default function ProfileEditor() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordMsg, setPasswordMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [passwordMsg, setPasswordMsg] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
 
   // ── Language preference ───────────────────────────────────────────────
@@ -307,9 +336,13 @@ export default function ProfileEditor() {
 
   // ── Push notifications ────────────────────────────────────────────────
   const tp = useTranslations('PushNotifications');
-  const { status: pushStatus, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
+  const {
+    status: pushStatus,
+    subscribe: pushSubscribe,
+    unsubscribe: pushUnsubscribe,
+  } = usePushNotifications();
   const { swState } = usePwaStatus();
-  
+
   const swNotReady = swState !== 'active';
   // ── Trusted devices ───────────────────────────────────────────────
   const td = useTranslations('DeviceManager');
@@ -350,7 +383,7 @@ export default function ProfileEditor() {
         setLangSaving(false);
       }
     },
-    [user, updateUser, t],
+    [user, updateUser, t]
   );
 
   // ── Per-field save ────────────────────────────────────────────────────
@@ -364,7 +397,7 @@ export default function ProfileEditor() {
       });
       updateUser(res.data);
     },
-    [user, updateUser],
+    [user, updateUser]
   );
 
   // ── Password submit ───────────────────────────────────────────────────
@@ -411,7 +444,7 @@ export default function ProfileEditor() {
         setPasswordSubmitting(false);
       }
     },
-    [user, currentPassword, newPassword, confirmPassword],
+    [user, currentPassword, newPassword, confirmPassword]
   );
 
   // ── Trust device (with password) ──────────────────────────────────────
@@ -431,20 +464,23 @@ export default function ProfileEditor() {
   }, [trustPassword, trustCurrent, td]);
 
   // ── Remove device (with password) ─────────────────────────────────────
-  const handleRemoveConfirm = useCallback(async (deviceId: string) => {
-    if (!removePassword) return;
-    setRemovingDeviceId(deviceId);
-    setRemovePasswordError(null);
-    try {
-      await removeDevice(deviceId, removePassword);
-      setConfirmRemoveId(null);
-      setRemovePassword('');
-    } catch (err) {
-      setRemovePasswordError(err instanceof Error ? err.message : td('loadError'));
-    } finally {
-      setRemovingDeviceId(null);
-    }
-  }, [removePassword, removeDevice, td]);
+  const handleRemoveConfirm = useCallback(
+    async (deviceId: string) => {
+      if (!removePassword) return;
+      setRemovingDeviceId(deviceId);
+      setRemovePasswordError(null);
+      try {
+        await removeDevice(deviceId, removePassword);
+        setConfirmRemoveId(null);
+        setRemovePassword('');
+      } catch (err) {
+        setRemovePasswordError(err instanceof Error ? err.message : td('loadError'));
+      } finally {
+        setRemovingDeviceId(null);
+      }
+    },
+    [removePassword, removeDevice, td]
+  );
 
   if (!user) return null;
 
@@ -551,7 +587,14 @@ export default function ProfileEditor() {
             <Alert severity="info" sx={{ mb: 2 }}>
               <Typography variant="body2">{tp('requiresServiceWorker')}</Typography>
               <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-                {tp('serviceWorkerStatus')}: {swState === 'unsupported' ? tp('swUnsupported') : swState === 'checking' ? tp('swChecking') : swState === 'installing' ? tp('swInstalling') : tp('swInactive')}
+                {tp('serviceWorkerStatus')}:{' '}
+                {swState === 'unsupported'
+                  ? tp('swUnsupported')
+                  : swState === 'checking'
+                    ? tp('swChecking')
+                    : swState === 'installing'
+                      ? tp('swInstalling')
+                      : tp('swInactive')}
               </Typography>
             </Alert>
           )}
@@ -561,7 +604,7 @@ export default function ProfileEditor() {
               {tp('requiresTrust')}
             </Alert>
           )}
-          
+
           {!swNotReady && isCurrentDeviceTrusted && pushStatus === 'unsupported' && (
             <Typography variant="body2" color="text.secondary">
               {tp('unsupported')}
@@ -572,17 +615,21 @@ export default function ProfileEditor() {
               {tp('denied')}
             </Typography>
           )}
-          {!swNotReady && isCurrentDeviceTrusted && (pushStatus === 'unsubscribed' || pushStatus === 'subscribed') && (
-            <Button
-              variant={pushStatus === 'subscribed' ? 'outlined' : 'contained'}
-              color={pushStatus === 'subscribed' ? 'inherit' : 'primary'}
-              startIcon={pushStatus === 'subscribed' ? <NotificationsOffIcon /> : <NotificationsIcon />}
-              onClick={pushStatus === 'subscribed' ? pushUnsubscribe : pushSubscribe}
-              disabled={!isOnline}
-            >
-              {pushStatus === 'subscribed' ? tp('unsubscribe') : tp('subscribe')}
-            </Button>
-          )}
+          {!swNotReady &&
+            isCurrentDeviceTrusted &&
+            (pushStatus === 'unsubscribed' || pushStatus === 'subscribed') && (
+              <Button
+                variant={pushStatus === 'subscribed' ? 'outlined' : 'contained'}
+                color={pushStatus === 'subscribed' ? 'inherit' : 'primary'}
+                startIcon={
+                  pushStatus === 'subscribed' ? <NotificationsOffIcon /> : <NotificationsIcon />
+                }
+                onClick={pushStatus === 'subscribed' ? pushUnsubscribe : pushSubscribe}
+                disabled={!isOnline}
+              >
+                {pushStatus === 'subscribed' ? tp('unsubscribe') : tp('subscribe')}
+              </Button>
+            )}
           {pushStatus === 'loading' && <CircularProgress size={24} />}
           {pushStatus === 'subscribed' && (
             <Typography variant="caption" color="success.main" display="block" mt={1}>
@@ -604,7 +651,9 @@ export default function ProfileEditor() {
           </Typography>
 
           {devicesError && (
-            <Alert severity="error" sx={{ mb: 2 }}>{td('loadError')}</Alert>
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {td('loadError')}
+            </Alert>
           )}
 
           {devicesLoading ? (
@@ -641,7 +690,12 @@ export default function ProfileEditor() {
                           {device.name || `${device.browser} — ${device.os}`}
                         </Typography>
                         {device.isCurrent && (
-                          <Chip label={td('currentDevice')} size="small" color="primary" variant="outlined" />
+                          <Chip
+                            label={td('currentDevice')}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                          />
                         )}
                       </Stack>
                       <Typography variant="caption" color="text.secondary">
@@ -703,16 +757,26 @@ export default function ProfileEditor() {
                 fullWidth
                 autoFocus
                 value={trustPassword}
-                onChange={(e) => { setTrustPassword(e.target.value); setTrustPasswordError(null); }}
+                onChange={(e) => {
+                  setTrustPassword(e.target.value);
+                  setTrustPasswordError(null);
+                }}
                 error={!!trustPasswordError}
                 helperText={trustPasswordError ?? td('passwordHint')}
                 disabled={trustingDevice}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleTrustConfirm(); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleTrustConfirm();
+                }}
                 autoComplete="current-password"
               />
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-              <Button onClick={() => setShowTrustDialog(false)} variant="outlined" color="inherit" disabled={trustingDevice}>
+              <Button
+                onClick={() => setShowTrustDialog(false)}
+                variant="outlined"
+                color="inherit"
+                disabled={trustingDevice}
+              >
                 {td('cancelButton')}
               </Button>
               <Button
@@ -721,7 +785,11 @@ export default function ProfileEditor() {
                 disabled={trustingDevice || !trustPassword}
                 onClick={handleTrustConfirm}
               >
-                {trustingDevice ? <CircularProgress size={18} color="inherit" /> : td('trustButton')}
+                {trustingDevice ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : (
+                  td('trustButton')
+                )}
               </Button>
             </DialogActions>
           </Dialog>
@@ -729,7 +797,11 @@ export default function ProfileEditor() {
           {/* ── Remove confirmation dialog (with password) ───────────── */}
           <Dialog
             open={confirmRemoveId !== null}
-            onClose={() => { setConfirmRemoveId(null); setRemovePassword(''); setRemovePasswordError(null); }}
+            onClose={() => {
+              setConfirmRemoveId(null);
+              setRemovePassword('');
+              setRemovePasswordError(null);
+            }}
             aria-labelledby="confirm-remove-device-title"
           >
             <DialogTitle id="confirm-remove-device-title">{td('confirmRemoveTitle')}</DialogTitle>
@@ -741,17 +813,26 @@ export default function ProfileEditor() {
                 fullWidth
                 autoFocus
                 value={removePassword}
-                onChange={(e) => { setRemovePassword(e.target.value); setRemovePasswordError(null); }}
+                onChange={(e) => {
+                  setRemovePassword(e.target.value);
+                  setRemovePasswordError(null);
+                }}
                 error={!!removePasswordError}
                 helperText={removePasswordError ?? td('passwordHint')}
                 disabled={!!removingDeviceId}
-                onKeyDown={(e) => { if (e.key === 'Enter' && confirmRemoveId) handleRemoveConfirm(confirmRemoveId); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && confirmRemoveId) handleRemoveConfirm(confirmRemoveId);
+                }}
                 autoComplete="current-password"
               />
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
               <Button
-                onClick={() => { setConfirmRemoveId(null); setRemovePassword(''); setRemovePasswordError(null); }}
+                onClick={() => {
+                  setConfirmRemoveId(null);
+                  setRemovePassword('');
+                  setRemovePasswordError(null);
+                }}
                 variant="outlined"
                 color="inherit"
                 disabled={!!removingDeviceId}
@@ -764,7 +845,11 @@ export default function ProfileEditor() {
                 disabled={!!removingDeviceId || !removePassword}
                 onClick={() => confirmRemoveId && handleRemoveConfirm(confirmRemoveId)}
               >
-                {removingDeviceId ? <CircularProgress size={18} color="inherit" /> : td('confirmButton')}
+                {removingDeviceId ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : (
+                  td('confirmButton')
+                )}
               </Button>
             </DialogActions>
           </Dialog>
@@ -784,7 +869,10 @@ export default function ProfileEditor() {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handlePasswordSubmit} noValidate
+          <Box
+            component="form"
+            onSubmit={handlePasswordSubmit}
+            noValidate
             sx={{ opacity: isOnline ? 1 : 0.5, pointerEvents: isOnline ? 'auto' : 'none' }}
           >
             <TextField
@@ -830,7 +918,11 @@ export default function ProfileEditor() {
               disabled={passwordSubmitting || !isOnline}
               sx={{ mt: 2 }}
             >
-              {passwordSubmitting ? <CircularProgress size={22} color="inherit" /> : t('changePasswordButton')}
+              {passwordSubmitting ? (
+                <CircularProgress size={22} color="inherit" />
+              ) : (
+                t('changePasswordButton')
+              )}
             </Button>
           </Box>
         </CardContent>

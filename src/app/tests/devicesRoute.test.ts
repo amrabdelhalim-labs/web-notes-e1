@@ -50,18 +50,18 @@ vi.mock('@/app/lib/apiErrors', () => ({
   validationError: (messages: string[]) =>
     new Response(
       JSON.stringify({ error: { code: 'VALIDATION_ERROR', message: messages.join(', ') } }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } },
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
     ),
   serverError: () =>
-    new Response(
-      JSON.stringify({ error: { code: 'SERVER_ERROR', message: 'خطأ في الخادم' } }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } },
-    ),
+    new Response(JSON.stringify({ error: { code: 'SERVER_ERROR', message: 'خطأ في الخادم' } }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    }),
   unauthorizedError: (message = 'غير مصرح') =>
-    new Response(
-      JSON.stringify({ error: { code: 'UNAUTHORIZED', message } }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } },
-    ),
+    new Response(JSON.stringify({ error: { code: 'UNAUTHORIZED', message } }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    }),
 }));
 
 // ─── Auth + User mocks ───────────────────────────────────────────────────────
@@ -140,7 +140,7 @@ describe('/api/devices', () => {
       mockFindByUser.mockResolvedValue([fakeDeviceDoc]);
 
       const res = await GET(
-        makeRequest('GET', undefined, 'http://localhost/api/devices?currentDeviceId=abc-12345-def'),
+        makeRequest('GET', undefined, 'http://localhost/api/devices?currentDeviceId=abc-12345-def')
       );
       const json = await res.json();
 
@@ -151,7 +151,7 @@ describe('/api/devices', () => {
       mockFindByUser.mockResolvedValue([fakeDeviceDoc]);
 
       const res = await GET(
-        makeRequest('GET', undefined, 'http://localhost/api/devices?currentDeviceId=other-id'),
+        makeRequest('GET', undefined, 'http://localhost/api/devices?currentDeviceId=other-id')
       );
       const json = await res.json();
 
@@ -191,7 +191,9 @@ describe('/api/devices', () => {
       mockFindByDeviceId.mockResolvedValue(fakeDeviceDoc);
       mockTouch.mockResolvedValue(undefined);
 
-      const res = await POST(makeRequest('POST', { deviceId: 'abc-12345-def', password: 'TestPass1!' }));
+      const res = await POST(
+        makeRequest('POST', { deviceId: 'abc-12345-def', password: 'TestPass1!' })
+      );
       const json = await res.json();
 
       expect(res.status).toBe(200);
@@ -204,7 +206,12 @@ describe('/api/devices', () => {
       mockCreate.mockResolvedValue(fakeDeviceDoc);
 
       const res = await POST(
-        makeRequest('POST', { deviceId: 'abc-12345-def', browser: 'Chrome', os: 'Windows', password: 'TestPass1!' }),
+        makeRequest('POST', {
+          deviceId: 'abc-12345-def',
+          browser: 'Chrome',
+          os: 'Windows',
+          password: 'TestPass1!',
+        })
       );
       const json = await res.json();
 
@@ -215,7 +222,7 @@ describe('/api/devices', () => {
           deviceId: 'abc-12345-def',
           browser: 'Chrome',
           os: 'Windows',
-        }),
+        })
       );
     });
   });
@@ -240,7 +247,9 @@ describe('/api/devices', () => {
       mockDeleteByDeviceId.mockResolvedValue(null);
       mockSubFindByUser.mockResolvedValue([]);
 
-      const res = await DELETE(makeRequest('DELETE', { deviceId: 'non-existent', password: 'TestPass1!' }));
+      const res = await DELETE(
+        makeRequest('DELETE', { deviceId: 'non-existent', password: 'TestPass1!' })
+      );
       expect(res.status).toBe(404);
     });
 
@@ -252,7 +261,9 @@ describe('/api/devices', () => {
       ]);
       mockSubDeleteByEndpoint.mockResolvedValue({});
 
-      const res = await DELETE(makeRequest('DELETE', { deviceId: 'abc-12345-def', password: 'TestPass1!' }));
+      const res = await DELETE(
+        makeRequest('DELETE', { deviceId: 'abc-12345-def', password: 'TestPass1!' })
+      );
       const json = await res.json();
 
       expect(res.status).toBe(200);
@@ -267,7 +278,9 @@ describe('/api/devices', () => {
       mockDeleteByDeviceId.mockResolvedValue(fakeDeviceDoc);
       mockSubFindByUser.mockResolvedValue([]);
 
-      const res = await DELETE(makeRequest('DELETE', { deviceId: 'abc-12345-def', password: 'TestPass1!' }));
+      const res = await DELETE(
+        makeRequest('DELETE', { deviceId: 'abc-12345-def', password: 'TestPass1!' })
+      );
       expect(res.status).toBe(200);
       expect(mockSubDeleteByEndpoint).not.toHaveBeenCalled();
     });

@@ -10,13 +10,11 @@
 import mongoose from 'mongoose';
 
 const DATABASE_URL =
-  process.env.DATABASE_URL ||
-  process.env.MONGODB_URI ||
-  'mongodb://localhost:27017/mynotes';
+  process.env.DATABASE_URL || process.env.MONGODB_URI || 'mongodb://localhost:27017/mynotes';
 
 if (process.env.NODE_ENV !== 'test' && !process.env.DATABASE_URL && !process.env.MONGODB_URI) {
   console.warn(
-    '[mongodb] DATABASE_URL not set — using default fallback (dev only). Set it in .env.local for production.',
+    '[mongodb] DATABASE_URL not set — using default fallback (dev only). Set it in .env.local for production.'
   );
 }
 

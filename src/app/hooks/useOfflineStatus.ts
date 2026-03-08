@@ -62,7 +62,9 @@ export function useOfflineStatus(): boolean {
     // If browser is definitely offline, skip the ping
     if (!navigator.onLine) {
       setIsOnline(false);
-      window.dispatchEvent(new CustomEvent(CONNECTIVITY_STATUS_EVENT, { detail: { online: false } }));
+      window.dispatchEvent(
+        new CustomEvent(CONNECTIVITY_STATUS_EVENT, { detail: { online: false } })
+      );
       return;
     }
 
@@ -73,14 +75,18 @@ export function useOfflineStatus(): boolean {
     pinging.current = false;
 
     setIsOnline(reachable);
-    window.dispatchEvent(new CustomEvent(CONNECTIVITY_STATUS_EVENT, { detail: { online: reachable } }));
+    window.dispatchEvent(
+      new CustomEvent(CONNECTIVITY_STATUS_EVENT, { detail: { online: reachable } })
+    );
   }, []);
 
   useEffect(() => {
     // ── Browser events (instant layer) ──────────────────────────────────
     const handleOffline = () => {
       setIsOnline(false);
-      window.dispatchEvent(new CustomEvent(CONNECTIVITY_STATUS_EVENT, { detail: { online: false } }));
+      window.dispatchEvent(
+        new CustomEvent(CONNECTIVITY_STATUS_EVENT, { detail: { online: false } })
+      );
     };
 
     const handleOnline = () => {

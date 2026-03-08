@@ -94,9 +94,11 @@ function EditorToolbar({ editor, contentDir, onDirChange }: EditorToolbarProps) 
           onChange={() => onDirChange(contentDir === 'rtl' ? 'ltr' : 'rtl')}
           aria-label={contentDir === 'rtl' ? t('switchToLTR') : t('switchToRTL')}
         >
-          {contentDir === 'rtl'
-            ? <FormatTextdirectionRToLIcon fontSize="small" />
-            : <FormatTextdirectionLToRIcon fontSize="small" />}
+          {contentDir === 'rtl' ? (
+            <FormatTextdirectionRToLIcon fontSize="small" />
+          ) : (
+            <FormatTextdirectionLToRIcon fontSize="small" />
+          )}
         </ToggleButton>
       </Tooltip>
 
@@ -249,16 +251,18 @@ export default function RichTextEditor({
   // Content direction: defaults to the app locale's natural direction.
   // The user can toggle it in the toolbar to write English inside an Arabic note
   // or vice-versa. This state is local to the note session and is NOT persisted.
-  const [contentDir, setContentDir] = useState<'rtl' | 'ltr'>(
-    () => (locale === 'ar' ? 'rtl' : 'ltr'),
+  const [contentDir, setContentDir] = useState<'rtl' | 'ltr'>(() =>
+    locale === 'ar' ? 'rtl' : 'ltr'
   );
 
   // Stable ref for onChange so the editor closure never goes stale
   const onChangeRef = useRef(onChange);
-  useEffect(() => { onChangeRef.current = onChange; });
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
 
   const editor = useEditor({
-    immediatelyRender: false,   // SSR-safe: prevents Tiptap hydration mismatch
+    immediatelyRender: false, // SSR-safe: prevents Tiptap hydration mismatch
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3] },
@@ -343,11 +347,7 @@ export default function RichTextEditor({
       }}
     >
       {!readOnly && (
-        <EditorToolbar
-          editor={editor}
-          contentDir={contentDir}
-          onDirChange={setContentDir}
-        />
+        <EditorToolbar editor={editor} contentDir={contentDir} onDirChange={setContentDir} />
       )}
       <Box
         sx={(theme) => ({
@@ -408,9 +408,7 @@ export default function RichTextEditor({
             // ── Highlight mark ─────────────────────────────────────────────
             '& mark': {
               backgroundColor:
-                theme.palette.mode === 'dark'
-                  ? 'rgba(255,213,79,0.30)'
-                  : 'rgba(255,213,79,0.55)',
+                theme.palette.mode === 'dark' ? 'rgba(255,213,79,0.30)' : 'rgba(255,213,79,0.55)',
               color: theme.palette.text.primary,
               borderRadius: '2px',
               padding: '0 2px',

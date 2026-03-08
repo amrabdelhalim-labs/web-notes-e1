@@ -25,9 +25,14 @@ class NoteRepository extends BaseRepository<INote> {
     page: number = 1,
     limit: number = 10
   ): Promise<PaginatedResult<INote>> {
-    return this.findPaginated(page, limit, { user: userId }, {
-      sort: { createdAt: -1 },
-    });
+    return this.findPaginated(
+      page,
+      limit,
+      { user: userId },
+      {
+        sort: { createdAt: -1 },
+      }
+    );
   }
 
   /** Find notes by user filtered by type (text/voice). */
@@ -37,9 +42,14 @@ class NoteRepository extends BaseRepository<INote> {
     page: number = 1,
     limit: number = 10
   ): Promise<PaginatedResult<INote>> {
-    return this.findPaginated(page, limit, { user: userId, type }, {
-      sort: { createdAt: -1 },
-    });
+    return this.findPaginated(
+      page,
+      limit,
+      { user: userId, type },
+      {
+        sort: { createdAt: -1 },
+      }
+    );
   }
 
   /**

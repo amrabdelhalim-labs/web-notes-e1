@@ -15,10 +15,7 @@ import { connectDB } from '@/app/lib/mongodb';
 import { authenticateRequest } from '@/app/middlewares/auth.middleware';
 import { getNoteRepository } from '@/app/repositories/note.repository';
 import { validateNoteInput } from '@/app/validators';
-import {
-  validationError,
-  serverError,
-} from '@/app/lib/apiErrors';
+import { validationError, serverError } from '@/app/lib/apiErrors';
 import type { INote, Note, NoteType } from '@/app/types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -37,10 +34,7 @@ function serializeNote(doc: INote, includeAudio = false): Note {
     _id: (doc._id as Types.ObjectId).toString(),
     title: doc.title,
     content: doc.content,
-    audioData:
-      includeAudio && doc.audioData
-        ? doc.audioData.toString('base64')
-        : undefined,
+    audioData: includeAudio && doc.audioData ? doc.audioData.toString('base64') : undefined,
     audioDuration: doc.audioDuration,
     type: doc.type,
     user: userId,

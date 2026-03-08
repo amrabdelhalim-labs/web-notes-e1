@@ -48,10 +48,11 @@ export default function ProfilePage() {
   }, []);
 
   const joinDate = user?.createdAt
-    ? new Date(user.createdAt).toLocaleDateString(
-        locale === 'ar' ? 'ar-EG' : 'en-US',
-        { year: 'numeric', month: 'long', day: 'numeric' },
-      )
+    ? new Date(user.createdAt).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
     : '—';
 
   return (
@@ -72,11 +73,7 @@ export default function ProfilePage() {
                 />
                 <Chip
                   icon={<StickyNote2Icon />}
-                  label={
-                    noteCount !== null
-                      ? t('noteCount', { count: noteCount })
-                      : '...'
-                  }
+                  label={noteCount !== null ? t('noteCount', { count: noteCount }) : '...'}
                   variant="outlined"
                 />
                 <Chip

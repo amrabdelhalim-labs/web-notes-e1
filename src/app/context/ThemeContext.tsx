@@ -19,11 +19,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import {
-  ThemeProvider,
-  createTheme,
-  type PaletteMode,
-} from '@mui/material/styles';
+import { ThemeProvider, createTheme, type PaletteMode } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { useLocale } from 'next-intl';
 import { SHADOWS, TRANSITIONS } from '@/app/lib/ui-constants';
@@ -105,14 +101,14 @@ function buildTheme(mode: PaletteMode, dir: 'rtl' | 'ltr' = 'rtl') {
       // Enhanced for better readability across all components including menus.
       text: isDark
         ? {
-            primary: '#e8eaed',    // 15.8:1 vs #121212  ✅ AAA (excellent)
-            secondary: '#b0b8c4',  //  8.9:1 vs #121212  ✅ AAA (improved from 6.5:1)
-            disabled: '#5c6773',   //  2.8:1 vs #121212  (acceptable for disabled)
+            primary: '#e8eaed', // 15.8:1 vs #121212  ✅ AAA (excellent)
+            secondary: '#b0b8c4', //  8.9:1 vs #121212  ✅ AAA (improved from 6.5:1)
+            disabled: '#5c6773', //  2.8:1 vs #121212  (acceptable for disabled)
           }
         : {
-            primary: '#0d1117',    // 19.1:1 vs #f0f4f8  ✅ AAA (darker for better contrast)
-            secondary: '#24292f',  //  9.8:1 vs #f0f4f8  ✅ AAA (much stronger than before)
-            disabled: '#57606a',   //  4.2:1 vs #f0f4f8  ✅ AA (improved from 3.1:1)
+            primary: '#0d1117', // 19.1:1 vs #f0f4f8  ✅ AAA (darker for better contrast)
+            secondary: '#24292f', //  9.8:1 vs #f0f4f8  ✅ AAA (much stronger than before)
+            disabled: '#57606a', //  4.2:1 vs #f0f4f8  ✅ AA (improved from 3.1:1)
           },
       divider: isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.14)',
       // ── Action ──────────────────────────────────────────────────────────
@@ -147,9 +143,7 @@ function buildTheme(mode: PaletteMode, dir: 'rtl' | 'ltr' = 'rtl') {
       MuiOutlinedInput: {
         styleOverrides: {
           notchedOutline: () => ({
-            borderColor: isDark
-              ? 'rgba(255,255,255,0.32)'
-              : 'rgba(0,0,0,0.32)',
+            borderColor: isDark ? 'rgba(255,255,255,0.32)' : 'rgba(0,0,0,0.32)',
             borderWidth: '1.5px',
           }),
         },
@@ -259,9 +253,7 @@ function buildTheme(mode: PaletteMode, dir: 'rtl' | 'ltr' = 'rtl') {
           root: ({ theme }) => ({
             // Default hover state with better contrast
             '&:hover': {
-              backgroundColor: isDark
-                ? 'rgba(255,255,255,0.12)'
-                : 'rgba(0,0,0,0.08)',
+              backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
             },
             // Disabled menu items (info/status items) need good text contrast
             '&.Mui-disabled': {
@@ -359,10 +351,7 @@ export function ThemeProviderWrapper({ children }: { children: ReactNode }) {
 
   const theme = useMemo(() => buildTheme(mode, dir), [mode, dir]);
 
-  const ctxValue = useMemo<ThemeContextValue>(
-    () => ({ mode, toggleMode }),
-    [mode, toggleMode],
-  );
+  const ctxValue = useMemo<ThemeContextValue>(() => ({ mode, toggleMode }), [mode, toggleMode]);
 
   return (
     <ThemeContext.Provider value={ctxValue}>

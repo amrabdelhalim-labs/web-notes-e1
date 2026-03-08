@@ -39,7 +39,7 @@ export default function NotesPage() {
     (note: Note) => {
       router.push(`/notes/${note._id}/edit`);
     },
-    [router],
+    [router]
   );
 
   const handleDeleteClick = useCallback((note: Note) => {

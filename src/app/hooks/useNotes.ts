@@ -71,7 +71,7 @@ function applyLocalFilter(notes: Note[], type: NoteType | '', query: string): No
     result = result.filter(
       (n) =>
         n.title.toLowerCase().includes(q) ||
-        (typeof n.content === 'string' && n.content.toLowerCase().includes(q)),
+        (typeof n.content === 'string' && n.content.toLowerCase().includes(q))
     );
   }
   return result;
@@ -104,7 +104,7 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
   const fetchNotes = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     // Step 1: Always load from cache first for instant UI
     let cachedData: typeof notes = [];
     try {
@@ -120,7 +120,7 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
     } catch {
       // Cache read failed - not critical, continue
     }
-    
+
     // Step 2: If online, fetch fresh data from server in background
     if (isOnline) {
       try {
@@ -135,15 +135,18 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         const allPendingOps = await getPendingOps();
         const pendingCreates = allPendingOps
           .filter((op) => op.type === 'create' && op.tempId && op.payload)
-          .map((op) => ({
-            _id: op.tempId!,
-            title: (op.payload as NoteInput).title ?? '',
-            content: (op.payload as NoteInput).content,
-            type: (op.payload as NoteInput).type ?? 'text',
-            user: '',
-            createdAt: new Date(op.timestamp).toISOString(),
-            updatedAt: new Date(op.timestamp).toISOString(),
-          } as Note));
+          .map(
+            (op) =>
+              ({
+                _id: op.tempId!,
+                title: (op.payload as NoteInput).title ?? '',
+                content: (op.payload as NoteInput).content,
+                type: (op.payload as NoteInput).type ?? 'text',
+                user: '',
+                createdAt: new Date(op.timestamp).toISOString(),
+                updatedAt: new Date(op.timestamp).toISOString(),
+              }) as Note
+          );
         const serverIds = new Set(res.data.notes.map((n) => n._id));
         const uniqueTemps = pendingCreates.filter((n) => !serverIds.has(n._id));
         // Update UI with fresh server data + any unsynced creates
@@ -191,45 +194,48 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, typeFilter, searchQuery]);
 
-  const createNote = useCallback(async (input: NoteInput): Promise<Note> => {
-    // Optimistic: show the note immediately with a temp id
-    const tempId = `tmp_${crypto.randomUUID()}`;
-    const tempNote: Note = {
-      _id: tempId,
-      title: input.title,
-      content: input.content,
-      type: input.type,
-      user: '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setNotes((prev) => [tempNote, ...prev]);
-    setCount((c) => c + 1);
+  const createNote = useCallback(
+    async (input: NoteInput): Promise<Note> => {
+      // Optimistic: show the note immediately with a temp id
+      const tempId = `tmp_${crypto.randomUUID()}`;
+      const tempNote: Note = {
+        _id: tempId,
+        title: input.title,
+        content: input.content,
+        type: input.type,
+        user: '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setNotes((prev) => [tempNote, ...prev]);
+      setCount((c) => c + 1);
 
-    if (!isOnline) {
-      await enqueuePendingOp({
-        type: 'create',
-        tempId,
-        payload: input,
-        noteTitle: input.title,
-        timestamp: Date.now(),
-      });
-      return tempNote;
-    }
+      if (!isOnline) {
+        await enqueuePendingOp({
+          type: 'create',
+          tempId,
+          payload: input,
+          noteTitle: input.title,
+          timestamp: Date.now(),
+        });
+        return tempNote;
+      }
 
-    try {
-      const res = await createNoteApi(input);
-      // Replace temp note with the real server note
-      setNotes((prev) => prev.map((n) => (n._id === tempId ? res.data : n)));
-      cacheNotes([res.data]).catch(() => {});
-      return res.data;
-    } catch (err) {
-      // Rollback optimistic insert on failure
-      setNotes((prev) => prev.filter((n) => n._id !== tempId));
-      setCount((c) => Math.max(0, c - 1));
-      throw err;
-    }
-  }, [isOnline]);
+      try {
+        const res = await createNoteApi(input);
+        // Replace temp note with the real server note
+        setNotes((prev) => prev.map((n) => (n._id === tempId ? res.data : n)));
+        cacheNotes([res.data]).catch(() => {});
+        return res.data;
+      } catch (err) {
+        // Rollback optimistic insert on failure
+        setNotes((prev) => prev.filter((n) => n._id !== tempId));
+        setCount((c) => Math.max(0, c - 1));
+        throw err;
+      }
+    },
+    [isOnline]
+  );
 
   const updateNote = useCallback(
     async (id: string, input: UpdateNoteInput): Promise<Note> => {
@@ -237,7 +243,15 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
       const currentNote = notesRef.current.find((n) => n._id === id);
       const optimisticNote: Note = currentNote
         ? { ...currentNote, ...input, updatedAt: new Date().toISOString() }
-        : { _id: id, title: '', type: 'text', user: '', createdAt: '', updatedAt: new Date().toISOString(), ...input };
+        : {
+            _id: id,
+            title: '',
+            type: 'text',
+            user: '',
+            createdAt: '',
+            updatedAt: new Date().toISOString(),
+            ...input,
+          };
 
       setNotes((prev) => prev.map((n) => (n._id === id ? optimisticNote : n)));
 
@@ -268,7 +282,7 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         throw err;
       }
     },
-    [isOnline],
+    [isOnline]
   );
 
   const deleteNote = useCallback(
@@ -303,7 +317,7 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         throw err;
       }
     },
-    [isOnline],
+    [isOnline]
   );
 
   const processQueue = useCallback(async () => {
@@ -318,7 +332,12 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
             setNotes((prev) => prev.map((n) => (n._id === op.tempId ? res.data : n)));
           }
           cacheNotes([res.data]).catch(() => {});
-        } else if (op.type === 'update' && op.noteId && !op.noteId.startsWith('tmp_') && op.payload) {
+        } else if (
+          op.type === 'update' &&
+          op.noteId &&
+          !op.noteId.startsWith('tmp_') &&
+          op.payload
+        ) {
           const res = await updateNoteApi(op.noteId, op.payload as UpdateNoteInput);
           setNotes((prev) => prev.map((n) => (n._id === op.noteId ? res.data : n)));
           cacheNotes([res.data]).catch(() => {});
@@ -345,7 +364,9 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
 
   // SW background-sync triggers queue processing via a DOM custom event
   useEffect(() => {
-    const handler = () => { processQueue(); };
+    const handler = () => {
+      processQueue();
+    };
     window.addEventListener('notes:process-offline-queue', handler);
     return () => window.removeEventListener('notes:process-offline-queue', handler);
   }, [processQueue]);
@@ -383,7 +404,9 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         const cached = await getCachedNotes();
         const found = cached.find((n) => n._id === id);
         if (found) return found;
-      } catch { /* ignore db errors */ }
+      } catch {
+        /* ignore db errors */
+      }
 
       throw new Error('تعذر تحميل الملاحظة. تحقق من اتصالك بالإنترنت.');
     }

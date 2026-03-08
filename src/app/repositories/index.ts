@@ -9,10 +9,7 @@
 import mongoose from 'mongoose';
 import { getUserRepository, UserRepository } from './user.repository';
 import { getNoteRepository, NoteRepository } from './note.repository';
-import {
-  getSubscriptionRepository,
-  SubscriptionRepository,
-} from './subscription.repository';
+import { getSubscriptionRepository, SubscriptionRepository } from './subscription.repository';
 
 class RepositoryManager {
   get user(): UserRepository {
@@ -37,12 +34,7 @@ class RepositoryManager {
     repositories: Record<string, boolean>;
   }> {
     const dbState = mongoose.connection.readyState;
-    const dbStatus =
-      dbState === 1
-        ? 'connected'
-        : dbState === 2
-          ? 'connecting'
-          : 'disconnected';
+    const dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
 
     const results: Record<string, boolean> = {};
 

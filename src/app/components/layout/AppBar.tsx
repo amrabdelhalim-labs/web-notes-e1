@@ -46,8 +46,7 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
 
-  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) =>
-    setAnchorEl(e.currentTarget);
+  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
   const handleProfile = () => {
@@ -115,8 +114,16 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
           anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
           transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         >
-          <MenuItem disabled sx={{ flexDirection: 'column', alignItems: 'flex-start', py: 1.5, px: 2, gap: 0.25 }}>
-            <Typography variant="subtitle2" fontWeight={700} color="text.primary" sx={{ lineHeight: 1.3 }}>
+          <MenuItem
+            disabled
+            sx={{ flexDirection: 'column', alignItems: 'flex-start', py: 1.5, px: 2, gap: 0.25 }}
+          >
+            <Typography
+              variant="subtitle2"
+              fontWeight={700}
+              color="text.primary"
+              sx={{ lineHeight: 1.3 }}
+            >
               {user.displayName || user.username}
             </Typography>
             {user.displayName && (
@@ -127,7 +134,9 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
           </MenuItem>
           <Divider />
           <MenuItem onClick={handleProfile}>
-            <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>
+            <ListItemIcon>
+              <PersonIcon fontSize="small" />
+            </ListItemIcon>
             <ListItemText>{t('profile')}</ListItemText>
           </MenuItem>
           <Tooltip
@@ -137,7 +146,9 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
           >
             <span>
               <MenuItem onClick={handleLogout} disabled={!isOnline} aria-disabled={!isOnline}>
-                <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
                 <ListItemText>{t('logout')}</ListItemText>
               </MenuItem>
             </span>

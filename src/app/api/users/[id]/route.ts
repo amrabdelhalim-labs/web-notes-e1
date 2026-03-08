@@ -11,10 +11,7 @@ import { connectDB } from '@/app/lib/mongodb';
 import { authenticateRequest } from '@/app/middlewares/auth.middleware';
 import { getUserRepository } from '@/app/repositories/user.repository';
 import { hashPassword, comparePassword } from '@/app/lib/auth';
-import {
-  validateUpdateUserInput,
-  validateChangePasswordInput,
-} from '@/app/validators';
+import { validateUpdateUserInput, validateChangePasswordInput } from '@/app/validators';
 import {
   validationError,
   forbiddenError,

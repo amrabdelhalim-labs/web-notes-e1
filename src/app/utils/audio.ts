@@ -20,10 +20,7 @@ export async function blobToBase64(blob: Blob): Promise<string> {
 }
 
 /** Convert a Base64 string back to a Blob. */
-export function base64ToBlob(
-  base64: string,
-  mimeType = 'audio/webm',
-): Blob {
+export function base64ToBlob(base64: string, mimeType = 'audio/webm'): Blob {
   const bytes = atob(base64);
   const buffer = new Uint8Array(bytes.length);
   for (let i = 0; i < bytes.length; i++) {

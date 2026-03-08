@@ -78,21 +78,10 @@ export default function RegisterPage() {
     >
       <Card sx={{ width: '100%', maxWidth: 420 }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography
-            variant="h5"
-            component="h1"
-            textAlign="center"
-            fontWeight={700}
-            gutterBottom
-          >
+          <Typography variant="h5" component="h1" textAlign="center" fontWeight={700} gutterBottom>
             {APP_NAME_AR}
           </Typography>
-          <Typography
-            variant="body1"
-            textAlign="center"
-            color="text.secondary"
-            mb={3}
-          >
+          <Typography variant="body1" textAlign="center" color="text.secondary" mb={3}>
             {t('title')}
           </Typography>
 
@@ -155,11 +144,7 @@ export default function RegisterPage() {
               disabled={submitting}
               sx={{ mt: 2, mb: 2 }}
             >
-              {submitting ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                t('submit')
-              )}
+              {submitting ? <CircularProgress size={24} color="inherit" /> : t('submit')}
             </Button>
           </Box>
 

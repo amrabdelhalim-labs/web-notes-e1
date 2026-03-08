@@ -30,8 +30,15 @@ const mockReplace = vi.fn();
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace }),
   usePathname: () => '/register',
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) =>
-    React.createElement('a', { href, ...props }, children),
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => React.createElement('a', { href, ...props }, children),
   redirect: vi.fn(),
 }));
 
@@ -128,7 +135,7 @@ describe('RegisterPage', () => {
 
       await waitFor(() => {
         expect(screen.getByRole('alert')).toHaveTextContent(
-          'اسم المستخدم يجب أن يكون 3 أحرف على الأقل',
+          'اسم المستخدم يجب أن يكون 3 أحرف على الأقل'
         );
       });
       expect(mockRegister).not.toHaveBeenCalled();
@@ -157,7 +164,7 @@ describe('RegisterPage', () => {
 
       await waitFor(() => {
         expect(screen.getByRole('alert')).toHaveTextContent(
-          'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
+          'كلمة المرور يجب أن تكون 6 أحرف على الأقل'
         );
       });
       expect(mockRegister).not.toHaveBeenCalled();
@@ -175,9 +182,7 @@ describe('RegisterPage', () => {
       fireEvent.submit(container.querySelector('form')!);
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toHaveTextContent(
-          'كلمة المرور وتأكيدها غير متطابقتين',
-        );
+        expect(screen.getByRole('alert')).toHaveTextContent('كلمة المرور وتأكيدها غير متطابقتين');
       });
       expect(mockRegister).not.toHaveBeenCalled();
     });

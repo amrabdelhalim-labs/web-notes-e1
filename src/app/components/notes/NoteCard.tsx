@@ -98,7 +98,10 @@ export default function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
           <IconButton
             size="small"
             color="primary"
-            onClick={(e) => { e.stopPropagation(); onEdit(note); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(note);
+            }}
             aria-label={t('editNote')}
           >
             <EditIcon fontSize="small" />
@@ -108,7 +111,10 @@ export default function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
           <IconButton
             size="small"
             color="error"
-            onClick={(e) => { e.stopPropagation(); onDelete(note); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(note);
+            }}
             aria-label={t('deleteNote')}
           >
             <DeleteIcon fontSize="small" />

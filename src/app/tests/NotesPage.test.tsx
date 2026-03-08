@@ -13,8 +13,15 @@ const mockPush = vi.fn();
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   usePathname: () => '/notes',
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) =>
-    React.createElement('a', { href, ...props }, children),
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => React.createElement('a', { href, ...props }, children),
   redirect: vi.fn(),
 }));
 
@@ -54,11 +61,23 @@ vi.mock('@/app/components/layout/MainLayout', () => ({
 
 // Mock NoteCard
 vi.mock('@/app/components/notes/NoteCard', () => ({
-  default: ({ note, onEdit, onDelete }: { note: Note; onEdit: (n: Note) => void; onDelete: (n: Note) => void }) => (
+  default: ({
+    note,
+    onEdit,
+    onDelete,
+  }: {
+    note: Note;
+    onEdit: (n: Note) => void;
+    onDelete: (n: Note) => void;
+  }) => (
     <div data-testid={`note-${note._id}`}>
       <span>{note.title}</span>
-      <button data-testid="edit-btn" onClick={() => onEdit(note)}>edit</button>
-      <button data-testid="delete-btn" onClick={() => onDelete(note)}>delete</button>
+      <button data-testid="edit-btn" onClick={() => onEdit(note)}>
+        edit
+      </button>
+      <button data-testid="delete-btn" onClick={() => onDelete(note)}>
+        delete
+      </button>
     </div>
   ),
 }));

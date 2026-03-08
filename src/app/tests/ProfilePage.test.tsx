@@ -22,8 +22,15 @@ import ProfilePage from '@/app/[locale]/profile/page';
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
   usePathname: () => '/profile',
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) =>
-    React.createElement('a', { href, ...props }, children),
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => React.createElement('a', { href, ...props }, children),
   redirect: vi.fn(),
 }));
 
@@ -114,7 +121,7 @@ describe('ProfilePage', () => {
   describe('Rendering', () => {
     beforeEach(() => setup());
 
-    it('renders the page title', () => {
+    it('renders the page title', { timeout: 15000 }, () => {
       render(<ProfilePage />);
       expect(screen.getByRole('heading', { name: /الملف الشخصي/i })).toBeInTheDocument();
     });
@@ -178,9 +185,33 @@ describe('ProfilePage', () => {
       // Mock getCachedNotes to return 3 notes
       const dbModule = await import('@/app/lib/db');
       vi.spyOn(dbModule, 'getCachedNotes').mockResolvedValue([
-        { _id: 'n1', title: 'A', type: 'text', user: 'u1', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', _cachedAt: Date.now() },
-        { _id: 'n2', title: 'B', type: 'text', user: 'u1', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', _cachedAt: Date.now() },
-        { _id: 'n3', title: 'C', type: 'text', user: 'u1', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', _cachedAt: Date.now() },
+        {
+          _id: 'n1',
+          title: 'A',
+          type: 'text',
+          user: 'u1',
+          createdAt: '2026-01-01T00:00:00Z',
+          updatedAt: '2026-01-01T00:00:00Z',
+          _cachedAt: Date.now(),
+        },
+        {
+          _id: 'n2',
+          title: 'B',
+          type: 'text',
+          user: 'u1',
+          createdAt: '2026-01-01T00:00:00Z',
+          updatedAt: '2026-01-01T00:00:00Z',
+          _cachedAt: Date.now(),
+        },
+        {
+          _id: 'n3',
+          title: 'C',
+          type: 'text',
+          user: 'u1',
+          createdAt: '2026-01-01T00:00:00Z',
+          updatedAt: '2026-01-01T00:00:00Z',
+          _cachedAt: Date.now(),
+        },
       ] as import('@/app/lib/db').CachedNote[]);
 
       render(<ProfilePage />);

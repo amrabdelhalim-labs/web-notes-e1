@@ -71,6 +71,7 @@ const sampleNote = {
   user: 'u1',
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
+  _cachedAt: Date.now(),
 };
 
 const emptyResponse = {
@@ -87,7 +88,7 @@ beforeEach(() => {
   mockOnlineStatus = true;
   mockGetNotes.mockResolvedValue(emptyResponse);
   mockGetCachedNotes.mockResolvedValue([]);
-  mockEnqueuePendingOp.mockResolvedValue(undefined);
+  mockEnqueuePendingOp.mockResolvedValue(1);
   mockGetPendingOps.mockResolvedValue([]);
   mockRemovePendingOp.mockResolvedValue(undefined);
   mockRemoveCachedNote.mockResolvedValue(undefined);
@@ -190,10 +191,12 @@ describe('filtering', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(mockGetNotes).toHaveBeenLastCalledWith(expect.objectContaining({
-      type: undefined,
-      q: undefined,
-    }));
+    expect(mockGetNotes).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        type: undefined,
+        q: undefined,
+      })
+    );
   });
 });
 
@@ -232,7 +235,7 @@ describe('CRUD', () => {
         title: 'New',
         type: 'text',
         content: 'Body',
-      }),
+      })
     );
 
     expect(mockCreateNote).toHaveBeenCalledTimes(1);
@@ -243,9 +246,7 @@ describe('CRUD', () => {
     mockUpdateNote.mockResolvedValue({ data: sampleNote, message: 'ok' });
     const { result } = renderHook(() => useNotes({ autoFetch: false }));
 
-    const note = await act(() =>
-      result.current.updateNote('n1', { title: 'Updated' }),
-    );
+    const note = await act(() => result.current.updateNote('n1', { title: 'Updated' }));
 
     expect(mockUpdateNote).toHaveBeenCalledWith('n1', { title: 'Updated' });
     expect(note._id).toBe('n1');
@@ -299,20 +300,18 @@ describe('offline CRUD', () => {
     const { result } = renderHook(() => useNotes({ autoFetch: false }));
 
     const created = await act(() =>
-      result.current.createNote({ title: 'Offline Note', type: 'text', content: 'c' }),
+      result.current.createNote({ title: 'Offline Note', type: 'text', content: 'c' })
     );
 
     expect(created._id).toMatch(/^tmp_/);
     expect(mockEnqueuePendingOp).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'create', noteTitle: 'Offline Note' }),
+      expect.objectContaining({ type: 'create', noteTitle: 'Offline Note' })
     );
   });
 
   it('createNote offline: does NOT call createNoteApi', async () => {
     const { result } = renderHook(() => useNotes({ autoFetch: false }));
-    await act(() =>
-      result.current.createNote({ title: 'X', type: 'text', content: '' }),
-    );
+    await act(() => result.current.createNote({ title: 'X', type: 'text', content: '' }));
     expect(vi.mocked(createNoteApi)).not.toHaveBeenCalled();
   });
 
@@ -328,7 +327,7 @@ describe('offline CRUD', () => {
         type: 'update',
         noteId: 'n1',
         noteTitle: 'Test Note',
-      }),
+      })
     );
   });
 
@@ -341,7 +340,7 @@ describe('offline CRUD', () => {
 
     expect(mockRemoveCachedNote).toHaveBeenCalledWith('n1');
     expect(mockEnqueuePendingOp).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'delete', noteId: 'n1' }),
+      expect.objectContaining({ type: 'delete', noteId: 'n1' })
     );
   });
 });
@@ -350,35 +349,37 @@ describe('offline CRUD', () => {
 
 describe('optimistic UI (online)', () => {
   it('createNote: shows temp note before API resolves', async () => {
-    let resolveCreate!: (v: unknown) => void;
+    let resolveCreate!: (v: { data: import('@/app/types').Note; message: string }) => void;
     vi.mocked(createNoteApi).mockReturnValueOnce(
-      new Promise((res) => { resolveCreate = res; }) as ReturnType<typeof createNoteApi>,
+      new Promise((res) => {
+        resolveCreate = res;
+      }) as ReturnType<typeof createNoteApi>
     );
 
     const { result } = renderHook(() => useNotes({ autoFetch: false }));
 
     // Start the create — don't await
-    act(() => { void result.current.createNote({ title: 'Opt', type: 'text', content: '' }); });
+    act(() => {
+      void result.current.createNote({ title: 'Opt', type: 'text', content: '' });
+    });
 
     // Temp note should appear immediately
     await waitFor(() =>
-      expect(result.current.notes.some((n) => n._id.startsWith('tmp_'))).toBe(true),
+      expect(result.current.notes.some((n) => n._id.startsWith('tmp_'))).toBe(true)
     );
 
     // Resolve the API
     resolveCreate({ data: sampleNote, message: 'ok' });
-    await waitFor(() =>
-      expect(result.current.notes.some((n) => n._id === 'n1')).toBe(true),
-    );
+    await waitFor(() => expect(result.current.notes.some((n) => n._id === 'n1')).toBe(true));
   });
 
   it('createNote: rolls back temp note on API failure', async () => {
     vi.mocked(createNoteApi).mockRejectedValueOnce(new Error('Server error'));
     const { result } = renderHook(() => useNotes({ autoFetch: false }));
 
-    await expect(act(() =>
-      result.current.createNote({ title: 'Rollback', type: 'text', content: '' }),
-    )).rejects.toThrow();
+    await expect(
+      act(() => result.current.createNote({ title: 'Rollback', type: 'text', content: '' }))
+    ).rejects.toThrow();
 
     expect(result.current.notes.every((n) => !n._id.startsWith('tmp_'))).toBe(true);
   });
@@ -389,9 +390,9 @@ describe('optimistic UI (online)', () => {
     const { result } = renderHook(() => useNotes());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    await expect(act(() =>
-      result.current.updateNote('n1', { title: 'Bad Update' }),
-    )).rejects.toThrow();
+    await expect(
+      act(() => result.current.updateNote('n1', { title: 'Bad Update' }))
+    ).rejects.toThrow();
 
     const note = result.current.notes.find((n) => n._id === 'n1');
     expect(note?.title).toBe('Test Note');
@@ -414,7 +415,12 @@ describe('optimistic UI (online)', () => {
 describe('processQueue', () => {
   it('on success calls removePendingOp (not incrementPendingOpFailure)', async () => {
     mockGetPendingOps.mockResolvedValue([
-      { id: 7, type: 'create', payload: { title: 'Q', type: 'text', content: '' }, timestamp: Date.now() },
+      {
+        id: 7,
+        type: 'create',
+        payload: { title: 'Q', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
     ]);
     vi.mocked(createNoteApi).mockResolvedValue({ data: sampleNote, message: 'ok' });
 
@@ -428,7 +434,12 @@ describe('processQueue', () => {
 
   it('on failure calls incrementPendingOpFailure (not removePendingOp)', async () => {
     mockGetPendingOps.mockResolvedValue([
-      { id: 8, type: 'create', payload: { title: 'Q', type: 'text', content: '' }, timestamp: Date.now() },
+      {
+        id: 8,
+        type: 'create',
+        payload: { title: 'Q', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
     ]);
     vi.mocked(createNoteApi).mockRejectedValueOnce(new Error('fail'));
 
@@ -458,8 +469,8 @@ describe('processQueue', () => {
 // ─── Offline filter / applyLocalFilter ───────────────────────────────────────
 
 describe('offline filter (applyLocalFilter)', () => {
-  const textNote  = { ...sampleNote, _id: 'n1', title: 'Hello World', type: 'text'  as const };
-  const voiceNote = { ...sampleNote, _id: 'n2', title: 'Voice memo',  type: 'voice' as const };
+  const textNote = { ...sampleNote, _id: 'n1', title: 'Hello World', type: 'text' as const };
+  const voiceNote = { ...sampleNote, _id: 'n2', title: 'Voice memo', type: 'voice' as const };
   const textNote2 = { ...sampleNote, _id: 'n3', title: 'Another text', type: 'text' as const };
 
   beforeEach(() => {
@@ -502,10 +513,14 @@ describe('offline filter (applyLocalFilter)', () => {
     const { result } = renderHook(() => useNotes());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    act(() => { result.current.setTypeFilter('text'); });
+    act(() => {
+      result.current.setTypeFilter('text');
+    });
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    act(() => { result.current.setSearchQuery('another'); });
+    act(() => {
+      result.current.setSearchQuery('another');
+    });
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.notes).toHaveLength(1);
@@ -532,7 +547,7 @@ describe('undo event listener (notes:undo-op)', () => {
     // Plant a temp note directly via optimistic path (offline)
     mockOnlineStatus = false;
     const tempNote = await act(() =>
-      result.current.createNote({ title: 'To undo', type: 'text', content: '' }),
+      result.current.createNote({ title: 'To undo', type: 'text', content: '' })
     );
 
     expect(result.current.notes.some((n) => n._id === tempNote._id)).toBe(true);
@@ -542,12 +557,12 @@ describe('undo event listener (notes:undo-op)', () => {
       window.dispatchEvent(
         new CustomEvent('notes:undo-op', {
           detail: { op: { type: 'create', tempId: tempNote._id, timestamp: Date.now() } },
-        }),
+        })
       );
     });
 
     await waitFor(() =>
-      expect(result.current.notes.every((n) => n._id !== tempNote._id)).toBe(true),
+      expect(result.current.notes.every((n) => n._id !== tempNote._id)).toBe(true)
     );
   });
 
@@ -564,7 +579,7 @@ describe('undo event listener (notes:undo-op)', () => {
           detail: {
             op: { type: 'update', noteId: 'n1', noteSnapshot: snapshot, timestamp: Date.now() },
           },
-        }),
+        })
       );
     });
 
@@ -585,12 +600,10 @@ describe('undo event listener (notes:undo-op)', () => {
           detail: {
             op: { type: 'delete', noteId: 'n1', noteSnapshot: snapshot, timestamp: Date.now() },
           },
-        }),
+        })
       );
     });
 
-    await waitFor(() =>
-      expect(result.current.notes.some((n) => n._id === 'n1')).toBe(true),
-    );
+    await waitFor(() => expect(result.current.notes.some((n) => n._id === 'n1')).toBe(true));
   });
 });

@@ -32,7 +32,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!endpoint || !keys?.p256dh || !keys?.auth) {
       return NextResponse.json(
         { error: { code: 'INVALID_SUBSCRIPTION', message: 'بيانات الاشتراك غير مكتملة' } },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -79,7 +79,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     if (!endpoint) {
       return NextResponse.json(
         { error: { code: 'MISSING_ENDPOINT', message: 'endpoint مطلوب' } },
-        { status: 400 },
+        { status: 400 }
       );
     }
 

@@ -12,8 +12,15 @@ const mockPush = vi.fn();
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   usePathname: () => '/notes/new',
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) =>
-    React.createElement('a', { href, ...props }, children),
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => React.createElement('a', { href, ...props }, children),
   redirect: vi.fn(),
 }));
 
@@ -31,11 +38,26 @@ vi.mock('@/app/components/layout/MainLayout', () => ({
 
 // Mock NoteEditorForm to simplify page-level tests
 vi.mock('@/app/components/notes/NoteEditorForm', () => ({
-  default: ({ mode, onSubmit, onCancel }: { mode: string; onSubmit: (data: unknown) => Promise<void>; onCancel: () => void }) => (
+  default: ({
+    mode,
+    onSubmit,
+    onCancel,
+  }: {
+    mode: string;
+    onSubmit: (data: unknown) => Promise<void>;
+    onCancel: () => void;
+  }) => (
     <div data-testid="note-editor">
       <span data-testid="editor-mode">{mode}</span>
-      <button data-testid="submit-btn" onClick={() => onSubmit({ title: 'Test', type: 'text', content: 'Body' })}>submit</button>
-      <button data-testid="cancel-btn" onClick={onCancel}>cancel</button>
+      <button
+        data-testid="submit-btn"
+        onClick={() => onSubmit({ title: 'Test', type: 'text', content: 'Body' })}
+      >
+        submit
+      </button>
+      <button data-testid="cancel-btn" onClick={onCancel}>
+        cancel
+      </button>
     </div>
   ),
 }));

@@ -113,7 +113,9 @@ export default function SideBar({ open, onClose }: SideBarProps) {
                 transition: TRANSITIONS.all,
               }}
             >
-              <ListItemIcon><LogoutIcon /></ListItemIcon>
+              <ListItemIcon>
+                <LogoutIcon />
+              </ListItemIcon>
               <ListItemText primary={t('logout')} />
             </ListItemButton>
           </span>
@@ -147,7 +149,12 @@ export default function SideBar({ open, onClose }: SideBarProps) {
           display: { xs: 'none', md: 'block' },
           width: DRAWER_WIDTH,
           flexShrink: 0,
-          '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', display: 'flex', flexDirection: 'column' },
+          '& .MuiDrawer-paper': {
+            width: DRAWER_WIDTH,
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
+          },
         }}
         open
       >

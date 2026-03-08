@@ -31,10 +31,7 @@ interface EmotionCacheProviderProps {
   dir?: 'rtl' | 'ltr';
 }
 
-export default function EmotionCacheProvider({
-  children,
-  dir = 'rtl',
-}: EmotionCacheProviderProps) {
+export default function EmotionCacheProvider({ children, dir = 'rtl' }: EmotionCacheProviderProps) {
   return (
     <AppRouterCacheProvider options={dir === 'rtl' ? RTL_OPTIONS : LTR_OPTIONS}>
       {children}

@@ -51,5 +51,4 @@ deviceSchema.index({ user: 1, deviceId: 1 }, { unique: true });
 /**
  * Prevent model recompilation during HMR in Next.js development.
  */
-export default mongoose.models.Device ??
-  mongoose.model<IDevice>('Device', deviceSchema);
+export default mongoose.models.Device ?? mongoose.model<IDevice>('Device', deviceSchema);

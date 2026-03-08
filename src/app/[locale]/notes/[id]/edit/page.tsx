@@ -58,7 +58,7 @@ export default function EditNotePage({ params }: EditNotePageProps) {
       await updateNote(id, data as UpdateNoteInput);
       router.push(`/notes/${id}`);
     },
-    [id, updateNote, router],
+    [id, updateNote, router]
   );
 
   const handleCancel = useCallback(() => {
@@ -69,7 +69,11 @@ export default function EditNotePage({ params }: EditNotePageProps) {
     <MainLayout>
       <Box sx={{ mb: 3 }}>
         <Button
-          startIcon={<ArrowBackIcon sx={(theme) => ({ transform: theme.direction === 'rtl' ? 'scaleX(-1)' : undefined })} />}
+          startIcon={
+            <ArrowBackIcon
+              sx={(theme) => ({ transform: theme.direction === 'rtl' ? 'scaleX(-1)' : undefined })}
+            />
+          }
           onClick={handleCancel}
           sx={{ mb: 1 }}
         >

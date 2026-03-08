@@ -10,7 +10,15 @@ import type { Note } from '@/app/types';
 
 // Mock NoteCard to simplify
 vi.mock('@/app/components/notes/NoteCard', () => ({
-  default: ({ note, onEdit, onDelete }: { note: Note; onEdit: (n: Note) => void; onDelete: (n: Note) => void }) => (
+  default: ({
+    note,
+    onEdit,
+    onDelete,
+  }: {
+    note: Note;
+    onEdit: (n: Note) => void;
+    onDelete: (n: Note) => void;
+  }) => (
     <div data-testid={`note-${note._id}`}>
       <span>{note.title}</span>
       <button onClick={() => onEdit(note)}>edit</button>

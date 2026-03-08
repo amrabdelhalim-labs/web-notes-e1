@@ -92,18 +92,18 @@ export const db = new NotesDb();
 export async function cacheNotes(notes: Note[]): Promise<void> {
   const now = Date.now();
   const entries: CachedNote[] = notes.map((n) => ({ ...n, _cachedAt: now }));
-  
+
   // Add new entries
   await db.notes.bulkPut(entries);
-  
+
   // Enforce cache size limit
   const totalCount = await db.notes.count();
   if (totalCount > MAX_CACHED_NOTES) {
     // Get all notes sorted by createdAt descending
     const allNotes = await db.notes.orderBy('createdAt').reverse().toArray();
-    
+
     // Delete the rest
-    const toDelete = allNotes.slice(MAX_CACHED_NOTES).map(n => n._id);
+    const toDelete = allNotes.slice(MAX_CACHED_NOTES).map((n) => n._id);
     if (toDelete.length > 0) {
       await db.notes.bulkDelete(toDelete);
     }

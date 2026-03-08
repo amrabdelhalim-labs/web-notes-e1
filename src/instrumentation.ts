@@ -32,23 +32,15 @@ export async function register() {
     console.log(`✅  MongoDB connected  (db: ${db}, host: ${conn.host})\n`);
   });
 
-  conn.on('disconnected', () =>
-    console.warn('⚠️   MongoDB disconnected — waiting for reconnect…'),
-  );
+  conn.on('disconnected', () => console.warn('⚠️   MongoDB disconnected — waiting for reconnect…'));
 
-  conn.on('reconnected', () =>
-    console.log('🔄  MongoDB reconnected'),
-  );
+  conn.on('reconnected', () => console.log('🔄  MongoDB reconnected'));
 
-  conn.on('error', (err: Error) =>
-    console.error('❌  MongoDB error:', err.message),
-  );
+  conn.on('error', (err: Error) => console.error('❌  MongoDB error:', err.message));
 
   // Warm up the connection so the first request isn't delayed
   const DATABASE_URL =
-    process.env.DATABASE_URL ||
-    process.env.MONGODB_URI ||
-    'mongodb://localhost:27017/mynotes';
+    process.env.DATABASE_URL || process.env.MONGODB_URI || 'mongodb://localhost:27017/mynotes';
 
   console.log(`🔌  Connecting to MongoDB → ${maskUrl(DATABASE_URL)}`);
 

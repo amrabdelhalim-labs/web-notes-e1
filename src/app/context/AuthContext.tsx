@@ -71,7 +71,7 @@ export const AuthContext = createContext<AuthContextValue>({
 async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
-  token?: string | null,
+  token?: string | null
 ): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -97,7 +97,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return localStorage.getItem(TOKEN_KEY);
   });
   const [loading, setLoading] = useState(true);
-  const [pendingLocaleSuggestion, setPendingLocaleSuggestion] = useState<SupportedLocale | null>(null);
+  const [pendingLocaleSuggestion, setPendingLocaleSuggestion] = useState<SupportedLocale | null>(
+    null
+  );
   const didInit = useRef(false);
 
   /**
@@ -113,12 +115,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiFetch<{ data: User }>('/api/auth/me', {}, jwt);
       setUser(res.data);
       // Keep the cache fresh for the next offline session
-      try { localStorage.setItem(USER_CACHE_KEY, JSON.stringify(res.data)); } catch { /* ignore */ }
+      try {
+        localStorage.setItem(USER_CACHE_KEY, JSON.stringify(res.data));
+      } catch {
+        /* ignore */
+      }
     } catch (err) {
-      const is401 = err instanceof Error &&
+      const is401 =
+        err instanceof Error &&
         (err.message.includes('401') ||
-         err.message.includes('غير مصرح') ||
-         err.message.includes('Unauthorized'));
+          err.message.includes('غير مصرح') ||
+          err.message.includes('Unauthorized'));
 
       if (is401) {
         // Token is genuinely invalid → sign the user out
@@ -132,7 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const raw = localStorage.getItem(USER_CACHE_KEY);
           if (raw) setUser(JSON.parse(raw) as User);
           // If no cached user either, user stays null → MainLayout redirects to /login
-        } catch { /* ignore JSON parse or storage errors */ }
+        } catch {
+          /* ignore JSON parse or storage errors */
+        }
       }
     }
   }, []);
@@ -151,35 +160,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await apiFetch<{ data: { token: string; user: User } }>(
-      '/api/auth/login',
-      { method: 'POST', body: JSON.stringify({ email, password }) },
-    );
-    localStorage.setItem(TOKEN_KEY, res.data.token);
-    try { localStorage.setItem(USER_CACHE_KEY, JSON.stringify(res.data.user)); } catch { /* ignore */ }
-    setToken(res.data.token);
-    setUser(res.data.user);
-    // Prompt if the user has an explicit language preference that differs from the current locale
-    const pref = res.data.user.language;
-    if (pref !== 'unset' && pref !== locale) {
-      setPendingLocaleSuggestion(pref);
-    }
-  }, [locale]);
-
-  const register = useCallback(
-    async (username: string, email: string, password: string) => {
-      const res = await apiFetch<{ data: { token: string; user: User } }>(
-        '/api/auth/register',
-        { method: 'POST', body: JSON.stringify({ username, email, password }) },
-      );
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const res = await apiFetch<{ data: { token: string; user: User } }>('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
       localStorage.setItem(TOKEN_KEY, res.data.token);
-      try { localStorage.setItem(USER_CACHE_KEY, JSON.stringify(res.data.user)); } catch { /* ignore */ }
+      try {
+        localStorage.setItem(USER_CACHE_KEY, JSON.stringify(res.data.user));
+      } catch {
+        /* ignore */
+      }
       setToken(res.data.token);
       setUser(res.data.user);
+      // Prompt if the user has an explicit language preference that differs from the current locale
+      const pref = res.data.user.language;
+      if (pref !== 'unset' && pref !== locale) {
+        setPendingLocaleSuggestion(pref);
+      }
     },
-    [],
+    [locale]
   );
+
+  const register = useCallback(async (username: string, email: string, password: string) => {
+    const res = await apiFetch<{ data: { token: string; user: User } }>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ username, email, password }),
+    });
+    localStorage.setItem(TOKEN_KEY, res.data.token);
+    try {
+      localStorage.setItem(USER_CACHE_KEY, JSON.stringify(res.data.user));
+    } catch {
+      /* ignore */
+    }
+    setToken(res.data.token);
+    setUser(res.data.user);
+  }, []);
 
   const logout = useCallback(async () => {
     // 1. Clear auth state
@@ -198,14 +215,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // 3. Unregister Service Worker + clear caches (works offline)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then((regs) => {
-        for (const reg of regs) reg.unregister();
-      }).catch(() => {});
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((regs) => {
+          for (const reg of regs) reg.unregister();
+        })
+        .catch(() => {});
     }
     if ('caches' in window) {
-      caches.keys().then((names) => {
-        for (const name of names) caches.delete(name);
-      }).catch(() => {});
+      caches
+        .keys()
+        .then((names) => {
+          for (const name of names) caches.delete(name);
+        })
+        .catch(() => {});
     }
   }, []);
 
@@ -215,14 +238,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUser = useCallback((updated: User) => {
     setUser(updated);
-    try { localStorage.setItem(USER_CACHE_KEY, JSON.stringify(updated)); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(USER_CACHE_KEY, JSON.stringify(updated));
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   // ── Device trust watch ────────────────────────────────────────────────────
   // Poll /api/devices every 30 s (+ on tab focus) to detect remote device removal.
   // If this device was trusted but no longer appears in the server list → force logout.
   const logoutRef = useRef(logout);
-  useEffect(() => { logoutRef.current = logout; }, [logout]);
+  useEffect(() => {
+    logoutRef.current = logout;
+  }, [logout]);
 
   useEffect(() => {
     if (!token) return;
@@ -238,13 +267,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const res = await apiFetch<{ data: Array<{ deviceId: string }> }>(
           `/api/devices?currentDeviceId=${encodeURIComponent(deviceId)}`,
           {},
-          token,
+          token
         );
         const stillInList = res.data.some((d) => d.deviceId === deviceId);
         if (!stillInList) {
           // Device was removed by another session — force logout immediately
           localStorage.removeItem('device-trusted');
-          window.dispatchEvent(new CustomEvent(TRUST_CHANGED_EVENT, { detail: { trusted: false } }));
+          window.dispatchEvent(
+            new CustomEvent(TRUST_CHANGED_EVENT, { detail: { trusted: false } })
+          );
           logoutRef.current();
         }
       } catch {
@@ -268,8 +299,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, token, loading, login, register, updateUser, logout, pendingLocaleSuggestion, clearLocaleSuggestion }),
-    [user, token, loading, login, register, updateUser, logout, pendingLocaleSuggestion, clearLocaleSuggestion],
+    () => ({
+      user,
+      token,
+      loading,
+      login,
+      register,
+      updateUser,
+      logout,
+      pendingLocaleSuggestion,
+      clearLocaleSuggestion,
+    }),
+    [
+      user,
+      token,
+      loading,
+      login,
+      register,
+      updateUser,
+      logout,
+      pendingLocaleSuggestion,
+      clearLocaleSuggestion,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

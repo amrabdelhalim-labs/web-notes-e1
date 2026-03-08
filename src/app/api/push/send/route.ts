@@ -30,7 +30,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!title || !msgBody) {
       return NextResponse.json(
         { error: { code: 'MISSING_FIELDS', message: 'title و body مطلوبان' } },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         } catch {
           failed++;
         }
-      }),
+      })
     );
 
     return NextResponse.json({

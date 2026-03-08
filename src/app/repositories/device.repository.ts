@@ -28,7 +28,7 @@ class DeviceRepository extends BaseRepository<IDevice> {
     return this.model.findOneAndUpdate(
       { user: userId, deviceId },
       { lastSeenAt: new Date() },
-      { returnDocument: 'after' },
+      { returnDocument: 'after' }
     );
   }
 

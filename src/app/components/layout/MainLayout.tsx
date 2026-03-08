@@ -69,9 +69,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       >
         <Toolbar /> {/* spacer for fixed AppBar */}
         <OfflineBanner />
-        <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 }, flexGrow: 1 }}>
-          {children}
-        </Box>
+        <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 }, flexGrow: 1 }}>{children}</Box>
       </Box>
 
       {/* Device Trust Prompt - shows after login if device is not trusted */}

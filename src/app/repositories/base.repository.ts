@@ -31,10 +31,7 @@ export class BaseRepository<T extends Document> implements IRepository<T> {
     return this.model.find(filter, null, options);
   }
 
-  async findOne(
-    filter: QueryFilter<T>,
-    options: QueryOptions<T> = {}
-  ): Promise<T | null> {
+  async findOne(filter: QueryFilter<T>, options: QueryOptions<T> = {}): Promise<T | null> {
     return this.model.findOne(filter, null, options);
   }
 
@@ -81,10 +78,7 @@ export class BaseRepository<T extends Document> implements IRepository<T> {
     return this.model.findByIdAndUpdate(id, data, { returnDocument: 'after' });
   }
 
-  async updateWhere(
-    filter: QueryFilter<T>,
-    data: UpdateQuery<T>
-  ): Promise<number> {
+  async updateWhere(filter: QueryFilter<T>, data: UpdateQuery<T>): Promise<number> {
     const result = await this.model.updateMany(filter, data);
     return result.modifiedCount;
   }
