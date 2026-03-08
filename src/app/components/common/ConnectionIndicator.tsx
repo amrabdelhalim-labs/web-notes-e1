@@ -8,7 +8,9 @@
  * Provides manual sync trigger when online.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Menu from '@mui/material/Menu';
@@ -19,6 +21,7 @@ import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import WifiIcon from '@mui/icons-material/Wifi';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
@@ -28,24 +31,66 @@ import PendingIcon from '@mui/icons-material/Pending';
 import InstallMobileIcon from '@mui/icons-material/InstallMobile';
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import ConstructionIcon from '@mui/icons-material/Construction';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import GppBadIcon from '@mui/icons-material/GppBad';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useTranslations } from 'next-intl';
-import { useOfflineStatus } from '@/app/hooks/useOfflineStatus';
+import { useOfflineStatus, CONNECTIVITY_CHECK_EVENT } from '@/app/hooks/useOfflineStatus';
 import { useSyncStatus } from '@/app/hooks/useSyncStatus';
 import { usePwaStatus } from '@/app/hooks/usePwaStatus';
+import {
+  getPendingOps,
+  removePendingOp,
+  cacheNotes,
+  type PendingOperation,
+} from '@/app/lib/db';
+
+const TRUSTED_KEY = 'device-trusted';
+const TRUST_CHANGED_EVENT = 'device-trust-changed';
 
 export default function ConnectionIndicator() {
   const t = useTranslations('ConnectionStatus');
   const isOnline = useOfflineStatus();
-  const { pendingCount, hasPending, refresh } = useSyncStatus();
+  const { pendingCount, hasPending, hasFailures, refresh } = useSyncStatus();
   const { swState, installState } = usePwaStatus();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const [isTrusted, setIsTrusted] = useState(() => localStorage.getItem(TRUSTED_KEY) === 'true');
+  const [pendingOps, setPendingOps] = useState<PendingOperation[]>([]);
 
   const menuOpen = Boolean(anchorEl);
 
-  const handleOpen = (e: React.MouseEvent<HTMLElement>) => {
+  useEffect(() => {
+    const readTrust = () => setIsTrusted(localStorage.getItem(TRUSTED_KEY) === 'true');
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === TRUSTED_KEY) readTrust();
+    };
+
+    readTrust();
+    window.addEventListener(TRUST_CHANGED_EVENT, readTrust as EventListener);
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener(TRUST_CHANGED_EVENT, readTrust as EventListener);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
+  const handleOpen = async (e: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(e.currentTarget);
-    refresh(); // Refresh sync status when opening menu
+    refresh();
+    try {
+      const ops = await getPendingOps();
+      // Most recent first
+      setPendingOps([...ops].reverse());
+    } catch {}
   };
 
   const handleClose = () => setAnchorEl(null);
@@ -60,7 +105,7 @@ export default function ConnectionIndicator() {
         navigator.serviceWorker.controller.postMessage({ type: 'PROCESS_OFFLINE_QUEUE' });
       }
       // Also trigger via custom event for useNotes hook
-      window.dispatchEvent(new CustomEvent('trigger-sync'));
+      window.dispatchEvent(new CustomEvent('notes:process-offline-queue'));
       
       // Wait a bit then refresh status
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -69,6 +114,49 @@ export default function ConnectionIndicator() {
       console.error('Manual sync failed:', error);
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleCheckAndSync = async () => {
+    setIsChecking(true);
+    try {
+      // 1. Trigger connectivity check
+      window.dispatchEvent(new Event(CONNECTIVITY_CHECK_EVENT));
+      
+      // Wait for connectivity check to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 2. Trigger sync (if online and has pending)
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'PROCESS_OFFLINE_QUEUE' });
+      }
+      window.dispatchEvent(new CustomEvent('notes:process-offline-queue'));
+      
+      // Wait then refresh status
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      await refresh();
+    } catch (error) {
+      console.error('Check and sync failed:', error);
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  const handleUndoOp = async (op: PendingOperation) => {
+    if (op.id === undefined) return;
+    try {
+      await removePendingOp(op.id);
+      // For delete undo: restore the note to local cache so it survives page reload
+      if (op.type === 'delete' && op.noteSnapshot) {
+        await cacheNotes([op.noteSnapshot]);
+      }
+      // Notify useNotes to revert optimistic state
+      window.dispatchEvent(new CustomEvent('notes:undo-op', { detail: { op } }));
+      // Remove from local list (the next op in queue will now show)
+      setPendingOps((prev) => prev.filter((o) => o.id !== op.id));
+      await refresh();
+    } catch (err) {
+      console.error('Undo failed:', err);
     }
   };
 
@@ -121,10 +209,16 @@ export default function ConnectionIndicator() {
         anchorEl={anchorEl}
         open={menuOpen}
         onClose={handleClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: isMobile ? 'right' : 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: isMobile ? 'right' : 'left' }}
+        marginThreshold={8}
         PaperProps={{
-          sx: { minWidth: 280 },
+          elevation: 3,
+          sx: {
+            minWidth: isMobile ? 'min(340px, calc(100vw - 32px))' : 288,
+            maxWidth: isMobile ? 'calc(100vw - 32px)' : 400,
+            overflowX: 'hidden',
+          },
         }}
       >
         {/* Connection Status */}
@@ -211,40 +305,209 @@ export default function ConnectionIndicator() {
           />
         </MenuItem>
 
-        {/* Manual Sync Button */}
-        {isOnline && hasPending && (
+        {/* Pending Operations List */}
+        {hasPending && (
           <>
             <Divider />
-            <MenuItem
-              onClick={handleManualSync}
-              disabled={isSyncing}
-              sx={{
-                color: 'primary.main',
-                fontWeight: 600,
-                '&:hover': {
-                  bgcolor: 'action.hover',
-                },
-                '&.Mui-disabled': {
-                  opacity: 0.6,
-                },
-              }}
-            >
-              <ListItemIcon>
-                {isSyncing ? (
-                  <CircularProgress size={22} color="primary" />
-                ) : (
-                  <SyncIcon color="primary" fontSize="medium" />
-                )}
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Typography variant="body2" fontWeight={600} color="primary.main">
-                    {isSyncing ? t('syncing') : t('syncNow')}
-                  </Typography>
-                }
-              />
+
+            {/* Section title */}
+            <MenuItem disabled sx={{ opacity: 1, pt: 1.5, pb: 0.5, px: 2 }}>
+              <Typography
+                variant="overline"
+                sx={(theme) => ({
+                  color: theme.palette.text.secondary,
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  lineHeight: 1.2,
+                })}
+              >
+                {t('pendingOpsTitle')}
+              </Typography>
             </MenuItem>
+
+            {/* Failure warning chip */}
+            {hasFailures && (
+              <MenuItem disabled sx={{ opacity: 1, px: 2, pb: 1 }}>
+                <Chip
+                  icon={<WarningAmberIcon sx={{ fontSize: '0.9rem !important' }} />}
+                  label={t('hasFailuresWarning')}
+                  size="small"
+                  color="error"
+                  variant="outlined"
+                  sx={{
+                    fontSize: '0.65rem',
+                    height: 'auto',
+                    minHeight: 22,
+                    '& .MuiChip-label': { whiteSpace: 'normal', py: 0.25 },
+                    maxWidth: '100%',
+                  }}
+                />
+              </MenuItem>
+            )}
+
+            {/* Last 5 ops, most recent first */}
+            {pendingOps.slice(0, 5).map((op) => (
+              <MenuItem
+                key={op.id}
+                disableGutters
+                sx={{ py: 0.5, px: 2, gap: 1, minHeight: { xs: 48, sm: 40 } }}
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
+                  {op.type === 'create' ? (
+                    <AddCircleOutlineIcon fontSize="small" color="success" />
+                  ) : op.type === 'update' ? (
+                    <EditOutlinedIcon fontSize="small" color="primary" />
+                  ) : (
+                    <DeleteOutlineIcon fontSize="small" color="error" />
+                  )}
+                </ListItemIcon>
+
+                <ListItemText
+                  sx={{ my: 0, flex: 1, minWidth: 0 }}
+                  primary={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                      <Typography
+                        variant="caption"
+                        fontWeight={600}
+                        sx={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: { xs: '35vw', sm: 110 },
+                          display: 'block',
+                        }}
+                      >
+                        {op.noteTitle ??
+                          (op.type === 'create'
+                            ? t('opCreate')
+                            : op.type === 'update'
+                              ? t('opUpdate')
+                              : t('opDelete'))}
+                      </Typography>
+                      {(op.failureCount ?? 0) > 0 && (
+                        <Chip
+                          label={t('opFailed', { count: op.failureCount ?? 0 })}
+                          size="small"
+                          color="error"
+                          sx={{ height: 16, fontSize: '0.6rem', fontWeight: 700 }}
+                        />
+                      )}
+                    </Box>
+                  }
+                  secondary={
+                    <Typography
+                      variant="caption"
+                      sx={(theme) => ({ fontSize: '0.65rem', color: theme.palette.text.secondary })}
+                    >
+                      {op.type === 'create'
+                        ? t('opCreate')
+                        : op.type === 'update'
+                          ? t('opUpdate')
+                          : t('opDelete')}
+                    </Typography>
+                  }
+                />
+
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void handleUndoOp(op);
+                  }}
+                  sx={{
+                    minWidth: { xs: 60, sm: 52 },
+                    minHeight: { xs: 36, sm: 28 },
+                    fontSize: '0.7rem',
+                    py: { xs: 0.5, sm: 0.25 },
+                    px: { xs: 1, sm: 0.75 },
+                    ml: 'auto',
+                    flexShrink: 0,
+                  }}
+                >
+                  {t('opUndo')}
+                </Button>
+              </MenuItem>
+            ))}
+
+            {/* Overflow indicator */}
+            {pendingOps.length > 5 && (
+              <MenuItem disabled sx={{ opacity: 1, py: 0.5, px: 2 }}>
+                <Typography
+                  variant="caption"
+                  sx={(theme) => ({ color: theme.palette.text.secondary, fontStyle: 'italic' })}
+                >
+                  {t('opMore', { count: pendingOps.length - 5 })}
+                </Typography>
+              </MenuItem>
+            )}
           </>
+        )}
+
+        {/* Manual Check and Sync Button */}
+        <Divider />
+        <MenuItem
+          onClick={handleCheckAndSync}
+          disabled={isChecking}
+          sx={{
+            color: 'primary.main',
+            fontWeight: 600,
+            '&:hover': {
+              bgcolor: 'action.hover',
+            },
+            '&.Mui-disabled': {
+              opacity: 0.6,
+            },
+          }}
+        >
+          <ListItemIcon>
+            {isChecking ? (
+              <CircularProgress size={22} color="primary" />
+            ) : (
+              <SyncIcon color="primary" fontSize="medium" />
+            )}
+          </ListItemIcon>
+          <ListItemText
+            primary={
+              <Typography variant="body2" fontWeight={600} color="primary.main">
+                {isChecking ? t('checkingAndSyncing') : t('checkAndSync')}
+              </Typography>
+            }
+          />
+        </MenuItem>
+
+        {/* Quick Sync Button - only when pending */}
+        {isOnline && hasPending && (
+          <MenuItem
+            onClick={handleManualSync}
+            disabled={isSyncing}
+            sx={{
+              color: 'primary.main',
+              fontWeight: 600,
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
+              '&.Mui-disabled': {
+                opacity: 0.6,
+              },
+            }}
+          >
+            <ListItemIcon>
+              {isSyncing ? (
+                <CircularProgress size={22} color="primary" />
+              ) : (
+                <SyncIcon color="primary" fontSize="medium" />
+              )}
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <Typography variant="body2" fontWeight={600} color="primary.main">
+                  {isSyncing ? t('syncing') : t('syncNow')}
+                </Typography>
+              }
+            />
+          </MenuItem>
         )}
 
         <Divider />
@@ -328,7 +591,7 @@ export default function ConnectionIndicator() {
         </MenuItem>
 
         {/* Install state row */}
-        <MenuItem disabled sx={{ opacity: 1, py: 1.25, pb: 2, px: 2 }}>
+        <MenuItem disabled sx={{ opacity: 1, py: 1.25, px: 2 }}>
           <ListItemIcon sx={{ minWidth: 40 }}>
             {installState === 'standalone' ? (
               <PhoneAndroidIcon
@@ -382,15 +645,76 @@ export default function ConnectionIndicator() {
                           : theme.palette.text.disabled,
                   })}
                 >
-                  {t(
-                    installState === 'standalone'
-                      ? 'installStandalone'
-                      : installState === 'installable'
-                        ? 'installInstallable'
-                        : 'installNotInstallable',
-                  )}
+                  {installState === 'standalone'
+                    ? t('installStandalone')
+                    : installState === 'installable'
+                      ? t('installInstallable')
+                      : isTrusted
+                        ? t('installNotInstallable')
+                        : t('installBlockedByTrust')}
                 </Typography>
               </Box>
+            }
+          />
+        </MenuItem>
+
+        {/* Device Trust row */}
+        <MenuItem disabled sx={{ opacity: 1, py: 1.25, pb: 2, px: 2 }}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            {isTrusted ? (
+              <VerifiedUserIcon
+                fontSize="small"
+                sx={(theme) => ({
+                  color:
+                    theme.palette.mode === 'dark'
+                      ? theme.palette.success.main
+                      : theme.palette.success.dark,
+                })}
+              />
+            ) : (
+              <GppBadIcon
+                fontSize="small"
+                sx={(theme) => ({ color: theme.palette.warning.main })}
+              />
+            )}
+          </ListItemIcon>
+          <ListItemText
+            sx={{ my: 0 }}
+            primary={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                <Typography
+                  variant="caption"
+                  component="span"
+                  sx={(theme) => ({
+                    color: theme.palette.text.secondary,
+                    fontSize: '0.7rem',
+                  })}
+                >
+                  {t('trustLabel')}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  component="span"
+                  fontWeight={600}
+                  sx={(theme) => ({
+                    fontSize: '0.75rem',
+                    color: isTrusted
+                      ? theme.palette.mode === 'dark'
+                        ? theme.palette.success.main
+                        : theme.palette.success.dark
+                      : theme.palette.warning.main,
+                  })}
+                >
+                  {isTrusted ? t('trusted') : t('notTrusted')}
+                </Typography>
+              </Box>
+            }
+            secondary={
+              !isTrusted ? (
+                <Typography variant="caption" sx={(theme) => ({ color: theme.palette.text.secondary, fontSize: '0.65rem' })}>
+                  {t('notTrustedHint')}
+                </Typography>
+              ) : null
             }
           />
         </MenuItem>

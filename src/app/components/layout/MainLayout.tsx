@@ -14,6 +14,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import AppBar from '@/app/components/layout/AppBar';
 import SideBar from '@/app/components/layout/SideBar';
 import OfflineBanner from '@/app/components/common/OfflineBanner';
+import DeviceTrustPrompt from '@/app/components/common/DeviceTrustPrompt';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useRouter } from '@/app/lib/navigation';
 import { useEffect } from 'react';
@@ -72,6 +73,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
           {children}
         </Box>
       </Box>
+
+      {/* Device Trust Prompt - shows after login if device is not trusted */}
+      <DeviceTrustPrompt />
     </Box>
   );
 }

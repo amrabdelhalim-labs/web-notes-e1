@@ -11,10 +11,13 @@
  * All checks are client-only and fail gracefully in unsupported environments.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 export type SwState = 'unsupported' | 'checking' | 'inactive' | 'installing' | 'active';
 export type InstallState = 'standalone' | 'installable' | 'not-installable';
+
+const TRUSTED_KEY = 'device-trusted';
+const TRUST_CHANGED_EVENT = 'device-trust-changed';
 
 export interface PwaStatus {
   swState: SwState;
@@ -29,27 +32,69 @@ export function usePwaStatus(): PwaStatus {
       : 'unsupported',
   );
 
-  // Derive initial install state without firing setState in the effect body
-  const [installState, setInstallState] = useState<InstallState>(() => {
-    if (typeof window === 'undefined') return 'not-installable';
-    const isStandalone =
+  const [isStandalone, setIsStandalone] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return (
       window.matchMedia('(display-mode: standalone)').matches ||
-      ('standalone' in navigator && (navigator as { standalone?: boolean }).standalone === true);
-    return isStandalone ? 'standalone' : 'not-installable';
+      ('standalone' in navigator && (navigator as { standalone?: boolean }).standalone === true)
+    );
   });
 
+  // Browser capability state (independent from trust gate)
+  const [canInstall, setCanInstall] = useState(false);
+  const [isTrusted, setIsTrusted] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(TRUSTED_KEY) === 'true';
+  });
+
+  const installState = useMemo<InstallState>(() => {
+    if (isStandalone) return 'standalone';
+    if (canInstall && isTrusted) return 'installable';
+    return 'not-installable';
+  }, [isStandalone, canInstall, isTrusted]);
+
   useEffect(() => {
-    // ── Install state (only needs to watch for beforeinstallprompt) ────────
-    const handleInstallPrompt = (e: Event) => {
-      e.preventDefault(); // prevent auto-prompt
-      setInstallState('installable');
+    const readTrusted = () => setIsTrusted(localStorage.getItem(TRUSTED_KEY) === 'true');
+    const readStandalone = () => {
+      setIsStandalone(
+        window.matchMedia('(display-mode: standalone)').matches ||
+          ('standalone' in navigator && (navigator as { standalone?: boolean }).standalone === true),
+      );
     };
+
+    // Browser can install at this moment (prompt fired); trust is applied separately.
+    const handleInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setCanInstall(true);
+    };
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === TRUSTED_KEY) readTrusted();
+    };
+
+    const handleTrustChanged = () => readTrusted();
+
     window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener(TRUST_CHANGED_EVENT, handleTrustChanged as EventListener);
+
+    // Keep status in sync when user returns to the tab.
+    const handleVisibility = () => {
+      if (document.visibilityState !== 'visible') return;
+      readTrusted();
+      readStandalone();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     // ── Service Worker state ───────────────────────────────────────────────
     // swState is already initialized as 'unsupported' if SW is unavailable
     if (!('serviceWorker' in navigator)) {
-      return () => window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+        window.removeEventListener('storage', handleStorage);
+        window.removeEventListener(TRUST_CHANGED_EVENT, handleTrustChanged as EventListener);
+        document.removeEventListener('visibilitychange', handleVisibility);
+      };
     }
 
     const updateSwState = (reg: ServiceWorkerRegistration) => {
@@ -86,7 +131,12 @@ export function usePwaStatus(): PwaStatus {
       })
       .catch(() => setSwState('inactive'));
 
-    return () => window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener(TRUST_CHANGED_EVENT, handleTrustChanged as EventListener);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   const isReady = swState === 'active' && installState !== 'not-installable';
