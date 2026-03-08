@@ -5,7 +5,7 @@
  * Call sendPushNotification() from API routes — never from client components.
  *
  * Environment variables required:
- *   VAPID_PUBLIC_KEY   — URL-safe base64 EC public key
+ *   NEXT_PUBLIC_VAPID_PUBLIC_KEY — URL-safe base64 EC public key (available server + client)
  *   VAPID_PRIVATE_KEY  — URL-safe base64 EC private key
  *   VAPID_EMAIL        — contact email (mailto:) for push service
  *
@@ -22,13 +22,13 @@ let initialised = false;
 function ensureInitialised() {
   if (initialised) return;
 
-  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
   const email = process.env.VAPID_EMAIL ?? 'mailto:admin@example.com';
 
   if (!publicKey || !privateKey) {
     throw new Error(
-      'VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY must be set in environment variables. ' +
+      'NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY must be set in environment variables. ' +
         'Generate them with: node -e "const wp=require(\'web-push\'); console.log(JSON.stringify(wp.generateVAPIDKeys()))"'
     );
   }
@@ -76,7 +76,7 @@ export async function sendPushNotification(
 
 /** The raw VAPID public key string, safe to expose to the client. */
 export function getVapidPublicKey(): string {
-  const key = process.env.VAPID_PUBLIC_KEY;
-  if (!key) throw new Error('VAPID_PUBLIC_KEY not set');
+  const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  if (!key) throw new Error('NEXT_PUBLIC_VAPID_PUBLIC_KEY not set');
   return key;
 }

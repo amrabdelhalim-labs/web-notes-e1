@@ -1291,13 +1291,11 @@ PORT=3000
 NODE_ENV=development
 
 # إشعارات Web Push (VAPID)
-VAPID_PUBLIC_KEY=
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
 VAPID_EMAIL=mailto:your-email@example.com
 
 # Next.js العامة (متاحة في المتصفح)
-NEXT_PUBLIC_APP_NAME=ملاحظاتي
-NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 ---

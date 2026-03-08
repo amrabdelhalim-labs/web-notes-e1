@@ -145,7 +145,6 @@ const exampleKeys = new Set(
 const criticalEnvVars = [
   'DATABASE_URL',
   'JWT_SECRET',
-  'VAPID_PUBLIC_KEY',
   'VAPID_PRIVATE_KEY',
   'VAPID_EMAIL',
   'NEXT_PUBLIC_VAPID_PUBLIC_KEY',

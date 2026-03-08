@@ -70,7 +70,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 // ─── Push helper ─────────────────────────────────────────────────────────────
 
 async function notifyOtherDevices(userId: string): Promise<void> {
-  if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) return;
+  if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) return;
 
   const { getSubscriptionRepository } = await import('@/app/repositories/subscription.repository');
   const { sendPushNotification } = await import('@/app/lib/webpush');

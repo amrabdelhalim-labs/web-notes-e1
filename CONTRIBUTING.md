@@ -237,10 +237,9 @@ cp .env.example .env.local
 |---------|-------|
 | `DATABASE_URL` | MongoDB connection string |
 | `JWT_SECRET` | ≥ 32 حرف عشوائياً |
-| `VAPID_PUBLIC_KEY` | مفتاح VAPID العام — من `scripts/generate-icons.mjs` أو `web-push generate-vapid-keys` |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | مفتاح VAPID العام — متاح في الخادم والمتصفح معاً (من `web-push generate-vapid-keys`) |
 | `VAPID_PRIVATE_KEY` | مفتاح VAPID الخاص — **لا تُودِعه في Git** |
 | `VAPID_EMAIL` | بريد إلكتروني (مطلوب لـ VAPID) |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | نفس `VAPID_PUBLIC_KEY` — للكلاينت |
 
 > كل متغير جديد **يُضاف فوراً** إلى `.env.example` مع قيمة placeholder.
 
