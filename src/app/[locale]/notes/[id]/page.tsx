@@ -18,6 +18,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import StickyNote2Icon from '@mui/icons-material/StickyNote2';
 import MicIcon from '@mui/icons-material/Mic';
 import { useTranslations } from 'next-intl';
+import { sanitizeHtml } from '@/app/utils/sanitize';
 import MainLayout from '@/app/components/layout/MainLayout';
 import DeleteConfirmDialog from '@/app/components/notes/DeleteConfirmDialog';
 import { useNotes } from '@/app/hooks/useNotes';
@@ -59,8 +60,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
       })
       .catch((err) => {
         if (!cancelled) {
-          const msg =
-            err instanceof Error ? err.message : t('notFound');
+          const msg = err instanceof Error ? err.message : t('notFound');
           setStatus({ loading: false, error: msg });
         }
       });
@@ -85,7 +85,11 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
   return (
     <MainLayout>
       <Button
-        startIcon={<ArrowBackIcon sx={(theme) => ({ transform: theme.direction === 'rtl' ? 'scaleX(-1)' : undefined })} />}
+        startIcon={
+          <ArrowBackIcon
+            sx={(theme) => ({ transform: theme.direction === 'rtl' ? 'scaleX(-1)' : undefined })}
+          />
+        }
         onClick={() => router.push('/notes')}
         sx={{ mb: 2 }}
       >
@@ -106,12 +110,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
 
       {note && !loading && (
         <Paper sx={{ p: { xs: 2, sm: 3 } }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="flex-start"
-            mb={2}
-          >
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
             <Box sx={{ flexGrow: 1, minWidth: 0 }}>
               <Typography
                 variant="h5"
@@ -121,13 +120,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
               >
                 {note.title}
               </Typography>
-              <Stack
-                direction="row"
-                spacing={1}
-                mt={1}
-                alignItems="center"
-                flexWrap="wrap"
-              >
+              <Stack direction="row" spacing={1} mt={1} alignItems="center" flexWrap="wrap">
                 <Chip
                   icon={note.type === 'voice' ? <MicIcon /> : <StickyNote2Icon />}
                   label={note.type === 'voice' ? t('voice') : t('text')}
@@ -135,11 +128,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
                   color={note.type === 'voice' ? 'secondary' : 'primary'}
                   variant="outlined"
                 />
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ fontWeight: 500 }}
-                >
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
                   {t('lastModified', { date: formatDateLong(note.updatedAt) })}
                 </Typography>
               </Stack>
@@ -194,7 +183,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
                   padding: '0 2px',
                 },
               })}
-              dangerouslySetInnerHTML={{ __html: note.content ?? '' }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content ?? '') }}
             />
           ) : (
             <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -202,11 +191,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
                 {t('audioDuration', { duration: formatDuration(note.audioDuration ?? 0) })}
               </Typography>
               {audioUrl && (
-                <audio
-                  controls
-                  src={audioUrl}
-                  style={{ width: '100%', maxWidth: 500 }}
-                >
+                <audio controls src={audioUrl} style={{ width: '100%', maxWidth: 500 }}>
                   {t('audioUnsupported')}
                 </audio>
               )}
