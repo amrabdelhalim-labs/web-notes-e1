@@ -256,7 +256,10 @@
     "opDelete": "حذف",
     "opUndo": "تراجع",
     "opFailed": "فشلت {count} مرات",
-    "opMore": "و{count} عملية أخرى..."
+    "opMore": "و{count} عملية أخرى...",
+    "installApp": "تثبيت التطبيق",
+    "installStandaloneUntrusted": "مثبتة — الجهاز غير موثوق",
+    "syncBlockedUntrustedWarning": "المزامنة موقوفة — ثق بهذا الجهاز لمزامنة التغييرات"
   },
   "DeviceManager": {
     "title": "الأجهزة الموثوقة",

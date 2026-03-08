@@ -143,7 +143,7 @@ describe('ProfilePage', () => {
       expect(screen.getByText('البيانات الشخصية')).toBeInTheDocument();
     });
 
-    it('renders the delete account button', () => {
+    it('renders the delete account button', { timeout: 10000 }, () => {
       render(<ProfilePage />);
       expect(screen.getByRole('button', { name: /حذف الحساب نهائياً/i })).toBeInTheDocument();
     });

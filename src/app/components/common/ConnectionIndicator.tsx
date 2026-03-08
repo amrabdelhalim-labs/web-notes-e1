@@ -50,7 +50,7 @@ export default function ConnectionIndicator() {
   const t = useTranslations('ConnectionStatus');
   const isOnline = useOfflineStatus();
   const { pendingCount, hasPending, hasFailures, refresh } = useSyncStatus();
-  const { swState, installState } = usePwaStatus();
+  const { swState, installState, triggerInstall } = usePwaStatus();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -361,6 +361,26 @@ export default function ConnectionIndicator() {
               </MenuItem>
             )}
 
+            {/* Sync-blocked chip: app installed but device not yet trusted — pending ops will never sync */}
+            {installState === 'standalone-untrusted' && (
+              <MenuItem disabled sx={{ opacity: 1, px: 2, pb: 1 }}>
+                <Chip
+                  icon={<GppBadIcon sx={{ fontSize: '0.9rem !important' }} />}
+                  label={t('syncBlockedUntrustedWarning')}
+                  size="small"
+                  color="warning"
+                  variant="outlined"
+                  sx={{
+                    fontSize: '0.65rem',
+                    height: 'auto',
+                    minHeight: 22,
+                    '& .MuiChip-label': { whiteSpace: 'normal', py: 0.25 },
+                    maxWidth: '100%',
+                  }}
+                />
+              </MenuItem>
+            )}
+
             {/* Last 5 ops, most recent first */}
             {pendingOps.slice(0, 5).map((op) => (
               <MenuItem
@@ -527,6 +547,35 @@ export default function ConnectionIndicator() {
 
         <Divider />
 
+        {/* Install App Button — visible when the browser is ready and device is trusted */}
+        {installState === 'installable' && triggerInstall && (
+          <>
+            <MenuItem
+              onClick={() => {
+                void triggerInstall();
+                handleClose();
+              }}
+              sx={{
+                color: 'primary.main',
+                fontWeight: 600,
+                '&:hover': { bgcolor: 'action.hover' },
+              }}
+            >
+              <ListItemIcon>
+                <InstallMobileIcon color="primary" fontSize="medium" />
+              </ListItemIcon>
+              <ListItemText
+                primary={
+                  <Typography variant="body2" fontWeight={600} color="primary.main">
+                    {t('installApp')}
+                  </Typography>
+                }
+              />
+            </MenuItem>
+            <Divider />
+          </>
+        )}
+
         {/* PWA Status */}
         <MenuItem disabled sx={{ opacity: 1, pt: 2, pb: 1, px: 2 }}>
           <Typography
@@ -618,6 +667,11 @@ export default function ConnectionIndicator() {
                       : theme.palette.success.dark,
                 })}
               />
+            ) : installState === 'standalone-untrusted' ? (
+              <PhoneAndroidIcon
+                fontSize="small"
+                sx={(theme) => ({ color: theme.palette.warning.main })}
+              />
             ) : (
               <InstallMobileIcon
                 fontSize="small"
@@ -655,18 +709,22 @@ export default function ConnectionIndicator() {
                         ? theme.palette.mode === 'dark'
                           ? theme.palette.success.main
                           : theme.palette.success.dark
-                        : installState === 'installable'
-                          ? theme.palette.primary.main
-                          : theme.palette.text.disabled,
+                        : installState === 'standalone-untrusted'
+                          ? theme.palette.warning.main
+                          : installState === 'installable'
+                            ? theme.palette.primary.main
+                            : theme.palette.text.disabled,
                   })}
                 >
                   {installState === 'standalone'
                     ? t('installStandalone')
-                    : installState === 'installable'
-                      ? t('installInstallable')
-                      : isTrusted
-                        ? t('installNotInstallable')
-                        : t('installBlockedByTrust')}
+                    : installState === 'standalone-untrusted'
+                      ? t('installStandaloneUntrusted')
+                      : installState === 'installable'
+                        ? t('installInstallable')
+                        : isTrusted
+                          ? t('installNotInstallable')
+                          : t('installBlockedByTrust')}
                 </Typography>
               </Box>
             }

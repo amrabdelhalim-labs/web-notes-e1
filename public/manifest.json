@@ -4,6 +4,7 @@
   "description": "تطبيق ويب تقدمي لإدارة الملاحظات النصية والصوتية مع مزامنة وإشعارات",
   "lang": "ar",
   "dir": "rtl",
+  "id": "/ar",
   "start_url": "/ar",
   "scope": "/",
   "display": "standalone",

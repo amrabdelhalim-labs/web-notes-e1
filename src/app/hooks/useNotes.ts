@@ -109,20 +109,28 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
     setLoading(true);
     setError(null);
 
-    // Step 1: Always load from cache first for instant UI
+    // Only read/write the local IndexedDB cache on trusted devices.
+    // On untrusted devices the app still works online, but no private data is
+    // persisted locally, so the next person who picks up the device cannot
+    // browse notes through the installed PWA without re-authenticating.
+    const offlineEnabled = localStorage.getItem('device-trusted') === 'true';
+
+    // Step 1: Load from cache first for instant UI — trusted devices only
     let cachedData: typeof notes = [];
-    try {
-      cachedData = await getCachedNotes();
-      if (cachedData.length > 0) {
-        // Apply client-side filter/search on cached data (works offline too)
-        const filtered = applyLocalFilter(cachedData, typeFilter, searchQuery);
-        const pageSlice = filtered.slice((page - 1) * pageSize, page * pageSize);
-        setNotes(pageSlice);
-        setCount(filtered.length);
-        setTotalPages(Math.max(1, Math.ceil(filtered.length / pageSize)));
+    if (offlineEnabled) {
+      try {
+        cachedData = await getCachedNotes();
+        if (cachedData.length > 0) {
+          // Apply client-side filter/search on cached data (works offline too)
+          const filtered = applyLocalFilter(cachedData, typeFilter, searchQuery);
+          const pageSlice = filtered.slice((page - 1) * pageSize, page * pageSize);
+          setNotes(pageSlice);
+          setCount(filtered.length);
+          setTotalPages(Math.max(1, Math.ceil(filtered.length / pageSize)));
+        }
+      } catch {
+        // Cache read failed - not critical, continue
       }
-    } catch {
-      // Cache read failed - not critical, continue
     }
 
     // Step 2: If online, fetch fresh data from server in background
@@ -158,8 +166,10 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         setCount(res.data.count + uniqueTemps.length);
         setTotalPages(res.data.totalPages);
 
-        // Update cache in background (fire and forget)
-        cacheNotes(res.data.notes).catch(() => {});
+        // Update cache in background — trusted devices only (fire and forget)
+        if (offlineEnabled) {
+          cacheNotes(res.data.notes).catch(() => {});
+        }
       } catch (err) {
         // Server fetch failed — only surface error when there is nothing to show
         if (cachedData.length === 0) {
@@ -215,6 +225,15 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
       setCount((c) => c + 1);
 
       if (!isOnline) {
+        // Guard: only queue offline ops on trusted devices.
+        // On untrusted devices there is no guarantee the op can ever sync
+        // (trust may never be granted), so we refuse the mutation immediately
+        // rather than silently swallowing it into an unreachable queue.
+        if (localStorage.getItem('device-trusted') !== 'true') {
+          setNotes((prev) => prev.filter((n) => n._id !== tempId));
+          setCount((c) => Math.max(0, c - 1));
+          throw new Error('لا يمكن إنشاء ملاحظات بدون اتصال على جهاز غير موثوق. ثق بهذا الجهاز أولاً.');
+        }
         await enqueuePendingOp({
           type: 'create',
           tempId,
@@ -268,6 +287,15 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
       setNotes((prev) => prev.map((n) => (n._id === id ? optimisticNote : n)));
 
       if (!isOnline) {
+        if (localStorage.getItem('device-trusted') !== 'true') {
+          // Rollback the optimistic update and refuse the op
+          if (currentNote) {
+            setNotes((prev) => prev.map((n) => (n._id === id ? currentNote : n)));
+          } else {
+            setNotes((prev) => prev.filter((n) => n._id !== id));
+          }
+          throw new Error('لا يمكن تعديل ملاحظات بدون اتصال على جهاز غير موثوق. ثق بهذا الجهاز أولاً.');
+        }
         await enqueuePendingOp({
           type: 'update',
           noteId: id,
@@ -310,6 +338,14 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
       setCount((c) => Math.max(0, c - 1));
 
       if (!isOnline) {
+        if (localStorage.getItem('device-trusted') !== 'true') {
+          // Rollback the optimistic delete and refuse the op
+          if (noteToDelete) {
+            setNotes((prev) => [noteToDelete, ...prev]);
+            setCount((c) => c + 1);
+          }
+          throw new Error('لا يمكن حذف ملاحظات بدون اتصال على جهاز غير موثوق. ثق بهذا الجهاز أولاً.');
+        }
         // Remove from local cache so it won't reappear on page reload
         removeCachedNote(id).catch(() => {});
         await enqueuePendingOp({
@@ -343,6 +379,11 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
   );
 
   const processQueue = useCallback(async () => {
+    // Security gate: never sync from a device that is no longer trusted.
+    // Trust is checked at runtime against localStorage (written by useDevices
+    // after every server fetch) rather than relying on stale in-memory state.
+    if (localStorage.getItem('device-trusted') !== 'true') return;
+
     const ops = await getPendingOps();
     if (ops.length === 0) return;
     for (const op of ops) {
@@ -421,13 +462,15 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
       const isAuthError = err instanceof Error && err.message.includes('401');
       if (isAuthError) throw err;
 
-      // Network / server error — try local cache as fallback
-      try {
-        const cached = await getCachedNotes();
-        const found = cached.find((n) => n._id === id);
-        if (found) return found;
-      } catch {
-        /* ignore db errors */
+      // Network / server error — try local cache as fallback (trusted devices only)
+      if (localStorage.getItem('device-trusted') === 'true') {
+        try {
+          const cached = await getCachedNotes();
+          const found = cached.find((n) => n._id === id);
+          if (found) return found;
+        } catch {
+          /* ignore db errors */
+        }
       }
 
       throw new Error('تعذر تحميل الملاحظة. تحقق من اتصالك بالإنترنت.');

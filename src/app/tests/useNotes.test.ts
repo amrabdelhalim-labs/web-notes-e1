@@ -84,6 +84,10 @@ const oneNoteResponse = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.clear();
+  // processQueue requires device-trusted='true' to sync; set it by default
+  // so existing tests don't need to be updated individually.
+  localStorage.setItem('device-trusted', 'true');
   // Restore defaults after clearAllMocks wipes call history but not implementations
   mockOnlineStatus = true;
   mockGetNotes.mockResolvedValue(emptyResponse);
@@ -345,7 +349,79 @@ describe('offline CRUD', () => {
   });
 });
 
-// ─── Optimistic UI — online rollback ─────────────────────────────────────────
+// ─── Offline CRUD — untrusted device blocking ─────────────────────────────────
+// When the device is not trusted, offline mutations must be refused immediately
+// rather than silently queued into an unreachable pendingOps table.
+
+describe('offline CRUD — untrusted device', () => {
+  beforeEach(() => {
+    mockOnlineStatus = false;
+    localStorage.removeItem('device-trusted');   // device NOT trusted
+    mockGetCachedNotes.mockResolvedValue([sampleNote]);
+  });
+
+  it('createNote throws and rolls back optimistic insert when untrusted', async () => {
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    await expect(
+      act(() => result.current.createNote({ title: 'Untrusted Note', type: 'text', content: '' }))
+    ).rejects.toThrow(/موثوق/);
+
+    // Optimistic insert was rolled back
+    expect(result.current.notes).toHaveLength(0);
+    // No op queued
+    expect(mockEnqueuePendingOp).not.toHaveBeenCalled();
+  });
+
+  it('updateNote throws and does not enqueue op when offline and untrusted', async () => {
+    // Hook renders offline+untrusted — notes list stays empty (cache skipped).
+    // The test validates the security invariant: no op is queued when trust is absent.
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    await expect(
+      act(() => result.current.updateNote('n1', { title: 'Hacked Title' }))
+    ).rejects.toThrow(/موثوق/);
+
+    expect(mockEnqueuePendingOp).not.toHaveBeenCalled();
+  });
+
+  it('deleteNote throws and does not enqueue op when offline and untrusted', async () => {
+    // Security invariant: no op is queued when trust is absent.
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    await expect(
+      act(() => result.current.deleteNote('n1'))
+    ).rejects.toThrow(/موثوق/);
+
+    expect(mockEnqueuePendingOp).not.toHaveBeenCalled();
+  });
+
+  it('fetchNotes does NOT populate cache when untrusted', async () => {
+    // Even if online, a successful fetch must not write to IndexedDB
+    mockOnlineStatus = true;
+    localStorage.removeItem('device-trusted');
+    mockGetNotes.mockResolvedValue(oneNoteResponse);
+
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    // Server data shows up in the UI (online fetch works fine)
+    expect(result.current.notes).toHaveLength(1);
+    // But nothing was written to the local cache
+    expect(vi.mocked(cacheNotes)).not.toHaveBeenCalled();
+  });
+
+  it('fetchNotes does NOT read from cache when untrusted', async () => {
+    // Even offline, getCachedNotes must not be called for untrusted devices
+    mockGetCachedNotes.mockResolvedValue([sampleNote]);
+    mockOnlineStatus = false;
+
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(mockGetCachedNotes).not.toHaveBeenCalled();
+  });
+});
 
 describe('optimistic UI (online)', () => {
   it('createNote: shows temp note before API resolves', async () => {
@@ -463,6 +539,65 @@ describe('processQueue', () => {
     expect(vi.mocked(createNoteApi)).not.toHaveBeenCalled();
     // The malformed op should be removed so it doesn't block the queue forever
     expect(mockRemovePendingOp).toHaveBeenCalledWith(9);
+  });
+
+  // ── Trust gate ────────────────────────────────────────────────────────
+
+  it('aborts without syncing when device-trusted is absent from localStorage', async () => {
+    localStorage.removeItem('device-trusted');
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 10,
+        type: 'create',
+        payload: { title: 'Should not sync', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
+    ]);
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    expect(mockGetPendingOps).not.toHaveBeenCalled();
+    expect(vi.mocked(createNoteApi)).not.toHaveBeenCalled();
+  });
+
+  it('aborts without syncing when device-trusted is "false" in localStorage', async () => {
+    // localStorage.removeItem behaviour — value not 'true' → blocked
+    localStorage.setItem('device-trusted', 'false');
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 11,
+        type: 'create',
+        payload: { title: 'Should not sync', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
+    ]);
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    expect(mockGetPendingOps).not.toHaveBeenCalled();
+    expect(vi.mocked(createNoteApi)).not.toHaveBeenCalled();
+  });
+
+  it('syncs normally when device-trusted is "true" in localStorage', async () => {
+    localStorage.setItem('device-trusted', 'true');
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 12,
+        type: 'create',
+        payload: { title: 'Should sync', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
+    ]);
+    vi.mocked(createNoteApi).mockResolvedValue({ data: sampleNote, message: 'ok' });
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    expect(mockGetPendingOps).toHaveBeenCalled();
+    expect(vi.mocked(createNoteApi)).toHaveBeenCalled();
+    expect(mockRemovePendingOp).toHaveBeenCalledWith(12);
   });
 });
 

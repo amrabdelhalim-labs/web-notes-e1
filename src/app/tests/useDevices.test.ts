@@ -341,4 +341,131 @@ describe('useDevices', () => {
       expect(result.current.isOnline).toBe(false);
     });
   });
+
+  // ── visibilitychange re-fetch ─────────────────────────────────────────
+
+  describe('visibilitychange re-fetch', () => {
+    it('re-fetches devices when tab becomes visible', async () => {
+      mockGetDevicesApi.mockResolvedValue({ data: [] });
+      renderHook(() => useDevices());
+      await waitFor(() => expect(mockGetDevicesApi).toHaveBeenCalledTimes(1));
+
+      // Simulate tab coming back into focus
+      act(() => {
+        Object.defineProperty(document, 'visibilityState', {
+          configurable: true,
+          value: 'visible',
+        });
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      await waitFor(() => expect(mockGetDevicesApi).toHaveBeenCalledTimes(2));
+    });
+
+    it('does not re-fetch when tab becomes hidden', async () => {
+      mockGetDevicesApi.mockResolvedValue({ data: [] });
+      renderHook(() => useDevices());
+      await waitFor(() => expect(mockGetDevicesApi).toHaveBeenCalledTimes(1));
+
+      act(() => {
+        Object.defineProperty(document, 'visibilityState', {
+          configurable: true,
+          value: 'hidden',
+        });
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      // Only the initial fetch — no extra call for hidden state
+      expect(mockGetDevicesApi).toHaveBeenCalledTimes(1);
+    });
+
+    it('updates trust status when device was removed in another session', async () => {
+      // Initial state: current device is trusted
+      localStorage.setItem('device-trusted', 'true');
+      mockGetDevicesApi.mockResolvedValue({ data: [fakeDevice] });
+
+      const { result } = renderHook(() => useDevices());
+      await waitFor(() => expect(result.current.isTrusted).toBe(true));
+
+      // Another session removed the device — next fetch returns empty list
+      mockGetDevicesApi.mockResolvedValue({ data: [otherDevice] });
+
+      act(() => {
+        Object.defineProperty(document, 'visibilityState', {
+          configurable: true,
+          value: 'visible',
+        });
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      await waitFor(() => expect(result.current.isTrusted).toBe(false));
+      expect(localStorage.getItem('device-trusted')).toBeNull();
+    });
+  });
+
+  // ── device:trust-revoked event ────────────────────────────────────────
+
+  describe('device:trust-revoked event', () => {
+    it('dispatches device:trust-revoked when trust transitions from true to false', async () => {
+      localStorage.setItem('device-trusted', 'true');
+      mockGetDevicesApi.mockResolvedValue({ data: [fakeDevice] });
+
+      const { result } = renderHook(() => useDevices());
+      await waitFor(() => expect(result.current.isTrusted).toBe(true));
+
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
+      // Trust revoked — device removed from list on server
+      mockGetDevicesApi.mockResolvedValue({ data: [otherDevice] });
+
+      act(() => {
+        Object.defineProperty(document, 'visibilityState', {
+          configurable: true,
+          value: 'visible',
+        });
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      await waitFor(() => expect(result.current.isTrusted).toBe(false));
+
+      const revokedEvents = (dispatchSpy.mock.calls as [Event][]).filter(
+        ([e]) => e instanceof CustomEvent && e.type === 'device:trust-revoked'
+      );
+      expect(revokedEvents.length).toBeGreaterThan(0);
+      dispatchSpy.mockRestore();
+    });
+
+    it('does NOT dispatch device:trust-revoked when device was never trusted', async () => {
+      // localStorage has no device-trusted key
+      localStorage.removeItem('device-trusted');
+      mockGetDevicesApi.mockResolvedValue({ data: [otherDevice] }); // current not in list
+
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
+      renderHook(() => useDevices());
+      await waitFor(() => expect(mockGetDevicesApi).toHaveBeenCalled());
+
+      const revokedEvents = (dispatchSpy.mock.calls as [Event][]).filter(
+        ([e]) => e instanceof CustomEvent && e.type === 'device:trust-revoked'
+      );
+      expect(revokedEvents.length).toBe(0);
+      dispatchSpy.mockRestore();
+    });
+
+    it('does NOT dispatch device:trust-revoked when device remains trusted', async () => {
+      localStorage.setItem('device-trusted', 'true');
+      mockGetDevicesApi.mockResolvedValue({ data: [fakeDevice] });
+
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
+      renderHook(() => useDevices());
+      await waitFor(() => expect(mockGetDevicesApi).toHaveBeenCalled());
+
+      const revokedEvents = (dispatchSpy.mock.calls as [Event][]).filter(
+        ([e]) => e instanceof CustomEvent && e.type === 'device:trust-revoked'
+      );
+      expect(revokedEvents.length).toBe(0);
+      dispatchSpy.mockRestore();
+    });
+  });
 });

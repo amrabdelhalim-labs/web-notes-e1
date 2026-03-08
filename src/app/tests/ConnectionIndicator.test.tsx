@@ -7,6 +7,7 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@/app/tests/utils';
 import ConnectionIndicator from '@/app/components/common/ConnectionIndicator';
+import type { SwState, InstallState } from '@/app/hooks/usePwaStatus';
 
 let mockIsOnline = true;
 let mockSyncStatus = {
@@ -16,10 +17,16 @@ let mockSyncStatus = {
   hasFailures: false,
   refresh: vi.fn(),
 };
-let mockPwaStatus = {
-  swState: 'active' as const,
-  installState: 'standalone' as const,
+let mockPwaStatus: {
+  swState: SwState;
+  installState: InstallState;
+  isReady: boolean;
+  triggerInstall: (() => Promise<boolean>) | null;
+} = {
+  swState: 'active',
+  installState: 'standalone',
   isReady: true,
+  triggerInstall: null,
 };
 
 vi.mock('@/app/hooks/useOfflineStatus', () => ({
@@ -51,7 +58,7 @@ beforeEach(() => {
     hasFailures: false,
     refresh: vi.fn(),
   };
-  mockPwaStatus = { swState: 'active', installState: 'standalone', isReady: true };
+  mockPwaStatus = { swState: 'active', installState: 'standalone', isReady: true, triggerInstall: null };
   vi.clearAllMocks();
   vi.mocked(getPendingOps).mockResolvedValue([]);
   vi.mocked(removePendingOp).mockResolvedValue(undefined);
@@ -334,6 +341,150 @@ describe('wifi icon display', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/غير متصل بالإنترنت|Offline/i)).toBeInTheDocument();
+    });
+  });
+});
+
+// ─── Install App button ───────────────────────────────────────────────────────
+
+describe('install app button', () => {
+  it('shows install button when installState is installable and triggerInstall is set', async () => {
+    const mockTrigger = vi.fn().mockResolvedValue(true);
+    mockPwaStatus = {
+      swState: 'active',
+      installState: 'installable',
+      isReady: true,
+      triggerInstall: mockTrigger,
+    };
+
+    render(<ConnectionIndicator />);
+    fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
+
+    await waitFor(() => {
+      expect(screen.getByText(/تثبيت التطبيق|Install App/i)).toBeInTheDocument();
+    });
+  });
+
+  it('does NOT show install button when standalone', async () => {
+    mockPwaStatus = {
+      swState: 'active',
+      installState: 'standalone',
+      isReady: true,
+      triggerInstall: null,
+    };
+
+    render(<ConnectionIndicator />);
+    fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/تثبيت التطبيق|Install App/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it('does NOT show install button when not-installable', async () => {
+    mockPwaStatus = {
+      swState: 'active',
+      installState: 'not-installable',
+      isReady: false,
+      triggerInstall: null,
+    };
+
+    render(<ConnectionIndicator />);
+    fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/تثبيت التطبيق|Install App/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it('calls triggerInstall and closes menu on button click', async () => {
+    const mockTrigger = vi.fn().mockResolvedValue(true);
+    mockPwaStatus = {
+      swState: 'active',
+      installState: 'installable',
+      isReady: true,
+      triggerInstall: mockTrigger,
+    };
+
+    render(<ConnectionIndicator />);
+    fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
+
+    await waitFor(() => {
+      expect(screen.getByText(/تثبيت التطبيق|Install App/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/تثبيت التطبيق|Install App/i));
+
+    await waitFor(() => {
+      expect(mockTrigger).toHaveBeenCalledOnce();
+    });
+  });
+});
+
+// ─── standalone-untrusted warnings ────────────────────────────────────────────
+
+describe('standalone-untrusted sync-blocked warning chip', () => {
+  it('shows sync-blocked chip in pending ops when standalone-untrusted', async () => {
+    mockPwaStatus = {
+      swState: 'active',
+      installState: 'standalone-untrusted',
+      isReady: false,
+      triggerInstall: null,
+    };
+    mockSyncStatus = {
+      pendingCount: 2,
+      isChecking: false,
+      hasPending: true,
+      hasFailures: false,
+      refresh: vi.fn(),
+    };
+
+    render(<ConnectionIndicator />);
+    fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/المزامنة موقوفة|Sync blocked/i),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('does NOT show sync-blocked chip when standalone (trusted)', async () => {
+    mockPwaStatus = {
+      swState: 'active',
+      installState: 'standalone',
+      isReady: true,
+      triggerInstall: null,
+    };
+    mockSyncStatus = {
+      pendingCount: 2,
+      isChecking: false,
+      hasPending: true,
+      hasFailures: false,
+      refresh: vi.fn(),
+    };
+
+    render(<ConnectionIndicator />);
+    fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/المزامنة موقوفة|Sync blocked/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it('does NOT show sync-blocked chip when standalone-untrusted but no pending ops', async () => {
+    mockPwaStatus = {
+      swState: 'active',
+      installState: 'standalone-untrusted',
+      isReady: false,
+      triggerInstall: null,
+    };
+    // hasPending is false by default from beforeEach reset
+    render(<ConnectionIndicator />);
+    fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/المزامنة موقوفة|Sync blocked/i)).not.toBeInTheDocument();
     });
   });
 });

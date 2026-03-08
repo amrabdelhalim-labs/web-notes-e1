@@ -52,10 +52,17 @@ export function useDevices(): UseDevicesReturn {
       const res = await getDevicesApi(deviceInfo.deviceId);
       setDevices(res.data);
       // Sync trust status to localStorage for usePwaStatus
+      const wasTrusted = localStorage.getItem(TRUSTED_KEY) === 'true';
       const trusted = res.data.some((d) => d.deviceId === deviceInfo.deviceId);
       if (trusted) localStorage.setItem(TRUSTED_KEY, 'true');
       else localStorage.removeItem(TRUSTED_KEY);
       publishTrustChanged(trusted);
+      // Detect trust revocation: this device was trusted but is no longer in the
+      // authorised list (e.g. removed from another session). Broadcast a dedicated
+      // event so the app can clear sensitive local data and force re-authentication.
+      if (wasTrusted && !trusted) {
+        window.dispatchEvent(new CustomEvent('device:trust-revoked'));
+      }
       // Cache devices for offline access
       cacheDevices(res.data).catch(() => {});
     } catch (err) {
@@ -78,6 +85,18 @@ export function useDevices(): UseDevicesReturn {
 
   useEffect(() => {
     fetchDevices();
+  }, [fetchDevices]);
+
+  // Re-check trust when the user returns to this tab — catches the case where
+  // another session revoked trust for this device while this tab was in the background.
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchDevices();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [fetchDevices]);
 
   const trustCurrent = useCallback(

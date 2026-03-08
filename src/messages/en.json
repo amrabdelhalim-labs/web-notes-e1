@@ -256,7 +256,10 @@
     "opDelete": "Delete",
     "opUndo": "Undo",
     "opFailed": "Failed {count} times",
-    "opMore": "and {count} more..."
+    "opMore": "and {count} more...",
+    "installApp": "Install App",
+    "installStandaloneUntrusted": "Installed \u2014 device not trusted",
+    "syncBlockedUntrustedWarning": "Sync blocked \u2014 trust this device to sync changes"
   },
   "DeviceManager": {
     "title": "Trusted Devices",

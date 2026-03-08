@@ -166,3 +166,18 @@ export async function cacheDevices(devices: Device[]): Promise<void> {
 export async function getCachedDevices(): Promise<CachedDevice[]> {
   return db.devices.toArray();
 }
+
+/**
+ * Clear all offline-sensitive data when device trust is revoked.
+ *
+ * - pendingOps: must be discarded — they must never sync to the server
+ *   from a device that is no longer authorised.
+ * - notes: cached content is the user's private data; clearing it on
+ *   trust revocation prevents the next person who picks up the device
+ *   from reading notes through the installed PWA.
+ * - devices: kept intentionally — it is only metadata (names/timestamps)
+ *   and is re-fetched on the next authenticated session.
+ */
+export async function clearOfflineData(): Promise<void> {
+  await Promise.all([db.pendingOps.clear(), db.notes.clear()]);
+}
