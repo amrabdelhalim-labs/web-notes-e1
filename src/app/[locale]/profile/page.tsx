@@ -17,6 +17,7 @@ import ProfileEditor from '@/app/components/profile/ProfileEditor';
 import DeleteAccountDialog from '@/app/components/profile/DeleteAccountDialog';
 import { useAuth } from '@/app/hooks/useAuth';
 import { getNotesApi } from '@/app/lib/api';
+import { getCachedNotes } from '@/app/lib/db';
 
 export default function ProfilePage() {
   const t = useTranslations('ProfilePage');
@@ -30,8 +31,16 @@ export default function ProfilePage() {
       .then((res) => {
         if (!cancelled) setNoteCount(res.data.count);
       })
-      .catch(() => {
-        if (!cancelled) setNoteCount(null);
+      .catch(async () => {
+        // Offline fallback: count cached notes from IndexedDB
+        if (!cancelled) {
+          try {
+            const cached = await getCachedNotes();
+            setNoteCount(cached.length);
+          } catch {
+            setNoteCount(null);
+          }
+        }
       });
     return () => {
       cancelled = true;

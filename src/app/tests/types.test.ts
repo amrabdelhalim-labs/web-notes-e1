@@ -5,7 +5,7 @@
  * Uses object-literal assignability checks to guard against accidental renames.
  */
 
-import type { User, Note, NoteType, UserLanguagePref, SupportedLocale } from '@/app/types';
+import type { User, Note, NoteType, UserLanguagePref, SupportedLocale, Device } from '@/app/types';
 
 describe('Shared types', () => {
   describe('User', () => {
@@ -115,6 +115,54 @@ describe('Shared types', () => {
     it('accepts "ar" and "en"', () => {
       const locales: SupportedLocale[] = ['ar', 'en'];
       expect(locales).toHaveLength(2);
+    });
+  });
+
+  describe('Device', () => {
+    it('accepts a valid device object', () => {
+      const device: Device = {
+        _id: 'd1',
+        user: 'u1',
+        deviceId: 'abc-123-def',
+        name: 'Chrome — Windows',
+        browser: 'Chrome',
+        os: 'Windows',
+        lastSeenAt: '2026-01-01T00:00:00Z',
+        createdAt: '2026-01-01T00:00:00Z',
+      };
+      expect(device._id).toBe('d1');
+      expect(device.deviceId).toBeTruthy();
+      expect(device.browser).toBe('Chrome');
+      expect(device.os).toBe('Windows');
+    });
+
+    it('allows isCurrent to be optional', () => {
+      const device: Device = {
+        _id: 'd2',
+        user: 'u1',
+        deviceId: 'xyz-456',
+        name: 'Firefox — Linux',
+        browser: 'Firefox',
+        os: 'Linux',
+        lastSeenAt: '2026-01-01T00:00:00Z',
+        createdAt: '2026-01-01T00:00:00Z',
+      };
+      expect(device.isCurrent).toBeUndefined();
+    });
+
+    it('accepts isCurrent as boolean', () => {
+      const device: Device = {
+        _id: 'd3',
+        user: 'u1',
+        deviceId: 'cur-device',
+        name: 'Edge — Windows',
+        browser: 'Edge',
+        os: 'Windows',
+        isCurrent: true,
+        lastSeenAt: '2026-01-01T00:00:00Z',
+        createdAt: '2026-01-01T00:00:00Z',
+      };
+      expect(device.isCurrent).toBe(true);
     });
   });
 });

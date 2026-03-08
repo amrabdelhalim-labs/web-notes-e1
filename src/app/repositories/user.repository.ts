@@ -9,6 +9,7 @@ import { BaseRepository } from './base.repository';
 import User from '@/app/models/User';
 import Note from '@/app/models/Note';
 import Subscription from '@/app/models/Subscription';
+import Device from '@/app/models/Device';
 import type { IUser } from '@/app/types';
 
 class UserRepository extends BaseRepository<IUser> {
@@ -51,6 +52,7 @@ class UserRepository extends BaseRepository<IUser> {
       await Promise.all([
         Note.deleteMany({ user: userId }, { session }),
         Subscription.deleteMany({ user: userId }, { session }),
+        Device.deleteMany({ user: userId }, { session }),
       ]);
 
       const deletedUser = await User.findByIdAndDelete(userId, { session });

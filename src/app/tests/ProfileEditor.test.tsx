@@ -14,7 +14,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import { render, screen, fireEvent, waitFor } from './utils';
+import { render, screen, fireEvent, waitFor, within } from './utils';
 import ProfileEditor from '@/app/components/profile/ProfileEditor';
 
 // ─── Module mocks ──────────────────────────────────────────────────────────
@@ -47,6 +47,28 @@ vi.mock('@/app/hooks/usePwaStatus', () => ({
   }),
 }));
 
+vi.mock('@/app/hooks/useOfflineStatus', () => ({
+  useOfflineStatus: () => true,
+}));
+
+const mockTrustCurrent = vi.fn();
+const mockRemoveDevice = vi.fn();
+let mockDevicesReturn = {
+  devices: [] as { _id: string; user: string; deviceId: string; name: string; browser: string; os: string; isCurrent?: boolean; lastSeenAt: string; createdAt: string }[],
+  loading: false,
+  error: null as string | null,
+  isTrusted: true,
+  isOnline: true,
+  deviceInfo: { deviceId: 'dev-001', browser: 'Chrome', os: 'Windows', name: 'Chrome — Windows' },
+  trustCurrent: (...args: unknown[]) => mockTrustCurrent(...args),
+  removeDevice: (...args: unknown[]) => mockRemoveDevice(...args),
+  refresh: vi.fn(),
+};
+
+vi.mock('@/app/hooks/useDevices', () => ({
+  useDevices: () => mockDevicesReturn,
+}));
+
 import { useAuth } from '@/app/hooks/useAuth';
 
 // ─── Fixtures ──────────────────────────────────────────────────────────────
@@ -67,6 +89,19 @@ function setup() {
   mockUpdateUserApi.mockReset();
   mockChangePasswordApi.mockReset();
   mockUpdateUser.mockReset();
+  mockTrustCurrent.mockReset();
+  mockRemoveDevice.mockReset();
+  mockDevicesReturn = {
+    devices: [],
+    loading: false,
+    error: null,
+    isTrusted: true,
+    isOnline: true,
+    deviceInfo: { deviceId: 'dev-001', browser: 'Chrome', os: 'Windows', name: 'Chrome — Windows' },
+    trustCurrent: (...args: unknown[]) => mockTrustCurrent(...args),
+    removeDevice: (...args: unknown[]) => mockRemoveDevice(...args),
+    refresh: vi.fn(),
+  };
   (useAuth as Mock).mockReturnValue({
     user: fakeUser,
     token: 'tok',
@@ -475,6 +510,157 @@ describe('ProfileEditor', () => {
       );
     });
   });
+  // ── Trusted devices section ────────────────────────────────────────────
+
+  describe('Trusted devices', () => {
+    beforeEach(() => setup());
+
+    it('renders the trusted devices heading', () => {
+      render(<ProfileEditor />);
+      expect(screen.getByRole('heading', { name: 'الأجهزة الموثوقة' })).toBeInTheDocument();
+    });
+
+    it('shows loading spinner while devices are being fetched', () => {
+      mockDevicesReturn = { ...mockDevicesReturn, loading: true };
+      render(<ProfileEditor />);
+      // A CircularProgress is rendered — test presence of progressbar role
+      expect(screen.getByRole('heading', { name: 'الأجهزة الموثوقة' })).toBeInTheDocument();
+    });
+
+    it('shows error alert when device fetch fails', () => {
+      mockDevicesReturn = { ...mockDevicesReturn, error: 'شبكة' };
+      render(<ProfileEditor />);
+      expect(screen.getByText('فشل تحميل الأجهزة')).toBeInTheDocument();
+    });
+
+    it('shows "no devices" text when list is empty', () => {
+      render(<ProfileEditor />);
+      expect(screen.getByText('لم يتم إضافة أي جهاز موثوق بعد')).toBeInTheDocument();
+    });
+
+    it('shows "trust this device" button when current device is not trusted', () => {
+      mockDevicesReturn = { ...mockDevicesReturn, isTrusted: false };
+      render(<ProfileEditor />);
+      expect(screen.getByRole('button', { name: 'الوثوق بهذا الجهاز' })).toBeInTheDocument();
+    });
+
+    it('hides "trust this device" button when current device is trusted', () => {
+      const fakeDevice = {
+        _id: 'd1', user: 'u1', deviceId: 'dev-001', name: 'Chrome — Windows',
+        browser: 'Chrome', os: 'Windows', isCurrent: true,
+        lastSeenAt: '2026-01-01T00:00:00Z', createdAt: '2026-01-01T00:00:00Z',
+      };
+      mockDevicesReturn = { ...mockDevicesReturn, devices: [fakeDevice], isTrusted: true };
+      render(<ProfileEditor />);
+      expect(screen.queryByRole('button', { name: 'الوثوق بهذا الجهاز' })).not.toBeInTheDocument();
+    });
+
+    it('calls trustCurrent when trust button is clicked', async () => {
+      mockTrustCurrent.mockResolvedValue(undefined);
+      mockDevicesReturn = { ...mockDevicesReturn, isTrusted: false };
+      render(<ProfileEditor />);
+
+      // Open the trust dialog
+      fireEvent.click(screen.getByRole('button', { name: 'الوثوق بهذا الجهاز' }));
+
+      // Dialog opens — fill in password
+      const dialog = screen.getByRole('dialog');
+      fireEvent.change(within(dialog).getByLabelText('كلمة المرور'), { target: { value: 'testpass' } });
+
+      // Click confirm inside the dialog
+      fireEvent.click(within(dialog).getByRole('button', { name: 'الوثوق بهذا الجهاز' }));
+
+      await waitFor(() => expect(mockTrustCurrent).toHaveBeenCalledWith('testpass'));
+    });
+
+    it('renders device list items with name and current badge', () => {
+      const devices = [
+        {
+          _id: 'd1', user: 'u1', deviceId: 'dev-001', name: 'Chrome — Windows',
+          browser: 'Chrome', os: 'Windows', isCurrent: true,
+          lastSeenAt: '2026-01-01T00:00:00Z', createdAt: '2026-01-01T00:00:00Z',
+        },
+        {
+          _id: 'd2', user: 'u1', deviceId: 'dev-002', name: 'Firefox — Linux',
+          browser: 'Firefox', os: 'Linux', isCurrent: false,
+          lastSeenAt: '2026-01-02T00:00:00Z', createdAt: '2026-01-02T00:00:00Z',
+        },
+      ];
+      mockDevicesReturn = { ...mockDevicesReturn, devices, isTrusted: true };
+      render(<ProfileEditor />);
+
+      expect(screen.getByText('Chrome — Windows')).toBeInTheDocument();
+      expect(screen.getByText('Firefox — Linux')).toBeInTheDocument();
+      expect(screen.getByText('الجهاز الحالي')).toBeInTheDocument();
+    });
+
+    it('opens remove confirmation dialog when delete icon is clicked', () => {
+      const devices = [{
+        _id: 'd1', user: 'u1', deviceId: 'dev-001', name: 'Chrome — Windows',
+        browser: 'Chrome', os: 'Windows', isCurrent: true,
+        lastSeenAt: '2026-01-01T00:00:00Z', createdAt: '2026-01-01T00:00:00Z',
+      }];
+      mockDevicesReturn = { ...mockDevicesReturn, devices, isTrusted: true };
+      render(<ProfileEditor />);
+
+      const deleteButtons = screen.getAllByRole('button', { name: 'إزالة' });
+      fireEvent.click(deleteButtons[0]);
+
+      expect(screen.getByText('إزالة الجهاز')).toBeInTheDocument();
+    });
+
+    it('calls removeDevice when remove is confirmed', async () => {
+      mockRemoveDevice.mockResolvedValue(undefined);
+      const devices = [{
+        _id: 'd1', user: 'u1', deviceId: 'dev-001', name: 'Chrome — Windows',
+        browser: 'Chrome', os: 'Windows', isCurrent: true,
+        lastSeenAt: '2026-01-01T00:00:00Z', createdAt: '2026-01-01T00:00:00Z',
+      }];
+      mockDevicesReturn = { ...mockDevicesReturn, devices, isTrusted: true };
+      render(<ProfileEditor />);
+
+      // Click the delete icon to open dialog
+      const deleteButtons = screen.getAllByRole('button', { name: 'إزالة' });
+      fireEvent.click(deleteButtons[0]);
+
+      // Dialog opens — fill in password
+      const dialog = screen.getByRole('dialog');
+      fireEvent.change(within(dialog).getByLabelText('كلمة المرور'), { target: { value: 'testpass' } });
+
+      // Click the confirm button inside the dialog
+      fireEvent.click(within(dialog).getByRole('button', { name: 'إزالة' }));
+
+      await waitFor(() => expect(mockRemoveDevice).toHaveBeenCalledWith('dev-001', 'testpass'));
+    });
+
+    it('closes remove dialog on cancel', async () => {
+      const devices = [{
+        _id: 'd1', user: 'u1', deviceId: 'dev-001', name: 'Chrome — Windows',
+        browser: 'Chrome', os: 'Windows', isCurrent: true,
+        lastSeenAt: '2026-01-01T00:00:00Z', createdAt: '2026-01-01T00:00:00Z',
+      }];
+      mockDevicesReturn = { ...mockDevicesReturn, devices, isTrusted: true };
+      render(<ProfileEditor />);
+
+      const deleteButtons = screen.getAllByRole('button', { name: 'إزالة' });
+      fireEvent.click(deleteButtons[0]);
+
+      // Click cancel in dialog
+      fireEvent.click(screen.getByRole('button', { name: 'إلغاء' }));
+
+      await waitFor(() =>
+        expect(screen.queryByText('إزالة الجهاز')).not.toBeInTheDocument(),
+      );
+      expect(mockRemoveDevice).not.toHaveBeenCalled();
+    });
+
+    it('shows "not trusted" hint text when current device is untrusted', () => {
+      mockDevicesReturn = { ...mockDevicesReturn, isTrusted: false };
+      render(<ProfileEditor />);
+      expect(screen.getByText(/هذا الجهاز غير موثوق/)).toBeInTheDocument();
+    });
+  });
+
   // ── Null user guard ───────────────────────────────────────────────────────
 
   describe('Guard', () => {

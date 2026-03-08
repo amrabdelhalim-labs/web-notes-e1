@@ -8,3 +8,6 @@ export const SUPPORTED_LOCALES = ['ar', 'en'] as const;
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 50;
+
+// ── Offline storage limits ────────────────────────────────────────────────────
+export const MAX_CACHED_NOTES = 100; // Maximum number of notes to store locally

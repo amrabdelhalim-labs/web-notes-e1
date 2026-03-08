@@ -12,6 +12,7 @@
 import type {
   User,
   Note,
+  Device,
   RegisterInput,
   LoginInput,
   NoteInput,
@@ -153,5 +154,32 @@ export function unsubscribePushApi(endpoint: string) {
   return fetchApi<{ message: string }>('/api/push/subscribe', {
     method: 'DELETE',
     body: JSON.stringify({ endpoint }),
+  });
+}
+
+// ─── Devices ─────────────────────────────────────────────────────────────────
+
+export function getDevicesApi(currentDeviceId?: string) {
+  const qs = currentDeviceId ? `?currentDeviceId=${encodeURIComponent(currentDeviceId)}` : '';
+  return fetchApi<{ data: Device[] }>(`/api/devices${qs}`);
+}
+
+export function trustDeviceApi(payload: {
+  deviceId: string;
+  password: string;
+  name?: string;
+  browser?: string;
+  os?: string;
+}) {
+  return fetchApi<{ data: Device; message: string }>('/api/devices', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteDeviceApi(deviceId: string, password: string) {
+  return fetchApi<{ message: string }>('/api/devices', {
+    method: 'DELETE',
+    body: JSON.stringify({ deviceId, password }),
   });
 }

@@ -70,6 +70,7 @@ export default function NoteList({
         direction={{ xs: 'column', sm: 'row' }}
         spacing={2}
         alignItems={{ sm: 'center' }}
+        flexWrap={{ sm: 'wrap' }}
       >
         <TextField
           placeholder={t('searchPlaceholder')}
@@ -87,32 +88,43 @@ export default function NoteList({
               ),
             },
           }}
-          sx={{ flexGrow: 1, width: { xs: '100%', sm: 'auto' }, maxWidth: { sm: 350 } }}
+          sx={{ flexGrow: 1, width: { xs: '100%', sm: 'auto' }, minWidth: { sm: 200 }, maxWidth: { sm: 350 } }}
         />
 
-        <ToggleButtonGroup
-          value={typeFilter}
-          exclusive
-          onChange={(_, v) => onTypeFilterChange((v ?? '') as NoteType | '')}
-          size="small"
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            flexWrap: 'wrap',
+            width: { xs: '100%', sm: 'auto' },
+          }}
         >
-          <ToggleButton value="">
-            <AllInboxIcon sx={{ mr: 0.5 }} fontSize="small" />
-            {t('all')}
-          </ToggleButton>
-          <ToggleButton value="text">
-            <StickyNote2Icon sx={{ mr: 0.5 }} fontSize="small" />
-            {t('text')}
-          </ToggleButton>
-          <ToggleButton value="voice">
-            <MicIcon sx={{ mr: 0.5 }} fontSize="small" />
-            {t('voice')}
-          </ToggleButton>
-        </ToggleButtonGroup>
+          <ToggleButtonGroup
+            value={typeFilter}
+            exclusive
+            onChange={(_, v) => onTypeFilterChange((v ?? '') as NoteType | '')}
+            size="small"
+            sx={{ flexShrink: 0 }}
+          >
+            <ToggleButton value="" aria-label={t('all')}>
+              <AllInboxIcon sx={{ mr: 0.5 }} fontSize="small" />
+              {t('all')}
+            </ToggleButton>
+            <ToggleButton value="text" aria-label={t('text')}>
+              <StickyNote2Icon sx={{ mr: 0.5 }} fontSize="small" />
+              {t('text')}
+            </ToggleButton>
+            <ToggleButton value="voice" aria-label={t('voice')}>
+              <MicIcon sx={{ mr: 0.5 }} fontSize="small" />
+              {t('voice')}
+            </ToggleButton>
+          </ToggleButtonGroup>
 
-        <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-          {t('noteCount', { count })}
-        </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+            {t('noteCount', { count })}
+          </Typography>
+        </Box>
       </Stack>
 
       {/* ── Loading ── */}

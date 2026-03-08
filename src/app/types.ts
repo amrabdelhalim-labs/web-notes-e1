@@ -29,6 +29,19 @@ export interface Note {
   updatedAt: string;
 }
 
+/** A trusted device registered to a user. */
+export interface Device {
+  _id: string;
+  user: string;
+  deviceId: string;
+  name: string;
+  browser: string;
+  os: string;
+  isCurrent?: boolean;
+  lastSeenAt: string;
+  createdAt: string;
+}
+
 // ─── Server-Side Types (Mongoose Documents) ─────────────────────────────────
 /**
  * All Mongoose document interfaces include `_doc` for raw-doc access
@@ -63,6 +76,18 @@ export interface ISubscription extends Document {
   endpoint: string;
   keys: { p256dh: string; auth: string };
   deviceInfo?: string;
+  createdAt: Date;
+}
+
+export interface IDevice extends Document {
+  _doc?: Record<string, unknown>;
+  user: Types.ObjectId | IUser;
+  /** Client-generated UUID stored in localStorage. */
+  deviceId: string;
+  name: string;
+  browser: string;
+  os: string;
+  lastSeenAt: Date;
   createdAt: Date;
 }
 

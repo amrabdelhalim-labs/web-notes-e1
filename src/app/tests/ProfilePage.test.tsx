@@ -43,6 +43,40 @@ vi.mock('@/app/lib/api', () => ({
   deleteUserApi: (...args: unknown[]) => mockDeleteUserApi(...args),
 }));
 
+vi.mock('@/app/hooks/usePushNotifications', () => ({
+  usePushNotifications: () => ({
+    status: 'unsupported',
+    subscribe: vi.fn(),
+    unsubscribe: vi.fn(),
+  }),
+}));
+
+vi.mock('@/app/hooks/usePwaStatus', () => ({
+  usePwaStatus: () => ({
+    swState: 'active',
+    installState: 'not-installable',
+    isReady: true,
+  }),
+}));
+
+vi.mock('@/app/hooks/useOfflineStatus', () => ({
+  useOfflineStatus: () => true,
+}));
+
+vi.mock('@/app/hooks/useDevices', () => ({
+  useDevices: () => ({
+    devices: [],
+    loading: false,
+    error: null,
+    isTrusted: false,
+    isOnline: true,
+    deviceInfo: { deviceId: 'dev-001', browser: 'Chrome', os: 'Windows', name: 'Chrome — Windows' },
+    trustCurrent: vi.fn(),
+    removeDevice: vi.fn(),
+    refresh: vi.fn(),
+  }),
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 import { useAuth } from '@/app/hooks/useAuth';
@@ -131,6 +165,28 @@ describe('ProfilePage', () => {
       render(<ProfilePage />);
       // ar-EG format for Jan 15, 2026
       expect(screen.getByText(/انضم/i)).toBeInTheDocument();
+    });
+  });
+
+  // ── Offline fallback ───────────────────────────────────────────────────────
+
+  describe('Offline fallback', () => {
+    beforeEach(() => setup());
+
+    it('falls back to cached note count when API fails', async () => {
+      mockGetNotesApi.mockRejectedValue(new Error('offline'));
+      // Mock getCachedNotes to return 3 notes
+      const dbModule = await import('@/app/lib/db');
+      vi.spyOn(dbModule, 'getCachedNotes').mockResolvedValue([
+        { _id: 'n1', title: 'A', type: 'text', user: 'u1', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', _cachedAt: Date.now() },
+        { _id: 'n2', title: 'B', type: 'text', user: 'u1', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', _cachedAt: Date.now() },
+        { _id: 'n3', title: 'C', type: 'text', user: 'u1', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', _cachedAt: Date.now() },
+      ] as import('@/app/lib/db').CachedNote[]);
+
+      render(<ProfilePage />);
+      await waitFor(() => {
+        expect(screen.getByText('3 ملاحظة')).toBeInTheDocument();
+      });
     });
   });
 });

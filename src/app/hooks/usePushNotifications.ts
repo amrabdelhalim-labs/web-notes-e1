@@ -43,7 +43,8 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 function getDeviceInfo(): string {
-  return `${navigator.platform} — ${navigator.userAgent.slice(0, 80)}`;
+  const deviceId = localStorage.getItem('device-id') ?? 'unknown';
+  return `${deviceId}|${navigator.platform} — ${navigator.userAgent.slice(0, 80)}`;
 }
 
 const STORAGE_KEY = 'push-subscribed';
