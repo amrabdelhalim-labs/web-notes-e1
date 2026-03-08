@@ -30,23 +30,37 @@ const HEALTH_ENDPOINT = '/api/health';
 const PING_TIMEOUT_MS = 5_000;
 
 /**
+ * Module-level in-flight deduplication: if multiple hook instances call
+ * pingServer() simultaneously (e.g. OfflineBanner + ConnectionIndicator +
+ * useNotes all mounted on the same page), only ONE fetch is made.  All callers
+ * await the same promise and receive the same result.
+ */
+let _pingInFlight: Promise<boolean> | null = null;
+
+/**
  * Fire a HEAD request to the health endpoint.
  * Returns `true` if reachable, `false` otherwise.
  */
 async function pingServer(): Promise<boolean> {
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
-    const res = await fetch(HEALTH_ENDPOINT, {
-      method: 'HEAD',
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
-    return res.ok;
-  } catch {
-    return false;
-  }
+  if (_pingInFlight) return _pingInFlight;
+  _pingInFlight = (async () => {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
+      const res = await fetch(HEALTH_ENDPOINT, {
+        method: 'HEAD',
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      return res.ok;
+    } catch {
+      return false;
+    }
+  })().finally(() => {
+    _pingInFlight = null;
+  });
+  return _pingInFlight;
 }
 
 export function useOfflineStatus(): boolean {
@@ -107,8 +121,11 @@ export function useOfflineStatus(): boolean {
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener(CONNECTIVITY_CHECK_EVENT, handleCheckRequest);
 
-    // Initial verified check on mount
-    verify();
+    // Initial verified check on mount — deferred to a microtask so React
+    // doesn't flag the synchronous setIsOnline(false) path in verify() as
+    // "setState within an effect body" (which triggers a cascading-renders
+    // warning in strict mode / React DevTools).
+    void Promise.resolve().then(() => verify());
 
     return () => {
       window.removeEventListener('online', handleOnline);

@@ -93,6 +93,10 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
   const notesRef = useRef<Note[]>([]);
   notesRef.current = notes;
   const didMount = useRef(false);
+  // Tracks the *previous* online state so we only call processQueue() on the
+  // offline → online transition (not on every render or on initial mount).
+  // Background Sync handles the "first load while already online" case via the
+  // SW bridge in providers.tsx → 'notes:process-offline-queue' window event.
   const prevOnline = useRef(true);
   /**
    * Fetch notes with offline-first strategy:
@@ -218,6 +222,14 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
           noteTitle: input.title,
           timestamp: Date.now(),
         });
+        // Register a Background Sync tag so the SW can wake up the page and
+        // call processQueue() once connectivity is restored — even if the user
+        // has closed the tab and reopened it later.
+        if ('serviceWorker' in navigator && 'sync' in (navigator.serviceWorker as unknown as { ready: Promise<ServiceWorkerRegistration & { sync?: { register(tag: string): Promise<void> } }> })) {
+          navigator.serviceWorker.ready
+            .then((reg) => (reg as unknown as { sync?: { register(tag: string): Promise<void> } }).sync?.register('notes-sync'))
+            .catch(() => {});
+        }
         return tempNote;
       }
 
@@ -264,6 +276,11 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
           noteSnapshot: currentNote,
           timestamp: Date.now(),
         });
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready
+            .then((reg) => (reg as unknown as { sync?: { register(tag: string): Promise<void> } }).sync?.register('notes-sync'))
+            .catch(() => {});
+        }
         return optimisticNote;
       }
 
@@ -302,6 +319,11 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
           noteSnapshot: noteToDelete,
           timestamp: Date.now(),
         });
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready
+            .then((reg) => (reg as unknown as { sync?: { register(tag: string): Promise<void> } }).sync?.register('notes-sync'))
+            .catch(() => {});
+        }
         return;
       }
 

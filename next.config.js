@@ -26,7 +26,12 @@ const withSerwistConfig = withSerwist({
     process.env.NODE_ENV === 'development' &&
     process.env.NEXT_PUBLIC_SW_DISABLED !== 'false',
   register: true,
-  reloadOnOnline: true,
+  // reloadOnOnline MUST stay false: enabling it injects
+  //   window.addEventListener("online", () => location.reload())
+  // which reloads the page before React can flush the IndexedDB offline mutation
+  // queue — the processQueue() effect never sees the false→true transition and
+  // all pending offline operations are silently lost.
+  reloadOnOnline: false,
 });
 
 module.exports = withSerwistConfig(withNextIntl(nextConfig));

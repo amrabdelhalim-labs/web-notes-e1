@@ -9,6 +9,15 @@ import { NextResponse } from 'next/server';
 import { connectDB, getConnectionStatus } from '@/app/lib/mongodb';
 import { getRepositoryManager } from '@/app/repositories';
 
+/**
+ * HEAD /api/health — lightweight connectivity probe used by useOfflineStatus.
+ * Returns 200 immediately without touching the database.  The browser only
+ * needs to know the server is reachable; it does not need the health payload.
+ */
+export async function HEAD(): Promise<NextResponse> {
+  return new NextResponse(null, { status: 200 });
+}
+
 export async function GET(): Promise<NextResponse> {
   try {
     await connectDB();
