@@ -17,8 +17,10 @@ import Divider from '@mui/material/Divider';
 import NotesIcon from '@mui/icons-material/StickyNote2';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
+import Tooltip from '@mui/material/Tooltip';
 import { useRouter, usePathname } from '@/app/lib/navigation';
 import { useAuth } from '@/app/hooks/useAuth';
+import { useOfflineStatus } from '@/app/hooks/useOfflineStatus';
 import { useTranslations } from 'next-intl';
 import { DRAWER_WIDTH, TRANSITIONS } from '@/app/lib/ui-constants';
 
@@ -34,6 +36,7 @@ export default function SideBar({ open, onClose }: SideBarProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
   const t = useTranslations('SideBar');
+  const isOnline = useOfflineStatus();
 
   const navigate = (path: string) => {
     router.push(path);
@@ -84,27 +87,37 @@ export default function SideBar({ open, onClose }: SideBarProps) {
       </List>
       <Divider sx={{ mx: 2 }} />
       <List sx={{ mt: 'auto' }}>
-        <ListItemButton
-          onClick={() => {
-            logout();
-            router.push('/login');
-          }}
-          sx={{
-            mx: 1,
-            borderRadius: 2,
-            color: 'error.main',
-            '& .MuiListItemIcon-root': { color: 'error.main' },
-            '&:hover': {
-              bgcolor: 'error.main',
-              color: 'error.contrastText',
-              '& .MuiListItemIcon-root': { color: 'error.contrastText' },
-            },
-            transition: TRANSITIONS.all,
-          }}
+        <Tooltip
+          title={!isOnline ? t('logoutOfflineDisabled') : ''}
+          arrow
+          placement="right"
+          disableHoverListener={isOnline}
         >
-          <ListItemIcon><LogoutIcon /></ListItemIcon>
-          <ListItemText primary={t('logout')} />
-        </ListItemButton>
+          <span>
+            <ListItemButton
+              disabled={!isOnline}
+              onClick={() => {
+                logout();
+                router.push('/login');
+              }}
+              sx={{
+                mx: 1,
+                borderRadius: 2,
+                color: 'error.main',
+                '& .MuiListItemIcon-root': { color: 'error.main' },
+                '&:hover': {
+                  bgcolor: 'error.main',
+                  color: 'error.contrastText',
+                  '& .MuiListItemIcon-root': { color: 'error.contrastText' },
+                },
+                transition: TRANSITIONS.all,
+              }}
+            >
+              <ListItemIcon><LogoutIcon /></ListItemIcon>
+              <ListItemText primary={t('logout')} />
+            </ListItemButton>
+          </span>
+        </Tooltip>
       </List>
     </>
   );

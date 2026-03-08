@@ -35,6 +35,7 @@ import type { NoteType, NoteInput, UpdateNoteInput } from '@/app/types';
 import RichTextEditor from '@/app/components/notes/RichTextEditor';
 import VoiceRecorder from '@/app/components/notes/VoiceRecorder';
 import { useTranslations } from 'next-intl';
+import { useOfflineStatus } from '@/app/hooks/useOfflineStatus';
 
 export interface NoteEditorInitialData {
   title: string;
@@ -83,6 +84,7 @@ export default function NoteEditorForm({
 }: NoteEditorFormProps) {
   const isEdit = mode === 'edit';
   const t = useTranslations('NoteEditorForm');
+  const isOnline = useOfflineStatus();
 
   // ── Form state ──────────────────────────────────────────────────────────────
   const [fields, setFields] = useState<Fields>(() => makeFields(initialData));
@@ -149,6 +151,12 @@ export default function NoteEditorForm({
     <Paper sx={{ p: { xs: 2, sm: 3 } }}>
       <Stack spacing={3}>
         {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
+
+        {!isOnline && (
+          <Alert severity="info" variant="outlined">
+            {t('offlineHint')}
+          </Alert>
+        )}
 
         {/* Note type — only shown when creating (can't change type of existing note) */}
         {!isEdit && (

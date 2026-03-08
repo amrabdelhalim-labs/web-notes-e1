@@ -8,12 +8,14 @@
     "userMenu": "حساب المستخدم",
     "profile": "الملف الشخصي",
     "logout": "تسجيل الخروج",
+    "logoutOfflineDisabled": "تسجيل الخروج غير متاح أثناء عدم الاتصال بالإنترنت",
     "switchLanguage": "تغيير اللغة"
   },
   "SideBar": {
     "notes": "الملاحظات",
     "profile": "الملف الشخصي",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "logoutOfflineDisabled": "تسجيل الخروج غير متاح أثناء عدم الاتصال بالإنترنت"
   },
   "NoteList": {
     "searchPlaceholder": "بحث في الملاحظات...",
@@ -51,7 +53,8 @@
       "contentRequired": "محتوى الملاحظة مطلوب",
       "voiceRequired": "يرجى تسجيل مقطع صوتي",
       "saveFailed": "حدث خطأ أثناء حفظ الملاحظة"
-    }
+    },
+    "offlineHint": "أنت غير متصل — سيتم حفظ التغييرات محلياً وإرسالها عند عودة الاتصال"
   },
   "DeleteConfirmDialog": {
     "title": "تأكيد الحذف",
@@ -133,7 +136,8 @@
     "languageAr": "العربية",
     "languageEn": "الإنجليزية",
     "languageUnset": "تلقائي (حسب المتصفح / الجلسة)",
-    "languageSaveSuccess": "تم حفظ تفضيل اللغة بنجاح ✔️"
+    "languageSaveSuccess": "تم حفظ تفضيل اللغة بنجاح ✔️",
+    "offlineReadOnly": "أنت غير متصل بالإنترنت — يمكنك عرض بياناتك فقط. التعديل متاح عند عودة الاتصال."
   },
   "DeleteAccountDialog": {
     "openButton": "حذف الحساب نهائياً",
@@ -144,6 +148,7 @@
     "cancel": "إلغاء",
     "confirm": "حذف الحساب",
     "confirming": "جارٍ الحذف...",
+    "offlineDisabled": "حذف الحساب غير متاح أثناء عدم الاتصال بالإنترنت",
     "errors": {
       "passwordRequired": "كلمة المرور مطلوبة لتأكيد حذف الحساب",
       "failed": "فشل حذف الحساب"
@@ -226,6 +231,8 @@
     "pendingOperations": "{count} عمليات في انتظار المزامنة",
     "syncNow": "مزامنة الآن",
     "syncing": "جارِس المزامنة...",
+    "checkAndSync": "التحقق من الاتصال والمزامنة",
+    "checkingAndSyncing": "جارٍ التحقق والمزامنة...",
     "pwaTitle": "حالة تطبيق الويب التقدمي",
     "swActive": "نشط",
     "swInstalling": "جاري التثبيت...",
@@ -236,7 +243,41 @@
     "installStandalone": "مثبتة كتطبيق",
     "installInstallable": "متاحة للتثبيت",
     "installNotInstallable": "غير متاحة للتثيت",
-    "installLabel": "حالة التثبيت"
+    "installBlockedByTrust": "محظورة — يجب الوثوق بالجهاز أولاً",
+    "installLabel": "حالة التثبيت",
+    "trustLabel": "ثقة الجهاز",
+    "trusted": "جهاز موثوق",
+    "notTrusted": "غير موثوق",
+    "notTrustedHint": "اذهب للملف الشخصي لإضافة هذا الجهاز للأجهزة الموثوقة",
+    "pendingOpsTitle": "العمليات المعلقة",
+    "hasFailuresWarning": "بعض العمليات فشلت — ستُعاد المحاولة عند المزامنة",
+    "opCreate": "إنشاء",
+    "opUpdate": "تعديل",
+    "opDelete": "حذف",
+    "opUndo": "تراجع",
+    "opFailed": "فشلت {count} مرات",
+    "opMore": "و{count} عملية أخرى..."
+  },
+  "DeviceManager": {
+    "title": "الأجهزة الموثوقة",
+    "hint": "أضف الأجهزة الموثوقة لاستخدامها كتطبيق ويب تقدمي (PWA)",
+    "trustButton": "الوثوق بهذا الجهاز",
+    "trusting": "جاري الوثوق...",
+    "removeButton": "إزالة",
+    "removing": "جاري الإزالة...",
+    "confirmRemoveTitle": "إزالة الجهاز",
+    "confirmRemoveBody": "سيتم إزالة الجهاز وإلغاء اشتراك الإشعارات المرتبط به. هل تريد المتابعة؟",
+    "confirmButton": "إزالة",
+    "cancelButton": "إلغاء",
+    "currentDevice": "الجهاز الحالي",
+    "lastSeen": "آخر ظهور: {date}",
+    "noDevices": "لم يتم إضافة أي جهاز موثوق بعد",
+    "currentNotTrusted": "هذا الجهاز غير موثوق — اضغط الزر أدناه لإضافته",
+    "loadError": "فشل تحميل الأجهزة",
+    "passwordLabel": "كلمة المرور",
+    "passwordHint": "أدخل كلمة مرورك لتأكيد هذا الإجراء",
+    "trustConfirmTitle": "تأكيد الوثوق بالجهاز",
+    "trustConfirmBody": "سيتم إضافة هذا الجهاز كجهاز موثوق، وستتمكن من تثبيت التطبيق وتفعيل الإشعارات. أدخل كلمة المرور للتأكيد."
   },
   "PushNotifications": {
     "title": "الإشعارات الفورية",
@@ -252,6 +293,20 @@
     "swUnsupported": "غير مدعوم",
     "swChecking": "جاري الفحص",
     "swInstalling": "جاري التثبيت",
-    "swInactive": "غير نشط"
+    "swInactive": "غير نشط",
+    "requiresTrust": "يجب الوثوق بهذا الجهاز أولاً لتفعيل الإشعارات — اذهب لقسم الأجهزة النشطة أدناه"
+  },
+  "DeviceTrustPrompt": {
+    "title": "الوثوق بهذا الجهاز؟",
+    "body": "هل تريد إضافة هذا الجهاز كجهاز موثوق؟",
+    "benefits": "الأجهزة الموثوقة يمكنها تثبيت التطبيق كتطبيق ويب تقدمي (PWA) وتلقي الإشعارات الفورية.",
+    "passwordLabel": "كلمة المرور",
+    "passwordHint": "أدخل كلمة مرورك للتأكيد",
+    "passwordRequired": "كلمة المرور مطلوبة",
+    "trustButton": "نعم، أوثق بالجهاز",
+    "declineButton": "ليس الآن",
+    "trusting": "جارٍ الوثوق...",
+    "trustError": "فشل الوثوق بالجهاز",
+    "laterHint": "يمكنك الوثوق بالجهاز لاحقاً من إعدادات الملف الشخصي"
   }
 }

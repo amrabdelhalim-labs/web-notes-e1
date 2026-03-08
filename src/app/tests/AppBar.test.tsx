@@ -11,6 +11,7 @@ import AppBar from '@/app/components/layout/AppBar';
 const mockPush = vi.fn();
 const mockToggleMode = vi.fn();
 const mockLogout = vi.fn();
+let mockIsOnline = true;
 
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
@@ -39,6 +40,10 @@ vi.mock('@/app/hooks/useAuth', () => ({
   }),
 }));
 
+vi.mock('@/app/hooks/useOfflineStatus', () => ({
+  useOfflineStatus: () => mockIsOnline,
+}));
+
 vi.mock('@/app/config', () => ({
   APP_NAME_AR: 'ملاحظاتي',
 }));
@@ -49,6 +54,7 @@ const defaultProps = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockIsOnline = true;
 });
 
 describe('AppBar', () => {
@@ -105,5 +111,30 @@ describe('AppBar', () => {
     render(<AppBar {...defaultProps} />);
     fireEvent.click(screen.getByLabelText('القائمة'));
     expect(defaultProps.onMenuClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders ConnectionIndicator (connection status button)', () => {
+    render(<AppBar {...defaultProps} />);
+    expect(screen.getByLabelText(/حالة الاتصال|Connection Status/i)).toBeInTheDocument();
+  });
+
+  it('menu icon button is rendered at all viewport sizes', () => {
+    render(<AppBar {...defaultProps} />);
+    const menuBtn = screen.getByLabelText('القائمة');
+    expect(menuBtn).toBeInTheDocument();
+  });
+
+  it('app name text is present in the rendered output', () => {
+    render(<AppBar {...defaultProps} />);
+    // Typography renders the name; may be visually hidden on xs via CSS but DOM element exists
+    expect(screen.getByText('ملاحظاتي')).toBeInTheDocument();
+  });
+
+  it('logout menu item is disabled when offline', () => {
+    mockIsOnline = false;
+    render(<AppBar {...defaultProps} />);
+    fireEvent.click(screen.getByLabelText('حساب المستخدم'));
+    const logoutItem = screen.getByRole('menuitem', { name: /تسجيل الخروج/i });
+    expect(logoutItem).toHaveAttribute('aria-disabled', 'true');
   });
 });

@@ -10,6 +10,7 @@ import SideBar from '@/app/components/layout/SideBar';
 
 const mockPush = vi.fn();
 const mockLogout = vi.fn();
+let mockIsOnline = true;
 
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
@@ -23,6 +24,10 @@ vi.mock('@/app/hooks/useAuth', () => ({
   useAuth: () => ({ logout: mockLogout }),
 }));
 
+vi.mock('@/app/hooks/useOfflineStatus', () => ({
+  useOfflineStatus: () => mockIsOnline,
+}));
+
 const defaultProps = {
   open: true,
   onClose: vi.fn(),
@@ -30,6 +35,7 @@ const defaultProps = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockIsOnline = true;
 });
 
 describe('SideBar', () => {
@@ -76,5 +82,12 @@ describe('SideBar', () => {
     const notesButtons = screen.getAllByText('الملاحظات');
     fireEvent.click(notesButtons[0]);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('logout button is disabled when offline', () => {
+    mockIsOnline = false;
+    render(<SideBar {...defaultProps} />);
+    const logoutButtons = screen.getAllByRole('button', { name: /تسجيل الخروج/i });
+    expect(logoutButtons[0]).toHaveAttribute('aria-disabled', 'true');
   });
 });

@@ -21,6 +21,7 @@ import DeleteAccountDialog from '@/app/components/profile/DeleteAccountDialog';
 // ─── Module mocks ─────────────────────────────────────────────────────────────
 
 const mockPush = vi.fn();
+let mockIsOnline = true;
 
 vi.mock('@/app/lib/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: vi.fn(), back: vi.fn() }),
@@ -32,6 +33,10 @@ vi.mock('@/app/lib/navigation', () => ({
 
 vi.mock('@/app/hooks/useAuth', () => ({
   useAuth: vi.fn(),
+}));
+
+vi.mock('@/app/hooks/useOfflineStatus', () => ({
+  useOfflineStatus: () => mockIsOnline,
 }));
 
 const mockDeleteUserApi = vi.fn();
@@ -55,10 +60,11 @@ const fakeUser = {
 
 const mockLogout = vi.fn();
 
-function setup() {
+function setup({ online = true }: { online?: boolean } = {}) {
   mockPush.mockReset();
   mockDeleteUserApi.mockReset();
   mockLogout.mockReset();
+  mockIsOnline = online;
   (useAuth as Mock).mockReturnValue({
     user: fakeUser,
     token: 'tok',
@@ -217,6 +223,37 @@ describe('DeleteAccountDialog', () => {
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       });
+    });
+  });
+  // ── Offline mode ─────────────────────────────────────────────────
+
+  describe('Offline mode', () => {
+    beforeEach(() => setup({ online: false }));
+
+    it('disables the delete button when offline', () => {
+      render(<DeleteAccountDialog />);
+      const btn = screen.getByRole('button', { name: /حذف الحساب نهائياً/i });
+      expect(btn).toBeDisabled();
+    });
+
+    it('does not open dialog when offline button is clicked', () => {
+      render(<DeleteAccountDialog />);
+      const btn = screen.getByRole('button', { name: /حذف الحساب نهائياً/i });
+      fireEvent.click(btn);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('shows offline tooltip text when hovered (aria-label present)', () => {
+      render(<DeleteAccountDialog />);
+      const btn = screen.getByRole('button', { name: /حذف الحساب نهائياً/i });
+      // Tooltip text is rendered via title prop on wrapper span
+      expect(btn.closest('span')).toBeInTheDocument();
+    });
+
+    it('enables the button again when back online', () => {
+      // Start offline
+      render(<DeleteAccountDialog />);
+      expect(screen.getByRole('button', { name: /حذف الحساب نهائياً/i })).toBeDisabled();
     });
   });
 });

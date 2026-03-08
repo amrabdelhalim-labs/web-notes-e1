@@ -27,6 +27,10 @@ vi.mock('@/app/components/notes/VoiceRecorder', () => ({
   ),
 }));
 
+vi.mock('@/app/hooks/useOfflineStatus', () => ({
+  useOfflineStatus: () => true,
+}));
+
 const defaultProps = {
   mode: 'create' as const,
   onSubmit: vi.fn().mockResolvedValue(undefined),

@@ -6,6 +6,9 @@
  * Double-confirmation dialog for account deletion:
  *   1. Click the delete button → dialog opens with a clear warning
  *   2. Enter password to confirm → calls deleteUserApi → logs out
+ *
+ * The trigger button is disabled while the user is offline — account
+ * deletion requires a live server round-trip and cannot be queued.
  */
 
 import { useState, useCallback, type SyntheticEvent } from 'react';
@@ -19,9 +22,11 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
+import Tooltip from '@mui/material/Tooltip';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useRouter } from '@/app/lib/navigation';
+import { useOfflineStatus } from '@/app/hooks/useOfflineStatus';
 import { deleteUserApi } from '@/app/lib/api';
 import { useTranslations } from 'next-intl';
 
@@ -29,6 +34,7 @@ export default function DeleteAccountDialog() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const t = useTranslations('DeleteAccountDialog');
+  const isOnline = useOfflineStatus();
 
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState('');
@@ -73,14 +79,27 @@ export default function DeleteAccountDialog() {
 
   return (
     <>
-      <Button
-        variant="outlined"
-        color="error"
-        startIcon={<DeleteForeverIcon />}
-        onClick={handleOpen}
+      <Tooltip
+        title={!isOnline ? t('offlineDisabled') : ''}
+        arrow
+        disableHoverListener={isOnline}
+        disableFocusListener={isOnline}
+        disableTouchListener={isOnline}
       >
-        {t('openButton')}
-      </Button>
+        {/* span needed so Tooltip works on a disabled button */}
+        <span>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteForeverIcon />}
+            onClick={handleOpen}
+            disabled={!isOnline}
+            aria-disabled={!isOnline}
+          >
+            {t('openButton')}
+          </Button>
+        </span>
+      </Tooltip>
 
       <Dialog
         open={open}

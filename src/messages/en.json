@@ -8,12 +8,14 @@
     "userMenu": "User account",
     "profile": "Profile",
     "logout": "Logout",
+    "logoutOfflineDisabled": "Logout is unavailable while offline",
     "switchLanguage": "Switch language"
   },
   "SideBar": {
     "notes": "Notes",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "logoutOfflineDisabled": "Logout is unavailable while offline"
   },
   "NoteList": {
     "searchPlaceholder": "Search notes...",
@@ -51,7 +53,8 @@
       "contentRequired": "Note content is required",
       "voiceRequired": "Please record a voice clip",
       "saveFailed": "An error occurred while saving the note"
-    }
+    },
+    "offlineHint": "You are offline — changes will be saved locally and synced when you reconnect"
   },
   "DeleteConfirmDialog": {
     "title": "Confirm deletion",
@@ -133,7 +136,8 @@
     "languageAr": "Arabic",
     "languageEn": "English",
     "languageUnset": "Auto (follow browser / session)",
-    "languageSaveSuccess": "Language preference saved \u2714\ufe0f"
+    "languageSaveSuccess": "Language preference saved \u2714\ufe0f",
+    "offlineReadOnly": "You are offline — your data is read-only. Editing will be available when you reconnect."
   },
   "DeleteAccountDialog": {
     "openButton": "Delete account permanently",
@@ -144,6 +148,7 @@
     "cancel": "Cancel",
     "confirm": "Delete my account",
     "confirming": "Deleting...",
+    "offlineDisabled": "Account deletion is unavailable while offline",
     "errors": {
       "passwordRequired": "Password is required to confirm account deletion",
       "failed": "Account deletion failed"
@@ -226,6 +231,8 @@
     "pendingOperations": "{count} operations pending sync",
     "syncNow": "Sync Now",
     "syncing": "Syncing...",
+    "checkAndSync": "Check Connection & Sync",
+    "checkingAndSyncing": "Checking & Syncing...",
     "pwaTitle": "PWA Status",
     "swActive": "Active",
     "swInstalling": "Installing...",
@@ -236,7 +243,41 @@
     "installStandalone": "Installed as app",
     "installInstallable": "Available to install",
     "installNotInstallable": "Not installable",
-    "installLabel": "Install state"
+    "installBlockedByTrust": "Blocked — trust this device first",
+    "installLabel": "Install state",
+    "trustLabel": "Device trust",
+    "trusted": "Trusted",
+    "notTrusted": "Not trusted",
+    "notTrustedHint": "Go to Profile to add this device to trusted devices",
+    "pendingOpsTitle": "Pending Operations",
+    "hasFailuresWarning": "Some operations failed — will retry on next sync",
+    "opCreate": "Create",
+    "opUpdate": "Update",
+    "opDelete": "Delete",
+    "opUndo": "Undo",
+    "opFailed": "Failed {count} times",
+    "opMore": "and {count} more..."
+  },
+  "DeviceManager": {
+    "title": "Trusted Devices",
+    "hint": "Add trusted devices to use as a Progressive Web App (PWA)",
+    "trustButton": "Trust this device",
+    "trusting": "Trusting...",
+    "removeButton": "Remove",
+    "removing": "Removing...",
+    "confirmRemoveTitle": "Remove device",
+    "confirmRemoveBody": "This will remove the device and cancel its push notification subscription. Continue?",
+    "confirmButton": "Remove",
+    "cancelButton": "Cancel",
+    "currentDevice": "Current device",
+    "lastSeen": "Last seen: {date}",
+    "noDevices": "No trusted devices added yet",
+    "currentNotTrusted": "This device is not trusted — click the button below to add it",
+    "loadError": "Failed to load devices",
+    "passwordLabel": "Password",
+    "passwordHint": "Enter your password to confirm this action",
+    "trustConfirmTitle": "Confirm device trust",
+    "trustConfirmBody": "This device will be added as trusted, allowing you to install the app and enable notifications. Enter your password to confirm."
   },
   "PushNotifications": {
     "title": "Push Notifications",
@@ -252,6 +293,20 @@
     "swUnsupported": "Not supported",
     "swChecking": "Checking",
     "swInstalling": "Installing",
-    "swInactive": "Not active"
+    "swInactive": "Not active",
+    "requiresTrust": "You must trust this device first to enable notifications — go to the Active Devices section below"
+  },
+  "DeviceTrustPrompt": {
+    "title": "Trust this device?",
+    "body": "Would you like to add this device as a trusted device?",
+    "benefits": "Trusted devices can install the app as a Progressive Web App (PWA) and receive push notifications.",
+    "passwordLabel": "Password",
+    "passwordHint": "Enter your password to confirm",
+    "passwordRequired": "Password is required",
+    "trustButton": "Yes, trust device",
+    "declineButton": "Not now",
+    "trusting": "Trusting...",
+    "trustError": "Failed to trust device",
+    "laterHint": "You can trust the device later from your profile settings"
   }
 }
