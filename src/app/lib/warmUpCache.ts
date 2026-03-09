@@ -28,9 +28,38 @@ import type { Note } from '@/app/types';
 /** Maximum number of voice notes to individually pre-fetch for audioData. */
 const MAX_AUDIO_PREFETCH = 20;
 
+/** Timeout (ms) for waiting for the SW to claim the page. */
+const SW_CONTROL_TIMEOUT = 5_000;
+
 /**
- * Pre-fetch important page shells in the background so the SW caches them.
- * The SW's defaultCache (NetworkFirst / StaleWhileRevalidate) stores each
+ * Wait until the Service Worker is controlling this page so that subsequent
+ * fetch() calls are intercepted and cached by the SW's runtime cache.
+ *
+ * If the SW is already controlling, resolves immediately.  Falls back to a
+ * timeout so activation never hangs forever.
+ *
+ * Exported for unit testing.
+ */
+export async function waitForSWControl(): Promise<void> {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+  if (navigator.serviceWorker.controller) return;
+
+  return new Promise<void>((resolve) => {
+    const timeout = setTimeout(resolve, SW_CONTROL_TIMEOUT);
+    navigator.serviceWorker.addEventListener(
+      'controllerchange',
+      () => {
+        clearTimeout(timeout);
+        resolve();
+      },
+      { once: true }
+    );
+  });
+}
+
+/**
+ * Pre-fetch important page shells so the SW caches them for offline use.
+ * The SW's runtime cache (NetworkFirst / StaleWhileRevalidate) stores each
  * response so subsequent offline navigations are served from the cache.
  *
  * Exported for unit testing; call-sites should treat it as an impl detail.
@@ -56,10 +85,22 @@ export async function prefetchPageShells(noteIds: string[]): Promise<void> {
 /**
  * Seed the offline cache immediately after PWA activation.
  *
- * Awaits phase 1 + 2a; fires phase 2b in the background.
+ * Phase 0 — Wait for the SW to claim this page (so fetch() is intercepted).
+ * Phase 1 — Fetch the full notes list and seed Dexie.
+ * Phase 2a — Fetch each voice note individually for audioData.
+ * Phase 2b — Pre-fetch page shells (awaited so they're cached before the
+ *            dialog shows success).
+ *
  * Never throws — all errors are caught internally.
  */
 export async function warmUpOfflineCache(): Promise<void> {
+  // ── Phase 0: Wait for SW to control the page ─────────────────────────────
+  try {
+    await waitForSWControl();
+  } catch {
+    // Proceed anyway — page shells won't get cached but Dexie seeding still works
+  }
+
   let notes: Note[] = [];
 
   // ── Phase 1: Seed notes list into Dexie ───────────────────────────────────
@@ -87,6 +128,7 @@ export async function warmUpOfflineCache(): Promise<void> {
     })
   );
 
-  // ── Phase 2b: Pre-fetch page shells (background — never blocks the dialog) ─
-  void prefetchPageShells(noteIds);
+  // ── Phase 2b: Pre-fetch page shells (awaited — must complete before dialog
+  //    shows success so pages are available offline immediately) ──────────────
+  await prefetchPageShells(noteIds);
 }

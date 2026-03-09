@@ -290,6 +290,36 @@ function buildTheme(mode: PaletteMode, dir: 'rtl' | 'ltr' = 'rtl') {
             }),
           },
         },
+        // Dialog: sensible defaults so every dialog is responsive out of the box.
+        // Individual dialogs can override maxWidth (e.g. maxWidth="sm") if needed.
+        MuiDialog: {
+          defaultProps: {
+            maxWidth: 'xs',
+            fullWidth: true,
+          },
+        },
+        // DialogTitle: tighter padding on narrow screens
+        MuiDialogTitle: {
+          styleOverrides: {
+            root: ({ theme }) => ({
+              padding: theme.spacing(2),
+              [theme.breakpoints.up('sm')]: {
+                padding: theme.spacing(2, 3),
+              },
+            }),
+          },
+        },
+        // DialogContent: responsive padding for narrow screens (300px)
+        MuiDialogContent: {
+          styleOverrides: {
+            root: ({ theme }) => ({
+              padding: theme.spacing(1, 2),
+              [theme.breakpoints.up('sm')]: {
+                padding: theme.spacing(2, 3),
+              },
+            }),
+          },
+        },
         // DialogActions: responsive horizontal padding — xs=16 px, sm+=24 px
         // Centralises padding so dialogs don't hard-code px:3 inline.
         MuiDialogActions: {
@@ -298,6 +328,8 @@ function buildTheme(mode: PaletteMode, dir: 'rtl' | 'ltr' = 'rtl') {
               paddingLeft: theme.spacing(2),
               paddingRight: theme.spacing(2),
               paddingBottom: theme.spacing(2),
+              gap: theme.spacing(1),
+              flexWrap: 'wrap',
               [theme.breakpoints.up('sm')]: {
                 paddingLeft: theme.spacing(3),
                 paddingRight: theme.spacing(3),

@@ -263,8 +263,8 @@ function EditableField({
               {t('confirmChangeBody', { label })}
             </Typography>
             <Stack
-              direction="row"
-              alignItems="center"
+              direction={{ xs: 'column', sm: 'row' }}
+              alignItems={{ xs: 'flex-start', sm: 'center' }}
               gap={1}
               sx={{
                 mt: 1,
@@ -276,19 +276,19 @@ function EditableField({
                 wordBreak: 'break-all',
               }}
             >
-              <Box component="span" sx={{ color: 'error.main', flexShrink: 0 }}>
+              <Box component="span" sx={{ color: 'error.main' }}>
                 {type === 'password' ? '••••••' : value || '—'}
               </Box>
               <Box component="span" sx={{ color: 'text.secondary', flexShrink: 0 }}>
                 →
               </Box>
-              <Box component="span" sx={{ color: 'success.main', flexShrink: 0 }}>
+              <Box component="span" sx={{ color: 'success.main' }}>
                 {type === 'password' ? '••••••' : pendingVal}
               </Box>
             </Stack>
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ gap: 1 }}>
+        <DialogActions>
           <Button
             onClick={handleDialogCancel}
             variant="outlined"
@@ -685,7 +685,7 @@ export default function ProfileEditor() {
                       <LaptopIcon color="action" />
                     )}
                     <Box sx={{ minWidth: 0 }}>
-                      <Stack direction="row" alignItems="center" gap={1}>
+                      <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
                         <Typography variant="body2" sx={{ fontWeight: 500 }} noWrap>
                           {device.name || `${device.browser} — ${device.os}`}
                         </Typography>
@@ -770,7 +770,7 @@ export default function ProfileEditor() {
                 autoComplete="current-password"
               />
             </DialogContent>
-            <DialogActions sx={{ gap: 1 }}>
+            <DialogActions>
               <Button
                 onClick={() => setShowTrustDialog(false)}
                 variant="outlined"
@@ -826,7 +826,7 @@ export default function ProfileEditor() {
                 autoComplete="current-password"
               />
             </DialogContent>
-            <DialogActions sx={{ gap: 1 }}>
+            <DialogActions>
               <Button
                 onClick={() => {
                   setConfirmRemoveId(null);

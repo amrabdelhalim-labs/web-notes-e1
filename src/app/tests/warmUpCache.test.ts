@@ -12,7 +12,7 @@
  *   - prefetchPageShells builds correct URLs for all supported locales
  */
 
-import { warmUpOfflineCache, prefetchPageShells } from '@/app/lib/warmUpCache';
+import { warmUpOfflineCache, prefetchPageShells, waitForSWControl } from '@/app/lib/warmUpCache';
 
 // ── Module mocks ─────────────────────────────────────────────────────────────
 
@@ -61,6 +61,12 @@ beforeEach(() => {
   // Mock global fetch (used for page-shell pre-fetching)
   mockFetch = vi.fn().mockResolvedValue({ ok: true, status: 200 });
   vi.stubGlobal('fetch', mockFetch);
+
+  // Mock navigator.serviceWorker so waitForSWControl resolves immediately
+  vi.stubGlobal('navigator', {
+    ...navigator,
+    serviceWorker: { controller: {}, addEventListener: vi.fn(), getRegistration: vi.fn() },
+  });
 
   // Default: list returns 2 text + 2 voice notes
   mockGetNotesApi.mockResolvedValue({
@@ -251,5 +257,48 @@ describe('prefetchPageShells', () => {
     for (const call of mockFetch.mock.calls) {
       expect(call[1]).toMatchObject({ credentials: 'include' });
     }
+  });
+});
+
+// ── waitForSWControl ──────────────────────────────────────────────────────────
+
+describe('waitForSWControl', () => {
+  it('resolves immediately when SW is already controlling', async () => {
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      serviceWorker: { controller: {}, addEventListener: vi.fn() },
+    });
+    await expect(waitForSWControl()).resolves.toBeUndefined();
+  });
+
+  it('resolves immediately when serviceWorker is not supported', async () => {
+    vi.stubGlobal('navigator', {});
+    await expect(waitForSWControl()).resolves.toBeUndefined();
+  });
+
+  it('waits for controllerchange event when no controller yet', async () => {
+    let changeHandler: (() => void) | undefined;
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      serviceWorker: {
+        controller: null,
+        addEventListener: (_event: string, handler: () => void) => {
+          changeHandler = handler;
+        },
+      },
+    });
+
+    const promise = waitForSWControl();
+    // Should not resolve yet
+    let resolved = false;
+    promise.then(() => {
+      resolved = true;
+    });
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+
+    // Fire the controllerchange event
+    changeHandler!();
+    await expect(promise).resolves.toBeUndefined();
   });
 });

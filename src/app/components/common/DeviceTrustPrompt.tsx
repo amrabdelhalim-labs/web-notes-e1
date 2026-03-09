@@ -127,7 +127,7 @@ export default function DeviceTrustPrompt() {
           sx={{ mt: 1 }}
         />
       </DialogContent>
-      <DialogActions sx={{ gap: 1 }}>
+      <DialogActions>
         <Button onClick={handleDecline} variant="outlined" color="inherit" disabled={trusting}>
           {t('declineButton')}
         </Button>

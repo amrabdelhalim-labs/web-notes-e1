@@ -76,6 +76,17 @@ async function unregisterSW(): Promise<void> {
   if (reg) await reg.unregister();
 }
 
+/**
+ * Delete every entry in CacheStorage (precache + runtime caches created by
+ * the SW). Without this, orphaned caches persist even after the SW is removed
+ * and could be picked up by a future registration.
+ */
+async function clearCacheStorage(): Promise<void> {
+  if (!('caches' in window)) return;
+  const names = await caches.keys();
+  await Promise.all(names.map((n) => caches.delete(n)));
+}
+
 // ─── Context ──────────────────────────────────────────────────────────────────
 
 interface PwaActivationContextValue {
@@ -139,6 +150,7 @@ export function PwaActivationProvider({ children }: { children: ReactNode }) {
       removeManifest();
       await unregisterSW();
       await clearOfflineData().catch(() => {});
+      await clearCacheStorage().catch(() => {});
       await clearPushSubscription();
       localStorage.removeItem(PWA_ENABLED_KEY);
       // Reload so React fetches fresh chunk hashes directly from the server.
@@ -182,8 +194,13 @@ export function PwaActivationProvider({ children }: { children: ReactNode }) {
       broadcast(true);
     } else if (pwaEnabled && !trusted) {
       // Trust was revoked while the app was offline (flag is stale).
-      // Clear it now so the next session starts with zero footprint.
+      // Full cleanup: remove manifest + SW + caches + IndexedDB so the next
+      // session starts with zero PWA footprint.
       localStorage.removeItem(PWA_ENABLED_KEY);
+      removeManifest();
+      unregisterSW().catch(() => {});
+      clearOfflineData().catch(() => {});
+      clearCacheStorage().catch(() => {});
     }
 
     /**
@@ -199,8 +216,13 @@ export function PwaActivationProvider({ children }: { children: ReactNode }) {
     const handleRevoked = () => {
       removeManifest();
       localStorage.removeItem(PWA_ENABLED_KEY);
-      // Best-effort push cleanup — swallows errors internally.
-      clearPushSubscription();
+      // Full cleanup: SW + caches + IndexedDB + push — all fire-and-forget
+      // because AuthContext.logout() will also run and do the same, but we
+      // don't leave a window where sensitive data is accessible.
+      unregisterSW().catch(() => {});
+      clearOfflineData().catch(() => {});
+      clearCacheStorage().catch(() => {});
+      clearPushSubscription().catch(() => {});
       setIsActivated(false);
       broadcast(false);
     };
