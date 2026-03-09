@@ -483,6 +483,11 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
             cacheNotes([res.data]).catch(() => {});
           } else if (op.type === 'delete' && op.noteId && !op.noteId.startsWith('tmp_')) {
             await deleteNoteApi(op.noteId);
+            // Remove from local cache immediately after the server confirms the delete.
+            // Without this, a fetchNotes() call that ran between the offline-delete
+            // enqueue and this processQueue run may have re-added the note to Dexie
+            // (since cacheNotes uses bulkPut and never removes orphaned entries).
+            removeCachedNote(op.noteId).catch(() => {});
           }
           // Only remove from queue on success
           if (op.id !== undefined) await removePendingOp(op.id);

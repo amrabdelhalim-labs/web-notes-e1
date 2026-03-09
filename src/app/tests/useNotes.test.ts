@@ -947,7 +947,55 @@ describe('processQueue', () => {
     // createNoteApi and getPendingOps must each be called exactly once
     expect(vi.mocked(createNoteApi)).toHaveBeenCalledOnce();
     expect(mockGetPendingOps).toHaveBeenCalledOnce();
-  });});
+  });
+
+  // ── Delete op Dexie cleanup ────────────────────────────────────────────
+
+  it('delete op sync: removes note from Dexie after successful server delete', async () => {
+    // Scenario: user deleted while offline, then fetchNotes re-added the note to
+    // Dexie before processQueue ran (cacheNotes uses bulkPut — never removes orphans).
+    // processQueue must call removeCachedNote so the note does not persist locally.
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 21,
+        type: 'delete',
+        noteId: 'n1',
+        noteTitle: 'To Be Deleted',
+        timestamp: Date.now(),
+      },
+    ]);
+    mockDeleteNote.mockResolvedValue({ message: 'ok' });
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    expect(mockDeleteNote).toHaveBeenCalledWith('n1');
+    expect(mockRemoveCachedNote).toHaveBeenCalledWith('n1');
+    expect(mockRemovePendingOp).toHaveBeenCalledWith(21);
+  });
+
+  it('delete op sync: does NOT call removeCachedNote when deleteNoteApi fails', async () => {
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 22,
+        type: 'delete',
+        noteId: 'n2',
+        noteTitle: 'Fail Delete',
+        timestamp: Date.now(),
+      },
+    ]);
+    mockDeleteNote.mockRejectedValueOnce(new Error('Server error'));
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    // Server delete failed — must NOT remove from cache (note still exists on server)
+    expect(mockRemoveCachedNote).not.toHaveBeenCalledWith('n2');
+    // Op must be kept in queue (failure counter incremented, not removed)
+    expect(mockIncrementPendingOpFailure).toHaveBeenCalledWith(22);
+    expect(mockRemovePendingOp).not.toHaveBeenCalledWith(22);
+  });
+});
 
 // ─── Offline filter / applyLocalFilter ───────────────────────────────────────
 
