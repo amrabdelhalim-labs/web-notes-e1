@@ -153,6 +153,8 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
                 _id: op.tempId!,
                 title: (op.payload as NoteInput).title ?? '',
                 content: (op.payload as NoteInput).content,
+                audioData: (op.payload as NoteInput).audioData,
+                audioDuration: (op.payload as NoteInput).audioDuration,
                 type: (op.payload as NoteInput).type ?? 'text',
                 user: '',
                 createdAt: new Date(op.timestamp).toISOString(),
@@ -216,6 +218,8 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         _id: tempId,
         title: input.title,
         content: input.content,
+        audioData: input.audioData,
+        audioDuration: input.audioDuration,
         type: input.type,
         user: '',
         createdAt: new Date().toISOString(),
@@ -243,6 +247,8 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
           noteTitle: input.title,
           timestamp: Date.now(),
         });
+        // Persist the temp note to Dexie so it survives a page reload while offline.
+        cacheNotes([tempNote]).catch(() => {});
         // Register a Background Sync tag so the SW can wake up the page and
         // call processQueue() once connectivity is restored — even if the user
         // has closed the tab and reopened it later.
@@ -320,6 +326,8 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
           noteSnapshot: currentNote,
           timestamp: Date.now(),
         });
+        // Persist the optimistic state to Dexie so the update survives a page reload.
+        cacheNotes([optimisticNote]).catch(() => {});
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.ready
             .then((reg) =>

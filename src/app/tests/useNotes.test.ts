@@ -400,6 +400,47 @@ describe('offline CRUD', () => {
     expect(vi.mocked(createNoteApi)).not.toHaveBeenCalled();
   });
 
+  it('createNote offline: persists tempNote to Dexie so it survives page reload', async () => {
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    const created = await act(() =>
+      result.current.createNote({
+        title: 'Offline Voice',
+        type: 'voice',
+        audioData: 'base64audio',
+        audioDuration: 15,
+      })
+    );
+
+    // cacheNotes must be called with the temp note (including audioData) so the note
+    // is readable from Dexie after a page reload while still offline.
+    expect(vi.mocked(cacheNotes)).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          _id: created._id,
+          title: 'Offline Voice',
+          audioData: 'base64audio',
+          audioDuration: 15,
+        }),
+      ])
+    );
+  });
+
+  it('updateNote offline: persists optimistic note to Dexie so it survives page reload', async () => {
+    mockGetCachedNotes.mockResolvedValue([sampleNote]);
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    vi.mocked(cacheNotes).mockClear();
+    await act(() => result.current.updateNote('n1', { title: 'Updated Offline' }));
+
+    // The optimistic note (with the new title) must be written to Dexie so the
+    // change persists after a page reload while still offline.
+    expect(vi.mocked(cacheNotes)).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ _id: 'n1', title: 'Updated Offline' })])
+    );
+  });
+
   it('updateNote offline: applies update optimistically and enqueues op with snapshot', async () => {
     mockGetNotes.mockResolvedValue(oneNoteResponse);
     const { result } = renderHook(() => useNotes());
@@ -526,6 +567,36 @@ describe('optimistic UI (online)', () => {
     // Resolve the API
     resolveCreate({ data: sampleNote, message: 'ok' });
     await waitFor(() => expect(result.current.notes.some((n) => n._id === 'n1')).toBe(true));
+  });
+
+  it('createNote: temp note preserves audioData and audioDuration from input', async () => {
+    let resolveCreate!: (v: { data: import('@/app/types').Note; message: string }) => void;
+    vi.mocked(createNoteApi).mockReturnValueOnce(
+      new Promise((res) => {
+        resolveCreate = res;
+      }) as ReturnType<typeof createNoteApi>
+    );
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    act(() => {
+      void result.current.createNote({
+        title: 'Voice Note',
+        type: 'voice',
+        audioData: 'base64audio',
+        audioDuration: 42,
+      });
+    });
+
+    await waitFor(() =>
+      expect(result.current.notes.some((n) => n._id.startsWith('tmp_'))).toBe(true)
+    );
+
+    const tempNote = result.current.notes.find((n) => n._id.startsWith('tmp_'))!;
+    expect(tempNote.audioData).toBe('base64audio');
+    expect(tempNote.audioDuration).toBe(42);
+
+    resolveCreate({ data: sampleNote, message: 'ok' });
   });
 
   it('createNote: rolls back temp note on API failure', async () => {

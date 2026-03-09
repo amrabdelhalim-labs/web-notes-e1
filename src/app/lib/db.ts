@@ -93,8 +93,25 @@ export async function cacheNotes(notes: Note[]): Promise<void> {
   const now = Date.now();
   const entries: CachedNote[] = notes.map((n) => ({ ...n, _cachedAt: now }));
 
+  // Preserve audioData / audioDuration from existing Dexie entries when the
+  // incoming records (e.g. from the list API that strips audioData for bandwidth)
+  // do not carry them. This prevents a generic fetchNotes() from silently
+  // overwriting a fully-cached voice note that was fetched individually via getNote().
+  const existing = await db.notes.bulkGet(entries.map((e) => e._id));
+  const merged = entries.map((entry, i) => {
+    const prev = existing[i];
+    if (prev?.audioData && !entry.audioData) {
+      return {
+        ...entry,
+        audioData: prev.audioData,
+        audioDuration: entry.audioDuration ?? prev.audioDuration,
+      };
+    }
+    return entry;
+  });
+
   // Add new entries
-  await db.notes.bulkPut(entries);
+  await db.notes.bulkPut(merged);
 
   // Enforce cache size limit
   const totalCount = await db.notes.count();
