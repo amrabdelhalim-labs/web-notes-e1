@@ -19,6 +19,7 @@ import PwaActivationDialog from '@/app/components/common/PwaActivationDialog';
 
 const mockActivate = vi.fn();
 const mockDeactivate = vi.fn();
+const mockWarmUp = vi.fn();
 
 vi.mock('@/app/context/PwaActivationContext', () => ({
   usePwaActivation: () => ({
@@ -32,6 +33,10 @@ vi.mock('@/app/context/PwaActivationContext', () => ({
   PWA_ACTIVATION_EVENT: 'pwa:activation-changed',
 }));
 
+vi.mock('@/app/lib/warmUpCache', () => ({
+  warmUpOfflineCache: (...args: unknown[]) => mockWarmUp(...args),
+}));
+
 const defaultProps = {
   open: true,
   onClose: vi.fn(),
@@ -39,8 +44,9 @@ const defaultProps = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Default: activation succeeds instantly
+  // Default: activation + warm-up succeed instantly
   mockActivate.mockResolvedValue(undefined);
+  mockWarmUp.mockResolvedValue(undefined);
 });
 
 describe('PwaActivationDialog', () => {
@@ -130,6 +136,20 @@ describe('PwaActivationDialog', () => {
     );
 
     expect(mockActivate).toHaveBeenCalledTimes(2);
+  }, 10000);
+
+  it('calls warmUpOfflineCache after SW registers (step 2 seeds the cache)', async () => {
+    render(<PwaActivationDialog {...defaultProps} />);
+    fireEvent.click(screen.getByRole('button', { name: /^Activate$|^تفعيل$/i }));
+
+    await waitFor(
+      () => {
+        expect(screen.getByRole('button', { name: /^Done$|^تم$/i })).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    expect(mockWarmUp).toHaveBeenCalledTimes(1);
   }, 10000);
 
   it('shows disabled activating button while activation is in progress', async () => {

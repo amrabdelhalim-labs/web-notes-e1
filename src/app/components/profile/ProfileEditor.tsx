@@ -272,7 +272,7 @@ function EditableField({
                 borderRadius: 2,
                 bgcolor: 'action.hover',
                 fontFamily: 'monospace',
-                fontSize: '0.85rem',
+                fontSize: { xs: '0.75rem', sm: '0.85rem' },
                 wordBreak: 'break-all',
               }}
             >
@@ -288,7 +288,7 @@ function EditableField({
             </Stack>
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+        <DialogActions sx={{ gap: 1 }}>
           <Button
             onClick={handleDialogCancel}
             variant="outlined"
@@ -551,7 +551,7 @@ export default function ProfileEditor() {
           )}
 
           <FormControl component="fieldset" disabled={langSaving || !isOnline}>
-            <FormLabel component="legend" sx={{ mb: 1, fontSize: '0.875rem' }}>
+            <FormLabel component="legend" sx={{ mb: 1 }}>
               {t('languagePrefLabel')}
             </FormLabel>
             <RadioGroup
@@ -770,7 +770,7 @@ export default function ProfileEditor() {
                 autoComplete="current-password"
               />
             </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+            <DialogActions sx={{ gap: 1 }}>
               <Button
                 onClick={() => setShowTrustDialog(false)}
                 variant="outlined"
@@ -826,7 +826,7 @@ export default function ProfileEditor() {
                 autoComplete="current-password"
               />
             </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+            <DialogActions sx={{ gap: 1 }}>
               <Button
                 onClick={() => {
                   setConfirmRemoveId(null);

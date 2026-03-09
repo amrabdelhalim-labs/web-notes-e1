@@ -479,29 +479,56 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
     return () => window.removeEventListener('notes:undo-op', handleUndoOp);
   }, []);
 
-  const getNote = useCallback(async (id: string): Promise<Note> => {
-    try {
-      const res = await getNoteApi(id);
-      return res.data;
-    } catch (err) {
-      // Re-throw auth failures immediately — no point looking in cache
-      const isAuthError = err instanceof Error && err.message.includes('401');
-      if (isAuthError) throw err;
+  const getNote = useCallback(
+    async (id: string): Promise<Note> => {
+      const isTrusted = localStorage.getItem('device-trusted') === 'true';
 
-      // Network / server error — try local cache as fallback (trusted devices only)
-      if (localStorage.getItem('device-trusted') === 'true') {
-        try {
-          const cached = await getCachedNotes();
-          const found = cached.find((n) => n._id === id);
-          if (found) return found;
-        } catch {
-          /* ignore db errors */
+      // ── Offline-first: skip the network request entirely when we know we're
+      //    offline so the user sees the cached note instantly without waiting for
+      //    a network timeout.  audioData is included because cacheNotes() stores
+      //    the full note returned by getNoteApi() on every online visit.
+      if (!isOnline) {
+        if (isTrusted) {
+          try {
+            const cached = await getCachedNotes();
+            const found = cached.find((n) => n._id === id);
+            if (found) return found;
+          } catch {
+            /* ignore db errors */
+          }
         }
+        throw new Error('تعذر تحميل الملاحظة. تحقق من اتصالك بالإنترنت.');
       }
 
-      throw new Error('تعذر تحميل الملاحظة. تحقق من اتصالك بالإنترنت.');
-    }
-  }, []);
+      // ── Online: fetch from server (includes audioData) ────────────────────
+      try {
+        const res = await getNoteApi(id);
+        // Cache the full note (with audioData if it's a voice note) so the audio
+        // player works next time the user opens this note while offline.
+        if (isTrusted) {
+          cacheNotes([res.data]).catch(() => {});
+        }
+        return res.data;
+      } catch (err) {
+        // Re-throw auth failures immediately — no point looking in cache
+        const isAuthError = err instanceof Error && err.message.includes('401');
+        if (isAuthError) throw err;
+
+        // Server unreachable while nominally online — fall back to cache
+        if (isTrusted) {
+          try {
+            const cached = await getCachedNotes();
+            const found = cached.find((n) => n._id === id);
+            if (found) return found;
+          } catch {
+            /* ignore db errors */
+          }
+        }
+        throw new Error('تعذر تحميل الملاحظة. تحقق من اتصالك بالإنترنت.');
+      }
+    },
+    [isOnline]
+  );
 
   return {
     notes,

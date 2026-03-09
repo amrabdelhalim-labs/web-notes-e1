@@ -48,7 +48,7 @@ export default function DeleteConfirmDialog({
       <DialogContent>
         <DialogContentText>{t('body', { noteTitle: title })}</DialogContentText>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      <DialogActions>
         <Button onClick={onClose} disabled={loading}>
           {t('cancel')}
         </Button>

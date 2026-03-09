@@ -275,12 +275,93 @@ describe('CRUD', () => {
     expect(note.title).toBe('Test Note');
   });
 
-  it('getNote falls back to cache when server fails', async () => {
-    mockGetNote.mockRejectedValueOnce(new Error('Network error'));
-    // getCachedNotes is mocked at module level to return empty; we override via the db mock
-    // Since Dexie is not mocked, getCachedNotes returns [] → getNote should throw
-    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+  it('getNote caches the fetched note (with audioData) for offline use', async () => {
+    const voiceNote = {
+      ...sampleNote,
+      type: 'voice' as const,
+      audioData: 'base64audio',
+      audioDuration: 30,
+    };
+    mockGetNote.mockResolvedValue({ data: voiceNote });
+    localStorage.setItem('device-trusted', 'true');
 
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.getNote('n1'));
+
+    // cacheNotes should have been called from getNote (not just from fetchNotes)
+    expect(vi.mocked(cacheNotes)).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ _id: 'n1', audioData: 'base64audio' })])
+    );
+  });
+
+  it('getNote does NOT cache when device is untrusted', async () => {
+    mockGetNote.mockResolvedValue({ data: sampleNote });
+    localStorage.removeItem('device-trusted');
+    vi.mocked(cacheNotes).mockClear();
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.getNote('n1'));
+
+    expect(vi.mocked(cacheNotes)).not.toHaveBeenCalled();
+  });
+
+  it('getNote serves from Dexie cache when offline (no API call)', async () => {
+    mockOnlineStatus = false;
+    localStorage.setItem('device-trusted', 'true');
+    const voiceNote = {
+      ...sampleNote,
+      type: 'voice' as const,
+      audioData: 'base64audio',
+      audioDuration: 30,
+      _cachedAt: Date.now(),
+    };
+    mockGetCachedNotes.mockResolvedValueOnce([voiceNote]);
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    const note = await act(() => result.current.getNote('n1'));
+
+    // Must NOT call the server API when offline
+    expect(mockGetNote).not.toHaveBeenCalled();
+    // Must return the cached voice note complete with audioData
+    expect(note.audioData).toBe('base64audio');
+    expect(note.audioDuration).toBe(30);
+  });
+
+  it('getNote throws when offline and cache is empty', async () => {
+    mockOnlineStatus = false;
+    localStorage.setItem('device-trusted', 'true');
+    mockGetCachedNotes.mockResolvedValueOnce([]);
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await expect(act(() => result.current.getNote('n1'))).rejects.toThrow(/الملاحظة/);
+    expect(mockGetNote).not.toHaveBeenCalled();
+  });
+
+  it('getNote throws when offline and device is untrusted', async () => {
+    mockOnlineStatus = false;
+    localStorage.removeItem('device-trusted');
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await expect(act(() => result.current.getNote('n1'))).rejects.toThrow(/الملاحظة/);
+    expect(mockGetNote).not.toHaveBeenCalled();
+  });
+
+  it('getNote falls back to cache when server fails while online', async () => {
+    mockGetNote.mockRejectedValueOnce(new Error('Network error'));
+    localStorage.setItem('device-trusted', 'true');
+    mockGetCachedNotes.mockResolvedValueOnce([{ ...sampleNote, _cachedAt: Date.now() }]);
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    const note = await act(() => result.current.getNote('n1'));
+
+    expect(note.title).toBe('Test Note');
+  });
+
+  it('getNote throws when server fails and cache is empty', async () => {
+    mockGetNote.mockRejectedValueOnce(new Error('Network error'));
+    // getCachedNotes returns [] (default mock)
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
     await expect(act(() => result.current.getNote('missing'))).rejects.toThrow();
   });
 

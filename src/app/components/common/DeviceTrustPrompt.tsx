@@ -106,7 +106,7 @@ export default function DeviceTrustPrompt() {
       </DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ mb: 2 }}>{t('body')}</DialogContentText>
-        <DialogContentText sx={{ mb: 2, fontSize: '0.875rem', color: 'text.secondary' }}>
+        <DialogContentText sx={{ mb: 2, color: 'text.secondary' }}>
           {t('benefits')}
         </DialogContentText>
         <TextField
@@ -127,7 +127,7 @@ export default function DeviceTrustPrompt() {
           sx={{ mt: 1 }}
         />
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+      <DialogActions sx={{ gap: 1 }}>
         <Button onClick={handleDecline} variant="outlined" color="inherit" disabled={trusting}>
           {t('declineButton')}
         </Button>

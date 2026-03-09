@@ -37,6 +37,7 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import { useTranslations } from 'next-intl';
 import { usePwaActivation } from '@/app/context/PwaActivationContext';
+import { warmUpOfflineCache } from '@/app/lib/warmUpCache';
 
 type DialogPhase = 'info' | 'activating' | 'done' | 'error';
 type StepStatus = 'pending' | 'active' | 'done' | 'error';
@@ -88,10 +89,10 @@ export default function PwaActivationDialog({ open, onClose }: PwaActivationDial
       setStepStatuses(['done', 'active', 'pending']);
       await activate();
 
-      // Step 2: Local database preparation (brief visual confirmation)
+      // Step 2: Seed local database + pre-fetch page shells for offline use
       setActiveStep(2);
       setStepStatuses(['done', 'done', 'active']);
-      await new Promise<void>((r) => setTimeout(r, 300));
+      await warmUpOfflineCache();
 
       setStepStatuses(['done', 'done', 'done']);
       setPhase('done');
