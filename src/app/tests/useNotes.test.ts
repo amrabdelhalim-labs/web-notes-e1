@@ -25,6 +25,7 @@ vi.mock('@/app/hooks/useOfflineStatus', () => ({
 vi.mock('@/app/lib/db', () => ({
   getCachedNotes: vi.fn().mockResolvedValue([]),
   cacheNotes: vi.fn().mockResolvedValue(undefined),
+  cleanStaleNotes: vi.fn().mockResolvedValue(0),
   enqueuePendingOp: vi.fn().mockResolvedValue(undefined),
   getPendingOps: vi.fn().mockResolvedValue([]),
   removePendingOp: vi.fn().mockResolvedValue(undefined),
@@ -48,6 +49,7 @@ import {
   removeCachedNote,
   incrementPendingOpFailure,
   cacheNotes,
+  cleanStaleNotes,
 } from '@/app/lib/db';
 
 const mockGetCachedNotes = vi.mocked(getCachedNotes);
@@ -56,6 +58,7 @@ const mockGetPendingOps = vi.mocked(getPendingOps);
 const mockRemovePendingOp = vi.mocked(removePendingOp);
 const mockRemoveCachedNote = vi.mocked(removeCachedNote);
 const mockIncrementPendingOpFailure = vi.mocked(incrementPendingOpFailure);
+const mockCleanStaleNotes = vi.mocked(cleanStaleNotes);
 
 const mockGetNotes = vi.mocked(getNotesApi);
 const mockGetNote = vi.mocked(getNoteApi);
@@ -767,6 +770,67 @@ describe('processQueue', () => {
     expect(mockGetPendingOps).toHaveBeenCalled();
     expect(vi.mocked(createNoteApi)).toHaveBeenCalled();
     expect(mockRemovePendingOp).toHaveBeenCalledWith(12);
+  });
+
+  // ── Stale-entry cleanup ───────────────────────────────────────────────
+
+  it('create op sync: removes temp note from Dexie immediately after success', async () => {
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 13,
+        type: 'create',
+        tempId: 'tmp_sync_test',
+        payload: { title: 'Synced Note', type: 'text', content: '' },
+        noteTitle: 'Synced Note',
+        timestamp: Date.now(),
+      },
+    ]);
+    vi.mocked(createNoteApi).mockResolvedValue({ data: sampleNote, message: 'ok' });
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    // The stale tmp_ Dexie entry must be deleted so it does not accumulate in
+    // IndexedDB or resurface if cleanStaleNotes has a glitch.
+    expect(mockRemoveCachedNote).toHaveBeenCalledWith('tmp_sync_test');
+  });
+
+  it('create op sync: does NOT call removeCachedNote when op has no tempId', async () => {
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 14,
+        type: 'create',
+        // tempId intentionally absent (malformed op)
+        payload: { title: 'No TempId', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
+    ]);
+    vi.mocked(createNoteApi).mockResolvedValue({ data: sampleNote, message: 'ok' });
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    expect(mockRemoveCachedNote).not.toHaveBeenCalled();
+  });
+
+  it('always calls cleanStaleNotes after processing ops (catch-all for pre-existing entries)', async () => {
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 15,
+        type: 'create',
+        tempId: 'tmp_stale_cleanup',
+        payload: { title: 'Any Note', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
+    ]);
+    vi.mocked(createNoteApi).mockResolvedValue({ data: sampleNote, message: 'ok' });
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    mockCleanStaleNotes.mockClear();
+    await act(() => result.current.processQueue());
+
+    expect(mockCleanStaleNotes).toHaveBeenCalledOnce();
   });
 });
 

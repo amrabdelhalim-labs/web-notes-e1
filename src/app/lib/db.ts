@@ -167,6 +167,31 @@ export async function removeCachedNote(id: string): Promise<void> {
   await db.notes.delete(id);
 }
 
+/**
+ * Remove every tmp_* entry from the notes cache.
+ *
+ * Temp notes are written to Dexie by `createNote` (offline path) so they
+ * survive a page reload.  Once the pending op is synced to the server,
+ * the real server note takes their place and these entries must be deleted.
+ *
+ * This function is a catch-all called at the end of every successful
+ * `processQueue` run to handle:
+ *  a) The specific temp note just synced (complemented by `removeCachedNote`
+ *     per-op for immediate cleanup).
+ *  b) Any stale tmp_* entries left by older versions of the app that did
+ *     not call `removeCachedNote` after sync.
+ *
+ * Returns the number of stale entries removed.
+ */
+export async function cleanStaleNotes(): Promise<number> {
+  const all = await db.notes.toArray();
+  const staleIds = all.filter((n) => n._id.startsWith('tmp_')).map((n) => n._id);
+  if (staleIds.length > 0) {
+    await db.notes.bulkDelete(staleIds);
+  }
+  return staleIds.length;
+}
+
 // ─── Device cache helpers ────────────────────────────────────────────────────
 
 /** Replace the local devices cache with a fresh list from the server. */

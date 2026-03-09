@@ -21,6 +21,7 @@ import { useOfflineStatus } from '@/app/hooks/useOfflineStatus';
 import {
   cacheNotes,
   getCachedNotes,
+  cleanStaleNotes,
   enqueuePendingOp,
   getPendingOps,
   removePendingOp,
@@ -415,10 +416,16 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
       try {
         if (op.type === 'create' && op.payload) {
           const res = await createNoteApi(op.payload as NoteInput);
-          // Replace the optimistic temp note in state with the real server note
           if (op.tempId) {
+            // Temp notes are not added to UI state (see createNote offline path),
+            // but this map is kept as a safety net for any edge-case where a
+            // tmp_ note might slip into state (e.g. direct state manipulation).
             setNotes((prev) => prev.map((n) => (n._id === op.tempId ? res.data : n)));
+            // Delete the stale Dexie entry immediately.  The real server note
+            // (with a proper _id) is about to be cached by cacheNotes below.
+            removeCachedNote(op.tempId).catch(() => {});
           }
+          // Cache the authoritative server note.
           cacheNotes([res.data]).catch(() => {});
         } else if (
           op.type === 'update' &&
@@ -439,6 +446,10 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         if (op.id !== undefined) await incrementPendingOpFailure(op.id);
       }
     }
+    // Catch-all cleanup: remove any tmp_* Dexie entries that were not cleaned up
+    // above (e.g. stale entries created by older app versions that lacked the
+    // per-op removeCachedNote call).  This is fast and idempotent.
+    await cleanStaleNotes().catch(() => {});
     await fetchNotes();
   }, [fetchNotes]);
 
