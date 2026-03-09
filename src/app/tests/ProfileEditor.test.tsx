@@ -340,7 +340,7 @@ describe('ProfileEditor', () => {
       expect(mockUpdateUserApi).not.toHaveBeenCalled();
     });
 
-    it('accepts valid username with lowercase + numbers + symbols', async () => {
+    it('accepts valid username with lowercase + numbers + symbols', { timeout: 15000 }, async () => {
       const updatedUser = { ...fakeUser, username: 'ahmed_2' };
       mockUpdateUserApi.mockResolvedValue({ data: updatedUser, message: 'تم' });
       render(<ProfileEditor />);

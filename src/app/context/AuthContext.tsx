@@ -235,8 +235,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearLocalPushState().catch(() => {});
 
     // 4. Clear offline database (fire-and-forget)
+    // All three tables must be cleared so that a subsequent user who signs in
+    // on the same browser cannot see stale data from the previous account.
+    // db.devices in particular contains device names / browser strings that
+    // belong to the logged-out account and must not persist after deletion.
     db.notes.clear().catch(() => {});
     db.pendingOps.clear().catch(() => {});
+    db.devices.clear().catch(() => {});
 
     // 5. Unregister Service Worker + clear caches (works offline)
     if ('serviceWorker' in navigator) {

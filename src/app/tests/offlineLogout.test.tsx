@@ -21,6 +21,7 @@ vi.mock('@/app/lib/db', () => ({
   db: {
     notes: { clear: vi.fn().mockResolvedValue(undefined) },
     pendingOps: { clear: vi.fn().mockResolvedValue(undefined) },
+    devices: { clear: vi.fn().mockResolvedValue(undefined) },
   },
 }));
 
@@ -109,6 +110,19 @@ describe('AuthContext offline logout', () => {
 
     expect(db.notes.clear).toHaveBeenCalled();
     expect(db.pendingOps.clear).toHaveBeenCalled();
+  });
+
+  it('clears Dexie devices table on logout (prevents stale device cache leaking to next user)', async () => {
+    const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: Wrapper });
+
+    await act(async () => {
+      await result.current.logout();
+    });
+
+    // Device metadata (names, browsers, last-seen) belongs to the logged-out
+    // account.  Clearing it ensures a subsequent user on the same browser
+    // cannot see ghost devices from the previous account while offline.
+    expect(db.devices.clear).toHaveBeenCalled();
   });
 
   it('unregisters all Service Workers', async () => {
