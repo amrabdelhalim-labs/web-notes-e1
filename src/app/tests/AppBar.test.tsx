@@ -55,6 +55,20 @@ vi.mock('@/app/config', () => ({
   APP_NAME_AR: 'ملاحظاتي',
 }));
 
+// Default: PWA is activated so ConnectionIndicator is visible
+let mockPwaActivated = true;
+vi.mock('@/app/context/PwaActivationContext', () => ({
+  usePwaActivation: () => ({
+    isActivated: mockPwaActivated,
+    isDeactivating: false,
+    activate: vi.fn(),
+    deactivate: vi.fn(),
+  }),
+  PwaActivationProvider: ({ children }: { children: React.ReactNode }) => children,
+  PWA_ENABLED_KEY: 'pwa-enabled',
+  PWA_ACTIVATION_EVENT: 'pwa:activation-changed',
+}));
+
 const defaultProps = {
   onMenuClick: vi.fn(),
 };
@@ -62,6 +76,7 @@ const defaultProps = {
 beforeEach(() => {
   vi.clearAllMocks();
   mockIsOnline = true;
+  mockPwaActivated = true;
 });
 
 describe('AppBar', () => {
@@ -120,9 +135,15 @@ describe('AppBar', () => {
     expect(defaultProps.onMenuClick).toHaveBeenCalledTimes(1);
   });
 
-  it('renders ConnectionIndicator (connection status button)', () => {
+  it('renders ConnectionIndicator (connection status button) when PWA is activated', () => {
     render(<AppBar {...defaultProps} />);
     expect(screen.getByLabelText(/حالة الاتصال|Connection Status/i)).toBeInTheDocument();
+  });
+
+  it('hides ConnectionIndicator when PWA is not activated', () => {
+    mockPwaActivated = false;
+    render(<AppBar {...defaultProps} />);
+    expect(screen.queryByLabelText(/حالة الاتصال|Connection Status/i)).not.toBeInTheDocument();
   });
 
   it('menu icon button is rendered at all viewport sizes', () => {

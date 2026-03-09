@@ -8,10 +8,19 @@
  *  - Whether the app is running in standalone mode (already installed)
  *  - Whether the browser has fired a beforeinstallprompt (can install)
  *
+ * All checks are gated on `pwa-enabled` in localStorage. If the user has not
+ * explicitly activated offline mode (via PwaActivationContext), this hook
+ * immediately returns disabled/inactive states so the browser never learns
+ * about PWA features (Zero PWA Footprint principle).
+ *
  * All checks are client-only and fail gracefully in unsupported environments.
  */
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import {
+  PWA_ENABLED_KEY,
+  PWA_ACTIVATION_EVENT,
+} from '@/app/context/PwaActivationContext';
 
 export type SwState = 'unsupported' | 'checking' | 'inactive' | 'installing' | 'active';
 export type InstallState = 'standalone' | 'standalone-untrusted' | 'installable' | 'not-installable';
@@ -34,9 +43,18 @@ export interface PwaStatus {
 }
 
 export function usePwaStatus(): PwaStatus {
-  const [swState, setSwState] = useState<SwState>(
-    typeof navigator !== 'undefined' && 'serviceWorker' in navigator ? 'checking' : 'unsupported'
-  );
+  // ── Gate: only active when user has explicitly enabled offline mode ─────────
+  const [pwaActivated, setPwaActivated] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(PWA_ENABLED_KEY) === 'true';
+  });
+
+  const [swState, setSwState] = useState<SwState>(() => {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return 'unsupported';
+    if (typeof window === 'undefined') return 'checking';
+    // Avoid running the SW check until the user activates offline mode.
+    return localStorage.getItem(PWA_ENABLED_KEY) === 'true' ? 'checking' : 'inactive';
+  });
 
   const [isStandalone, setIsStandalone] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
@@ -58,6 +76,8 @@ export function usePwaStatus(): PwaStatus {
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
 
   const installState = useMemo<InstallState>(() => {
+    // PWA features are disabled until the user activates offline mode.
+    if (!pwaActivated) return 'not-installable';
     // Installed as a PWA and the device is trusted — full PWA experience.
     if (isStandalone && isTrusted) return 'standalone';
     // Installed via browser UI before the device was trusted (bypassed our in-app
@@ -67,8 +87,11 @@ export function usePwaStatus(): PwaStatus {
     // Not yet installed but the browser is ready AND the device is trusted.
     if (canInstall && isTrusted) return 'installable';
     return 'not-installable';
-  }, [isStandalone, isTrusted, canInstall]);
+  }, [pwaActivated, isStandalone, isTrusted, canInstall]);
 
+  // ── Effect 1: Always-on event listeners ────────────────────────────────────
+  // Handles beforeinstallprompt, appinstalled, storage, trust-changed,
+  // pwa:activation-changed, and visibilitychange for keeping state in sync.
   useEffect(() => {
     const readTrusted = () => setIsTrusted(localStorage.getItem(TRUSTED_KEY) === 'true');
     const readStandalone = () => {
@@ -98,10 +121,22 @@ export function usePwaStatus(): PwaStatus {
 
     const handleTrustChanged = () => readTrusted();
 
+    // When PwaActivationContext activates/deactivates, immediately sync state.
+    const handleActivationChanged = (e: Event) => {
+      const activated = (e as CustomEvent<{ activated: boolean }>).detail.activated;
+      setPwaActivated(activated);
+      if (!activated) {
+        setSwState('inactive');
+        setCanInstall(false);
+        deferredPromptRef.current = null;
+      }
+    };
+
     window.addEventListener('beforeinstallprompt', handleInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
     window.addEventListener('storage', handleStorage);
     window.addEventListener(TRUST_CHANGED_EVENT, handleTrustChanged as EventListener);
+    window.addEventListener(PWA_ACTIVATION_EVENT, handleActivationChanged as EventListener);
 
     // Keep status in sync when user returns to the tab.
     const handleVisibility = () => {
@@ -111,17 +146,34 @@ export function usePwaStatus(): PwaStatus {
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
-    // ── Service Worker state ───────────────────────────────────────────────
-    // swState is already initialized as 'unsupported' if SW is unavailable
-    if (!('serviceWorker' in navigator)) {
-      return () => {
-        window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
-        window.removeEventListener('appinstalled', handleAppInstalled);
-        window.removeEventListener('storage', handleStorage);
-        window.removeEventListener(TRUST_CHANGED_EVENT, handleTrustChanged as EventListener);
-        document.removeEventListener('visibilitychange', handleVisibility);
-      };
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener(TRUST_CHANGED_EVENT, handleTrustChanged as EventListener);
+      window.removeEventListener(PWA_ACTIVATION_EVENT, handleActivationChanged as EventListener);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
+
+  // ── Effect 2: SW detection (only when PWA is activated) ────────────────────
+  // Runs whenever pwaActivated toggles so newly registered SWs are detected
+  // immediately after the user completes the activation dialog.
+  useEffect(() => {
+    if (!pwaActivated) {
+      // State was already reset by Effect 1's handleActivationChanged callback;
+      // no synchronous setState needed here.
+      return;
     }
+
+    if (!('serviceWorker' in navigator)) {
+      // Lazy initializer already set swState='unsupported'; activation would have
+      // failed before reaching here in practice, so no setState needed.
+      return;
+    }
+
+    // Skip setSwState('checking') — on mount the lazy initializer already set it;
+    // on runtime activation the async result will set the real state directly.
 
     const updateSwState = (reg: ServiceWorkerRegistration) => {
       if (reg.active) {
@@ -156,20 +208,14 @@ export function usePwaStatus(): PwaStatus {
         });
       })
       .catch(() => setSwState('inactive'));
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-      window.removeEventListener('storage', handleStorage);
-      window.removeEventListener(TRUST_CHANGED_EVENT, handleTrustChanged as EventListener);
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
-  }, []);
+  }, [pwaActivated]);
 
   // isReady: the app is fully operational (SW active, installed or installable, AND trusted).
   // 'standalone-untrusted' is intentionally NOT ready — offline sync is blocked for security.
   const isReady =
-    swState === 'active' && (installState === 'standalone' || installState === 'installable');
+    pwaActivated &&
+    swState === 'active' &&
+    (installState === 'standalone' || installState === 'installable');
 
   // Stable function: reads deferredPromptRef at call time — no stale closure.
   const triggerInstall = useCallback(async (): Promise<boolean> => {

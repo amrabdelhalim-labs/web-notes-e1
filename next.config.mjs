@@ -1,7 +1,5 @@
-const createNextIntlPlugin = require('next-intl/plugin');
-// Note: @serwist/next is ESM; Node ≥ 22 supports loading it via require() with
-// the experimental CJS-ESM interop (shows a warning in dev — harmless).
-const withSerwist = require('@serwist/next').default;
+import createNextIntlPlugin from 'next-intl/plugin';
+import withSerwist from '@serwist/next';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
@@ -25,7 +23,7 @@ const withSerwistConfig = withSerwist({
   disable:
     process.env.NODE_ENV === 'development' &&
     process.env.NEXT_PUBLIC_SW_DISABLED !== 'false',
-  register: true,
+  register: false, // SW registered programmatically by PwaActivationContext (trusted + activated devices only)
   // reloadOnOnline MUST stay false: enabling it injects
   //   window.addEventListener("online", () => location.reload())
   // which reloads the page before React can flush the IndexedDB offline mutation
@@ -34,4 +32,4 @@ const withSerwistConfig = withSerwist({
   reloadOnOnline: false,
 });
 
-module.exports = withSerwistConfig(withNextIntl(nextConfig));
+export default withSerwistConfig(withNextIntl(nextConfig));

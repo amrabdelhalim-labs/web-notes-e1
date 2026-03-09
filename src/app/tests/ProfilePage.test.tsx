@@ -70,6 +70,17 @@ vi.mock('@/app/hooks/useOfflineStatus', () => ({
   useOfflineStatus: () => true,
 }));
 
+vi.mock('@/app/context/PwaActivationContext', () => ({
+  usePwaActivation: () => ({
+    isActivated: false,
+    isDeactivating: false,
+    activate: vi.fn(),
+    deactivate: vi.fn(),
+  }),
+  PWA_ENABLED_KEY: 'pwa-enabled',
+  PWA_ACTIVATION_EVENT: 'pwa:activation-changed',
+}));
+
 vi.mock('@/app/hooks/useDevices', () => ({
   useDevices: () => ({
     devices: [],

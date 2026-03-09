@@ -23,12 +23,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'ملاحظاتي | MyNotes',
   description: APP_DESCRIPTION,
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'ملاحظاتي',
-  },
+  // manifest and appleWebApp are intentionally omitted from static metadata.
+  // They are injected dynamically by PwaActivationContext only after the user
+  // explicitly activates offline mode — keeping zero PWA footprint by default.
   icons: {
     apple: '/icons/icon-192x192.png',
     icon: '/icons/icon-512x512.png',

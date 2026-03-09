@@ -31,6 +31,7 @@ import Tooltip from '@mui/material/Tooltip';
 import ConnectionIndicator from '@/app/components/common/ConnectionIndicator';
 import { useOfflineStatus } from '@/app/hooks/useOfflineStatus';
 import { Z_INDEX } from '@/app/lib/ui-constants';
+import { usePwaActivation } from '@/app/context/PwaActivationContext';
 
 interface AppBarProps {
   onMenuClick: () => void;
@@ -42,6 +43,7 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
   const t = useTranslations('AppBar');
   const tApp = useTranslations('App');
   const isOnline = useOfflineStatus();
+  const { isActivated } = usePwaActivation();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
@@ -88,7 +90,7 @@ export default function AppBar({ onMenuClick }: AppBarProps) {
 
         {/* ── مجموعة أيقونات الحافة المعاكسة ── */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 0.5 }, flexShrink: 0 }}>
-          <ConnectionIndicator />
+          {isActivated && <ConnectionIndicator />}
           <ThemeToggle />
           <LanguageToggle />
           {user && (

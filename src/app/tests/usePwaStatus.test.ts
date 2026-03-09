@@ -1,15 +1,17 @@
 /**
- * usePwaStatus — trust-gate + install-flow integration tests
+ * usePwaStatus — trust-gate + install-flow + pwa-enabled gate integration tests
  *
  * Verifies:
- *   - installState gated by device trust
+ *   - installState gated by device trust AND pwa-enabled flag
  *   - triggerInstall lifecycle (prompt → accept/dismiss → state reset)
  *   - appinstalled event clears deferred prompt
  *   - visibilitychange syncs trust from localStorage
+ *   - pwa:activation-changed event resets states on deactivation
  */
 
 import { renderHook, act } from '@testing-library/react';
 import { usePwaStatus } from '@/app/hooks/usePwaStatus';
+import { PWA_ENABLED_KEY, PWA_ACTIVATION_EVENT } from '@/app/context/PwaActivationContext';
 
 // Mock ServiceWorker API
 const mockGetRegistration = vi.fn();
@@ -24,7 +26,65 @@ Object.defineProperty(navigator, 'serviceWorker', {
 
 beforeEach(() => {
   localStorage.clear();
+  // Most tests need PWA activated to test SW / install behaviour.
+  localStorage.setItem(PWA_ENABLED_KEY, 'true');
   mockGetRegistration.mockResolvedValue(undefined);
+});
+
+// ─── pwa-enabled gate ─────────────────────────────────────────────────────────
+
+describe('pwa-enabled gate', () => {
+  it('returns inactive swState when pwa-enabled is not set', () => {
+    localStorage.removeItem(PWA_ENABLED_KEY);
+    const { result } = renderHook(() => usePwaStatus());
+    expect(result.current.swState).toBe('inactive');
+  });
+
+  it('returns not-installable installState when pwa-enabled is not set', () => {
+    localStorage.removeItem(PWA_ENABLED_KEY);
+    localStorage.setItem('device-trusted', 'true');
+    const { result } = renderHook(() => usePwaStatus());
+
+    act(() => {
+      window.dispatchEvent(new Event('beforeinstallprompt'));
+    });
+
+    expect(result.current.installState).toBe('not-installable');
+  });
+
+  it('isReady is false when pwa-enabled is not set even if SW is active', async () => {
+    localStorage.removeItem(PWA_ENABLED_KEY);
+    localStorage.setItem('device-trusted', 'true');
+    mockGetRegistration.mockResolvedValue({
+      active: { state: 'activated', addEventListener: vi.fn() },
+      installing: null,
+      waiting: null,
+      addEventListener: vi.fn(),
+    });
+
+    const { result } = renderHook(() => usePwaStatus());
+    expect(result.current.isReady).toBe(false);
+  });
+
+  it('resets all states when pwa:activation-changed fires with activated=false', () => {
+    const { result } = renderHook(() => usePwaStatus());
+
+    act(() => {
+      localStorage.setItem('device-trusted', 'true');
+      window.dispatchEvent(new Event('beforeinstallprompt'));
+    });
+
+    // Deactivation event
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent(PWA_ACTIVATION_EVENT, { detail: { activated: false } }),
+      );
+    });
+
+    expect(result.current.swState).toBe('inactive');
+    expect(result.current.installState).toBe('not-installable');
+    expect(result.current.triggerInstall).toBeNull();
+  });
 });
 
 describe('usePwaStatus trust gate', () => {

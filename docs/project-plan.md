@@ -982,7 +982,7 @@ web-notes-e1/
   - `test:coverage` — التغطية
 - [x] **١٠.٨** التحقق من نجاح جميع الاختبارات
 
-**الاختبارات:** 476/476 ✅ — 37 ملف اختبار
+**الاختبارات:** 523/523 ✅ — 38 ملف اختبار
 
 **الإيداع:** `test: add comprehensive test suite with Vitest`
 
@@ -1015,7 +1015,7 @@ web-notes-e1/
 - [x] **١١.١٣** تشغيل Prettier على جميع الملفات (121 ملف) — جميعها مُنسَّقة
 - [x] **١١.١٤** إصلاح 6 أخطاء TypeScript في `useNotes.test.ts` (_cachedAt، enqueuePendingOp return type، resolveCreate type)
 - [x] **١١.١٥** إصلاح timeout في `ProfilePage.test.tsx` (أضيف `{ timeout: 15000 }` للاختبار الأول)
-- [x] **١١.١٦** التحقق النهائي: `tsc --noEmit` → 0 أخطاء، `vitest run` → 476/476 ✅، `validate-workflow.mjs` → 29/29 ✅
+- [x] **١١.١٦** التحقق النهائي: `tsc --noEmit` → 0 أخطاء، `vitest run` → 523/523 ✅، `validate-workflow.mjs` → 29/29 ✅
 
 **الحالة:** ✅ منفذة بالكامل
 
@@ -1365,7 +1365,90 @@ VAPID_EMAIL=mailto:your-email@example.com
 - `AppBar.test.tsx`: موك `useOfflineStatus` + اختبار جديد "لوجوت عند الأوف-لاين".
 - `SideBar.test.tsx`: موك `useOfflineStatus` + اختبار جديد "لوجوت عند الأوف-لاين".
 - `offlineLogout.test.tsx`: اختبارات تكاملية شاملة لسيناريوهات الأوف-لاين.
-- **الحالة الحالية للاختبارات: 476/476** ناجح — 37 ملف اختبار.
+- **الحالة الحالية للاختبارات: 523/523** ناجح — 38 ملف اختبار.
 
-> **آخر تحديث:** ٨ مارس ٢٠٢٦
-> **الإصدار:** ١.٣.٠ (خطة محدثة)
+### مرحلة بصمة PWA الصفرية (Zero PWA Footprint) (٢٠٢٦/٠٣/١٠)
+
+**الهدف:** منع المتصفح من اكتشاف أن التطبيق PWA حتى يقوم المستخدم بتفعيل وضع عدم الاتصال يدوياً من صفحة الملف الشخصي — للأجهزة الموثوقة فقط.
+
+#### التغييرات المنفذة:
+
+- **`context/PwaActivationContext.tsx`** (جديد):
+  - تصدير: `PWA_ENABLED_KEY = 'pwa-enabled'`، `PWA_ACTIVATION_EVENT = 'pwa:activation-changed'`
+  - `activate()`: حقن `<link rel="manifest">` ديناميكياً + تسجيل Service Worker برمجياً + حفظ localStorage
+  - `deactivate()`: إزالة manifest + إلغاء تسجيل SW + `clearOfflineData()` + حذف المفتاح من localStorage
+  - استماع لـ `device:trust-revoked` → استدعاء `deactivate()` تلقائياً
+  - إرسال `pwa:activation-changed` CustomEvent عند كل تغيير لإخطار `usePwaStatus`
+
+- **`components/common/PwaActivationDialog.tsx`** (جديد):
+  - حوار متعدد المراحل: `info` → `activating` → `done` | `error`
+  - Stepper عمودي بثلاث خطوات: تسجيل هوية التطبيق (400ms) → تثبيت SW (async حقيقي) → تجهيز قاعدة البيانات (300ms)
+  - لا يمكن إغلاقه أثناء مرحلة التفعيل
+  - مرحلة الخطأ: رسالة تحذير + زر إعادة المحاولة
+
+- **`next.config.js`**: `register: true` → `register: false` (تسجيل SW برمجياً بدلاً من التلقائي)
+- **`layout.tsx`**: حذف `manifest` و `appleWebApp` من البيانات الوصفية الثابتة (تُضاف ديناميكياً عند التفعيل)
+- **`providers.tsx`**: إضافة `PwaActivationProvider` يلفّ `AuthProvider`؛ مكوّن `PwaRuntime` يجسر رسائل SW فقط عند التفعيل
+- **`usePwaStatus.ts`**: إضافة gate على مفتاح `pwa-enabled`؛ تقسيم `useEffect` إلى اثنين (مستمع أحداث دائم + فحص SW مشروط)
+- **`AppBar.tsx`**: `{isActivated && <ConnectionIndicator />}` — إخفاء المؤشر حتى يُفعَّل PWA
+- **`profile/page.tsx`**: إضافة قسم تفعيل PWA (زر تفعيل للأجهزة الموثوقة غير المفعّلة، أو شريحة نشط + زر إلغاء تفعيل، أو رسالة «يتطلب جهازاً موثوقاً»)
+- **الترجمات** (`en.json` + `ar.json`): إضافة namespace `PwaActivation` (16 مفتاح) + مفاتيح `ProfilePage.pwa*` (6 مفاتيح)
+
+#### الاختبارات:
+- **`usePwaStatus.test.ts`**: إضافة describe block `pwa-enabled gate` (4 اختبارات جديدة)؛ تحديث `beforeEach` لضبط `localStorage['pwa-enabled']`
+- **`AppBar.test.tsx`**: موك لـ `PwaActivationContext` (يشمل الثوابت)؛ اختبار جديد «يُخفي ConnectionIndicator عند عدم تفعيل PWA»
+- **`tests/PwaActivationDialog.test.tsx`** (جديد): 8 اختبارات (مرحلة المعلومات، الميزات، الإلغاء، Stepper، النجاح، الخطأ، إعادة المحاولة، تعطيل الزر أثناء التفعيل)
+
+**الاختبارات:** 523/523 ✅ — 38 ملف اختبار (+13 اختباراً جديداً)
+
+**الإيداع:** `feat(pwa): implement Zero PWA Footprint with explicit user activation`
+
+---
+
+### إصلاحات ما بعد التنفيذ (٢٠٢٦/٠٣/٠٩)
+
+**السبب:** ظهور ChunkLoadError (HTTP 500) عند الضغط على زر «إلغاء التفعيل» في الملف الشخصي، بالإضافة إلى تحذير ExperimentalWarning في البناء وأخطاء linter من استدعاء setState داخل effect.
+
+#### التغييرات المنفذة:
+
+**١ — إصلاح ChunkLoadError عند إلغاء التفعيل:**
+- **`context/PwaActivationContext.tsx`**:
+  - `deactivate()` تستدعي `window.location.reload()` بعد إتمام التنظيف بدلاً من `setIsActivated(false)`.  
+    السبب: إلغاء تسجيل SW أثناء الجلسة يجعل dynamic imports تصطدم بذاكرة SW المحذوفة وتعود بـ HTTP 500؛ إعادة التحميل تجلب chunk hashes جديدة مباشرةً من الخادم.
+  - `deactivatingRef` يمنع استدعاء `deactivate()` مرتين (نقر مزدوج).
+  - `isDeactivating` (حالة جديدة) مُصدَّرة من السياق.
+
+**٢ — إصلاح حالات إلغاء الوثوق عن بعد:**
+- معالج `device:trust-revoked` أصبح خفيفاً: يزيل manifest + localStorage فقط + `setIsActivated(false)`، ولا يستدعي `deactivate()` الكاملة.  
+  السبب: `AuthContext.logout()` يتولى إلغاء تسجيل SW والتنقل؛ استدعاء `reload()` داخل `deactivate()` كان يتعارض مع التوجيه.
+- **عند الإقلاع:** إذا كان `pwa-enabled=true` ولكن `device-trusted=false` (علامة متقادمة من جلسة أوف-لاين)، تُحذف فوراً لضمان بدء الجلسة التالية بصمة صفرية.
+
+**٣ — تحسين التفعيل:**
+- `activate()` تستدعي `removeManifest()` قبل إعادة رمي الخطأ إذا فشل `registerSW()`، لضمان خلو `<head>` من أي manifest عند الفشل.
+
+**٤ — إصلاح `profile/page.tsx`:**
+- `isTrusted` أصبح يستمع لـ `storage` events و `device-trust-changed` لتحديث الواجهة فوراً دون إعادة تحميل.
+- زر «إلغاء التفعيل» يُعطَّل ويعرض `CircularProgress` أثناء `isDeactivating`.
+- الشرط المنطقي لرسالة «يتطلب جهازاً موثوقاً»: أصبح `!isTrusted && !isActivated` (كانت تظهر حتى مع الجهاز النشط).
+
+**٥ — إصلاح تحذير البناء (CJS/ESM):**
+- `next.config.js` أُعيدت تسميته إلى `next.config.mjs` وتحويل `require()` إلى `import`.  
+  السبب: `@serwist/next` حزمة ESM نقية؛ تحميلها بـ `require()` أنتج `ExperimentalWarning` في كل بناء.
+
+**٦ — إصلاح أخطاء Linter (setState في effect):**
+- **`PwaActivationContext.tsx`**: `isActivated` تُحسب بـ lazy initializer من localStorage بدلاً من `setIsActivated(true)` داخل effect.
+- **`usePwaStatus.ts`**: حذف `setSwState('inactive')` و `setSwState('unsupported')` و `setSwState('checking')` المتزامنة من body الـ effect — الـ lazy initializer والـ callbacks غير المتزامنة تحدد الحالة مباشرةً.
+
+#### تحديث الاختبارات:
+- `AppBar.test.tsx`, `PwaActivationDialog.test.tsx`, `ProfilePage.test.tsx`: إضافة `isDeactivating: false` لموكات `usePwaActivation`
+- `ProfilePage.test.tsx`: إضافة موك لـ `PwaActivationContext` المفقود
+
+**الاختبارات:** 523/523 ✅ — 38 ملف اختبار
+
+**الإيداعات:**
+1. `fix(pwa): robust deactivation, ESM config, and lint cleanup`
+
+---
+
+> **آخر تحديث:** ٩ مارس ٢٠٢٦
+> **الإصدار:** ١.٤.١ (خطة محدثة)
