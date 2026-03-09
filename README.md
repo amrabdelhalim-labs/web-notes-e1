@@ -1,36 +1,275 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ملاحظاتي — تطبيق ويب تقدمي للملاحظات 📝
 
-## Getting Started
+> **الإصدار:** `v0.1.0` — تطبيق ويب تقدمي (PWA) كامل، يعمل بدون اتصال، مع مزامنة تلقائية وإشعارات فورية
+> **الحالة:** ٥٧٣ اختبار ✅ — النشر على Heroku — مكتمل التطوير
 
-First, run the development server:
+---
+
+## لمحة عامة
+
+**ملاحظاتي** تطبيق ويب تقدمي (PWA) لتخزين وإدارة الملاحظات الشخصية. يدعم نوعين من الملاحظات: نصية مع محرر نصوص غني، وصوتية عبر تسجيل مباشر من المتصفح.
+
+يعمل التطبيق بشكل كامل **بدون اتصال بالإنترنت** — الملاحظات تُحفظ محليًا في IndexedDB وتُزامَن في الخلفية فور عودة الاتصال. يمكن تثبيته على أي جهاز (هاتف، جهاز لوحي، حاسوب) كتطبيق أصلي.
+
+---
+
+## الميزات الرئيسية
+
+| الميزة | التفاصيل |
+|--------|---------|
+| **نظام مستخدمين كامل** | تسجيل حساب، تسجيل دخول، تعديل البيانات، حذف الحساب |
+| **إدارة الملاحظات (CRUD)** | إنشاء، قراءة، تعديل، حذف — نصية وصوتية |
+| **محرر نصوص غني** | Tiptap مع تنسيق كامل، RTL، ألوان، تمييز |
+| **تسجيل صوتي** | MediaRecorder API — إيقاف/استئناف — حفظ Base64 |
+| **PWA — يعمل بدون اتصال** | تثبيت على الجهاز، تخزين IndexedDB، مزامنة خلفية |
+| **إشعارات فورية** | Web Push عند تسجيل دخول جديد على أجهزة موثوقة |
+| **ثنائية اللغة** | العربية (RTL) والإنجليزية (LTR) — تبديل ديناميكي |
+| **وضع فاتح/داكن** | كشف تفضيل النظام + حفظ الاختيار |
+| **تصميم متجاوب** | يعمل على جميع أحجام الشاشات |
+
+---
+
+## الحزمة التقنية
+
+| الطبقة | التقنية | الإصدار |
+|--------|---------|---------|
+| **الإطار** | Next.js (App Router) | 16.x |
+| **اللغة** | TypeScript | 5.x |
+| **واجهة المستخدم** | Material UI (MUI) | 7.x |
+| **CSS-in-JS** | Emotion | 11.x |
+| **قاعدة البيانات** | MongoDB + Mongoose | 7.x / 9.x |
+| **المصادقة** | JWT + bcryptjs | — |
+| **تخزين محلي** | Dexie.js (IndexedDB) | 4.x |
+| **إشعارات فورية** | Web Push API + web-push | 3.x |
+| **تسجيل صوتي** | MediaRecorder API (أصلي) | — |
+| **الترجمة** | next-intl | 4.x |
+| **PWA / Service Worker** | @serwist/next | 9.x |
+| **محرر النصوص** | Tiptap | 3.x |
+| **الاختبارات** | Vitest + Testing Library | 4.x |
+| **التنسيق** | Prettier | 3.x |
+| **النشر** | Heroku | — |
+
+---
+
+## التثبيت والتشغيل المحلي
+
+### المتطلبات المسبقة
+
+- Node.js ≥ 20.x
+- npm ≥ 10.x
+- MongoDB (محلي أو عبر MongoDB Atlas)
+- مفاتيح VAPID (لتفعيل الإشعارات — اختياري)
+
+### الاستنساخ والتثبيت
+
+```bash
+git clone <رابط-المستودع>
+cd web-notes-e1
+npm install
+```
+
+### إعداد المتغيرات البيئية
+
+```bash
+cp .env.example .env.local
+```
+
+افتح `.env.local` وأسند القيم:
+
+```env
+DATABASE_URL=mongodb://localhost:27017/mynotes
+JWT_SECRET=سر_قوي_وطويل_هنا
+NODE_ENV=development
+PORT=3000
+
+# مفاتيح VAPID (لتوليدها: node -e "const wp=require('web-push'); console.log(JSON.stringify(wp.generateVAPIDKeys()))")
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=مفتاحك_العام
+VAPID_PRIVATE_KEY=مفتاحك_الخاص
+VAPID_EMAIL=mailto:بريدك@مثال.com
+```
+
+### تشغيل خادم التطوير
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+افتح [http://localhost:3000](http://localhost:3000) في متصفحك.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## هيكل المجلدات
 
-## Learn More
+```
+web-notes-e1/
+├── .env.example              ← نموذج المتغيرات البيئية
+├── next.config.mjs           ← إعداد Next.js + @serwist/next
+├── README.md
+│
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx        ← التخطيط الجذري
+│   │   ├── providers.tsx     ← تغليف Theme + Auth Providers
+│   │   ├── config.ts         ← ثوابت مركزية
+│   │   ├── types.ts          ← أنواع TypeScript المشتركة
+│   │   │
+│   │   ├── [locale]/         ← توجيه حسب اللغة (ar | en)
+│   │   │   ├── login/        ← تسجيل الدخول
+│   │   │   ├── register/     ← إنشاء حساب
+│   │   │   ├── notes/        ← قائمة + عرض + إنشاء + تعديل
+│   │   │   └── profile/      ← الملف الشخصي
+│   │   │
+│   │   ├── api/              ← Route Handlers (Next.js API)
+│   │   │   ├── auth/         ← login, register, me, logout
+│   │   │   ├── notes/        ← CRUD للملاحظات
+│   │   │   ├── devices/      ← إدارة الأجهزة الموثوقة
+│   │   │   ├── push/         ← subscribe + send
+│   │   │   └── health/       ← فحص الصحة
+│   │   │
+│   │   ├── components/       ← مكونات React (layout, notes, profile, common, auth)
+│   │   ├── context/          ← ThemeContext + AuthContext + PwaActivationContext
+│   │   ├── hooks/            ← useNotes, usePushNotifications, useDevices, usePwaStatus, …
+│   │   ├── lib/              ← api.ts, auth.ts, db.ts, mongodb.ts, webpush.ts, …
+│   │   ├── models/           ← Mongoose Models (User, Note, Device, Subscription)
+│   │   ├── repositories/     ← Repository Pattern (base + user + note + device + sub)
+│   │   ├── validators/       ← التحقق من المدخلات
+│   │   ├── middlewares/      ← auth.middleware.ts
+│   │   └── utils/            ← audio.ts, notes.ts, sanitize.ts
+│   │
+│   ├── i18n/                 ← إعداد next-intl (routing + request)
+│   ├── messages/             ← ملفات الترجمة (ar.json + en.json)
+│   ├── sw.ts                 ← Service Worker المصدري (@serwist)
+│   ├── proxy.ts              ← توجيه اللغة (next-intl middleware)
+│   └── instrumentation.ts    ← خطاف بدء الخادم
+│
+├── public/
+│   ├── manifest.json         ← PWA Manifest
+│   └── icons/                ← أيقونات التطبيق (72×72 → 512×512)
+│
+├── scripts/
+│   ├── validate-workflow.mjs ← فحص شامل قبل الدفع
+│   ├── http-smoke.mjs        ← اختبارات HTTP دخانية
+│   ├── format.mjs            ← تنسيق Prettier
+│   ├── generate-icons.mjs    ← توليد أيقونات PWA
+│   └── convert-icons.mjs     ← تحويل SVG → PNG
+│
+└── docs/
+    ├── plans/                ← خطط المشروع
+    ├── api-endpoints.md      ← مرجع API الكامل
+    ├── database-abstraction.md
+    ├── repository-quick-reference.md
+    ├── testing.md
+    ├── deployment.md
+    ├── pwa-guide.md
+    ├── ai/                   ← توثيقات لأدوات AI (إنجليزي)
+    └── tutorials/            ← توثيقات تعليمية (عربي) — 13 درسًا
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## الأوامر المتاحة
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| الأمر | الوصف |
+|-------|-------|
+| `npm run dev` | تشغيل خادم التطوير (Webpack) على المنفذ 3000 |
+| `npm run build` | بناء نسخة الإنتاج (Webpack) |
+| `npm start` | تشغيل نسخة الإنتاج المبنية |
+| `npm test` | تشغيل الاختبارات (Vitest run) |
+| `npm run test:watch` | تشغيل الاختبارات في وضع المراقبة |
+| `npm run test:coverage` | تقرير تغطية الاختبارات |
+| `npm run format` | تنسيق الكود بـ Prettier |
+| `npm run format:check` | فحص التنسيق (بدون تغيير) |
+| `npm run validate` | فحص شامل: tsc + اختبارات + متغيرات بيئية + ملفات |
+| `npm run smoke` | اختبارات HTTP لنقاط API الحية |
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## الاختبارات
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| الإحصائية | القيمة |
+|-----------|--------|
+| **إجمالي الاختبارات** | **٥٧٣ اختبار** |
+| **ملفات الاختبار** | **٣٩ ملفًا** |
+| **إطار الاختبار** | Vitest + @testing-library/react |
+| **بيئة الاختبار** | jsdom |
+
+**تشغيل الاختبارات:**
+
+```bash
+npm test                    # تنفيذ كامل
+npm run test:watch          # وضع المراقبة للتطوير
+npm run test:coverage       # تقرير التغطية
+```
+
+تُغطي الاختبارات: المكونات، الخطافات (hooks)، مسارات API، المستودعات، المدققات، الأدوات المساعدة، وتدفقات التكامل.
+
+---
+
+## النشر
+
+التطبيق مُعدٌّ للنشر على **Heroku** عبر النشر التلقائي من الفرع الرئيسي.
+
+```bash
+# التحقق قبل النشر
+npm run validate
+
+# اختبار التطوير الكامل
+npm run build
+```
+
+**المتغيرات البيئية المطلوبة على Heroku:**
+
+| المتغير | الوصف |
+|---------|-------|
+| `DATABASE_URL` | رابط اتصال MongoDB Atlas |
+| `JWT_SECRET` | مفتاح سري قوي (≥ 32 حرف) |
+| `NODE_ENV` | `production` |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | مفتاح VAPID العام |
+| `VAPID_PRIVATE_KEY` | مفتاح VAPID الخاص |
+| `VAPID_EMAIL` | بريد إلكتروني لـ VAPID |
+
+للتفاصيل الكاملة: [docs/deployment.md](docs/deployment.md)
+
+---
+
+## التوثيق
+
+### التوثيقات الانتاجية
+
+| الملف | الوصف |
+|-------|-------|
+| [docs/api-endpoints.md](docs/api-endpoints.md) | جميع مسارات API مع أمثلة الطلبات والاستجابات |
+| [docs/database-abstraction.md](docs/database-abstraction.md) | نماذج Mongoose ونمط المستودعات |
+| [docs/repository-quick-reference.md](docs/repository-quick-reference.md) | مرجع سريع لعمليات المستودعات |
+| [docs/pwa-guide.md](docs/pwa-guide.md) | دليل PWA: Service Worker، IndexedDB، المزامنة، الإشعارات |
+| [docs/testing.md](docs/testing.md) | استراتيجية الاختبار والأوامر والتغطية |
+| [docs/deployment.md](docs/deployment.md) | دليل النشر على Heroku والمتغيرات البيئية |
+
+### توثيقات AI
+
+| الملف | الوصف |
+|-------|-------|
+| [docs/ai/README.md](docs/ai/README.md) | بطاقة هوية المشروع والقواعد الحاسمة |
+| [docs/ai/architecture.md](docs/ai/architecture.md) | مخطط الطبقات وتدفق البيانات |
+| [docs/ai/feature-guide.md](docs/ai/feature-guide.md) | دليل إضافة ميزة جديدة (8 خطوات) |
+
+### التوثيقات التعليمية
+
+| الملف | الوصف |
+|-------|-------|
+| [docs/tutorials/README.md](docs/tutorials/README.md) | فهرس الدروس ومسارات التعلم |
+| [docs/tutorials/concepts-guide.md](docs/tutorials/concepts-guide.md) | شرح كل مفهوم تقني من الصفر |
+| [docs/tutorials/quick-reference.md](docs/tutorials/quick-reference.md) | مرجع سريع وجداول أوامر وروابط |
+| [docs/tutorials/lessons/](docs/tutorials/lessons/) | ١٣ درسًا تعليميًا تفصيليًا بالعربية |
+
+---
+
+## المساهمة
+
+اقرأ [CONTRIBUTING.md](CONTRIBUTING.md) للاطلاع على معايير المساهمة، أسلوب الإيداعات (Conventional Commits)، متطلبات الجودة، ودليل المعمارية.
+
+---
+
+## الترخيص
+
+[MIT](LICENSE)
