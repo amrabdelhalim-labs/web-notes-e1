@@ -15,6 +15,7 @@ import { getDevicesApi, trustDeviceApi, deleteDeviceApi } from '@/app/lib/api';
 import { cacheDevices, getCachedDevices } from '@/app/lib/db';
 import { useDeviceId, type DeviceIdInfo } from '@/app/hooks/useDeviceId';
 import { useOfflineStatus } from '@/app/hooks/useOfflineStatus';
+import { clearLocalPushState } from '@/app/lib/pushUtils';
 import type { Device } from '@/app/types';
 
 const TRUSTED_KEY = 'device-trusted';
@@ -136,8 +137,9 @@ export function useDevices(): UseDevicesReturn {
         setError(null);
         await deleteDeviceApi(deviceId, password);
         setDevices((prev) => prev.filter((d) => d.deviceId !== deviceId));
-        // If removing current device, clear trust flag
+        // If removing current device, clear trust flag and browser push state.
         if (deviceId === deviceInfo.deviceId) {
+          await clearLocalPushState();
           localStorage.removeItem(TRUSTED_KEY);
           publishTrustChanged(false);
         }

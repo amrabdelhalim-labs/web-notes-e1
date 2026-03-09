@@ -21,8 +21,7 @@ const withSerwistConfig = withSerwist({
   // Emit into public/ so Next can serve it at /sw.js.
   swDest: 'public/sw.js',
   disable:
-    process.env.NODE_ENV === 'development' &&
-    process.env.NEXT_PUBLIC_SW_DISABLED !== 'false',
+    process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_SW_DISABLED !== 'false',
   register: false, // SW registered programmatically by PwaActivationContext (trusted + activated devices only)
   // reloadOnOnline MUST stay false: enabling it injects
   //   window.addEventListener("online", () => location.reload())

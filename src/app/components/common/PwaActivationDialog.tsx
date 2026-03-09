@@ -61,11 +61,7 @@ export default function PwaActivationDialog({ open, onClose }: PwaActivationDial
   const [phase, setPhase] = useState<DialogPhase>('info');
   const [activeStep, setActiveStep] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [stepStatuses, setStepStatuses] = useState<StepStatus[]>([
-    'pending',
-    'pending',
-    'pending',
-  ]);
+  const [stepStatuses, setStepStatuses] = useState<StepStatus[]>(['pending', 'pending', 'pending']);
 
   const resetState = () => {
     setPhase('info');

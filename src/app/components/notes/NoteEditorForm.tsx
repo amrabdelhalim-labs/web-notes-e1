@@ -227,7 +227,7 @@ export default function NoteEditorForm({
         <Divider />
 
         {/* Action buttons */}
-        <Stack direction="row" spacing={2} justifyContent="flex-end">
+        <Stack direction="row" spacing={2} justifyContent="flex-end" flexWrap="wrap">
           <Button startIcon={<CancelIcon />} onClick={onCancel} disabled={loading}>
             {t('cancel')}
           </Button>

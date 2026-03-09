@@ -495,7 +495,7 @@ export default function ProfileEditor() {
 
       {/* ── Profile Info ──────────────────────────────────────────────── */}
       <Card>
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             {t('personalInfo')}
           </Typography>
@@ -536,7 +536,7 @@ export default function ProfileEditor() {
 
       {/* ── Language Preference ───────────────────────────────────────── */}
       <Card>
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             {t('languagePrefTitle')}
           </Typography>
@@ -574,7 +574,7 @@ export default function ProfileEditor() {
 
       {/* ── Push Notifications ────────────────────────────────────────── */}
       <Card>
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
           <Stack direction="row" alignItems="center" gap={1} mb={1}>
             <NotificationsIcon color="primary" />
             <Typography variant="h6">{tp('title')}</Typography>
@@ -641,7 +641,7 @@ export default function ProfileEditor() {
 
       {/* ── Trusted Devices ──────────────────────────────────────────── */}
       <Card>
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
           <Stack direction="row" alignItems="center" gap={1} mb={1}>
             <DevicesIcon color="primary" />
             <Typography variant="h6">{td('title')}</Typography>
@@ -858,7 +858,7 @@ export default function ProfileEditor() {
 
       {/* ── Password Change ───────────────────────────────────────────── */}
       <Card>
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             {t('changePassword')}
           </Typography>

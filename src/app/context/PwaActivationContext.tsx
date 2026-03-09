@@ -25,6 +25,7 @@ import {
   type ReactNode,
 } from 'react';
 import { clearOfflineData } from '@/app/lib/db';
+import { clearPushSubscription } from '@/app/lib/pushUtils';
 
 // ─── Public constants (consumed by usePwaStatus and tests) ───────────────────
 
@@ -127,9 +128,7 @@ export function PwaActivationProvider({ children }: { children: ReactNode }) {
 
   /** Notify usePwaStatus and any other listeners of the new state. */
   const broadcast = useCallback((activated: boolean) => {
-    window.dispatchEvent(
-      new CustomEvent(PWA_ACTIVATION_EVENT, { detail: { activated } }),
-    );
+    window.dispatchEvent(new CustomEvent(PWA_ACTIVATION_EVENT, { detail: { activated } }));
   }, []);
 
   const deactivate = useCallback(async () => {
@@ -140,6 +139,7 @@ export function PwaActivationProvider({ children }: { children: ReactNode }) {
       removeManifest();
       await unregisterSW();
       await clearOfflineData().catch(() => {});
+      await clearPushSubscription();
       localStorage.removeItem(PWA_ENABLED_KEY);
       // Reload so React fetches fresh chunk hashes directly from the server.
       // Unregistering the SW mid-session would cause ChunkLoadError (HTTP 500)
@@ -199,6 +199,8 @@ export function PwaActivationProvider({ children }: { children: ReactNode }) {
     const handleRevoked = () => {
       removeManifest();
       localStorage.removeItem(PWA_ENABLED_KEY);
+      // Best-effort push cleanup — swallows errors internally.
+      clearPushSubscription();
       setIsActivated(false);
       broadcast(false);
     };

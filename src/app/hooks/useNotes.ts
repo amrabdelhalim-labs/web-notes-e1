@@ -232,7 +232,9 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         if (localStorage.getItem('device-trusted') !== 'true') {
           setNotes((prev) => prev.filter((n) => n._id !== tempId));
           setCount((c) => Math.max(0, c - 1));
-          throw new Error('لا يمكن إنشاء ملاحظات بدون اتصال على جهاز غير موثوق. ثق بهذا الجهاز أولاً.');
+          throw new Error(
+            'لا يمكن إنشاء ملاحظات بدون اتصال على جهاز غير موثوق. ثق بهذا الجهاز أولاً.'
+          );
         }
         await enqueuePendingOp({
           type: 'create',
@@ -244,9 +246,21 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         // Register a Background Sync tag so the SW can wake up the page and
         // call processQueue() once connectivity is restored — even if the user
         // has closed the tab and reopened it later.
-        if ('serviceWorker' in navigator && 'sync' in (navigator.serviceWorker as unknown as { ready: Promise<ServiceWorkerRegistration & { sync?: { register(tag: string): Promise<void> } }> })) {
+        if (
+          'serviceWorker' in navigator &&
+          'sync' in
+            (navigator.serviceWorker as unknown as {
+              ready: Promise<
+                ServiceWorkerRegistration & { sync?: { register(tag: string): Promise<void> } }
+              >;
+            })
+        ) {
           navigator.serviceWorker.ready
-            .then((reg) => (reg as unknown as { sync?: { register(tag: string): Promise<void> } }).sync?.register('notes-sync'))
+            .then((reg) =>
+              (
+                reg as unknown as { sync?: { register(tag: string): Promise<void> } }
+              ).sync?.register('notes-sync')
+            )
             .catch(() => {});
         }
         return tempNote;
@@ -294,7 +308,9 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
           } else {
             setNotes((prev) => prev.filter((n) => n._id !== id));
           }
-          throw new Error('لا يمكن تعديل ملاحظات بدون اتصال على جهاز غير موثوق. ثق بهذا الجهاز أولاً.');
+          throw new Error(
+            'لا يمكن تعديل ملاحظات بدون اتصال على جهاز غير موثوق. ثق بهذا الجهاز أولاً.'
+          );
         }
         await enqueuePendingOp({
           type: 'update',
@@ -306,7 +322,11 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         });
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.ready
-            .then((reg) => (reg as unknown as { sync?: { register(tag: string): Promise<void> } }).sync?.register('notes-sync'))
+            .then((reg) =>
+              (
+                reg as unknown as { sync?: { register(tag: string): Promise<void> } }
+              ).sync?.register('notes-sync')
+            )
             .catch(() => {});
         }
         return optimisticNote;
@@ -344,7 +364,9 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
             setNotes((prev) => [noteToDelete, ...prev]);
             setCount((c) => c + 1);
           }
-          throw new Error('لا يمكن حذف ملاحظات بدون اتصال على جهاز غير موثوق. ثق بهذا الجهاز أولاً.');
+          throw new Error(
+            'لا يمكن حذف ملاحظات بدون اتصال على جهاز غير موثوق. ثق بهذا الجهاز أولاً.'
+          );
         }
         // Remove from local cache so it won't reappear on page reload
         removeCachedNote(id).catch(() => {});
@@ -357,7 +379,11 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         });
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.ready
-            .then((reg) => (reg as unknown as { sync?: { register(tag: string): Promise<void> } }).sync?.register('notes-sync'))
+            .then((reg) =>
+              (
+                reg as unknown as { sync?: { register(tag: string): Promise<void> } }
+              ).sync?.register('notes-sync')
+            )
             .catch(() => {});
         }
         return;

@@ -336,5 +336,15 @@
     "trusting": "Trusting...",
     "trustError": "Failed to trust device",
     "laterHint": "You can trust the device later from your profile settings"
+  },
+  "VoiceRecorder": {
+    "startRecording": "Start recording",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop recording",
+    "reRecord": "Re-record",
+    "microphoneError": "Cannot access microphone. Please make sure you have granted permission.",
+    "recording": "Recording...",
+    "pausedHint": "⏸ Paused — press Resume to continue"
   }
 }

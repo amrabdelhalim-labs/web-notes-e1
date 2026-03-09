@@ -5,10 +5,7 @@ import { useEffect } from 'react';
 import { ThemeProviderWrapper } from '@/app/context/ThemeContext';
 import { AuthProvider } from '@/app/context/AuthContext';
 import LocaleSwitchPromptDialog from '@/app/components/common/LocaleSwitchPromptDialog';
-import {
-  PwaActivationProvider,
-  usePwaActivation,
-} from '@/app/context/PwaActivationContext';
+import { PwaActivationProvider, usePwaActivation } from '@/app/context/PwaActivationContext';
 
 type ProvidersProps = {
   children: ReactNode;

@@ -21,11 +21,13 @@ let mockPwaStatus: {
   swState: SwState;
   installState: InstallState;
   isReady: boolean;
+  installCheckPending: boolean;
   triggerInstall: (() => Promise<boolean>) | null;
 } = {
   swState: 'active',
   installState: 'standalone',
   isReady: true,
+  installCheckPending: false,
   triggerInstall: null,
 };
 
@@ -58,7 +60,13 @@ beforeEach(() => {
     hasFailures: false,
     refresh: vi.fn(),
   };
-  mockPwaStatus = { swState: 'active', installState: 'standalone', isReady: true, triggerInstall: null };
+  mockPwaStatus = {
+    swState: 'active',
+    installState: 'standalone',
+    isReady: true,
+    installCheckPending: false,
+    triggerInstall: null,
+  };
   vi.clearAllMocks();
   vi.mocked(getPendingOps).mockResolvedValue([]);
   vi.mocked(removePendingOp).mockResolvedValue(undefined);
@@ -354,6 +362,7 @@ describe('install app button', () => {
       swState: 'active',
       installState: 'installable',
       isReady: true,
+      installCheckPending: false,
       triggerInstall: mockTrigger,
     };
 
@@ -370,6 +379,7 @@ describe('install app button', () => {
       swState: 'active',
       installState: 'standalone',
       isReady: true,
+      installCheckPending: false,
       triggerInstall: null,
     };
 
@@ -386,6 +396,7 @@ describe('install app button', () => {
       swState: 'active',
       installState: 'not-installable',
       isReady: false,
+      installCheckPending: false,
       triggerInstall: null,
     };
 
@@ -397,12 +408,30 @@ describe('install app button', () => {
     });
   });
 
+  it('shows checking text when installCheckPending is true (not-installable verdict deferred)', async () => {
+    mockPwaStatus = {
+      swState: 'active',
+      installState: 'not-installable',
+      isReady: true,
+      installCheckPending: true,
+      triggerInstall: null,
+    };
+
+    render(<ConnectionIndicator />);
+    fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
+
+    await waitFor(() => {
+      expect(screen.getByText(/جاري الفحص|Checking/i)).toBeInTheDocument();
+    });
+  });
+
   it('calls triggerInstall and closes menu on button click', async () => {
     const mockTrigger = vi.fn().mockResolvedValue(true);
     mockPwaStatus = {
       swState: 'active',
       installState: 'installable',
       isReady: true,
+      installCheckPending: false,
       triggerInstall: mockTrigger,
     };
 
@@ -429,6 +458,7 @@ describe('standalone-untrusted sync-blocked warning chip', () => {
       swState: 'active',
       installState: 'standalone-untrusted',
       isReady: false,
+      installCheckPending: false,
       triggerInstall: null,
     };
     mockSyncStatus = {
@@ -443,9 +473,7 @@ describe('standalone-untrusted sync-blocked warning chip', () => {
     fireEvent.click(screen.getByLabelText(/حالة الاتصال|Connection Status/i));
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/المزامنة موقوفة|Sync blocked/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/المزامنة موقوفة|Sync blocked/i)).toBeInTheDocument();
     });
   });
 
@@ -454,6 +482,7 @@ describe('standalone-untrusted sync-blocked warning chip', () => {
       swState: 'active',
       installState: 'standalone',
       isReady: true,
+      installCheckPending: false,
       triggerInstall: null,
     };
     mockSyncStatus = {
@@ -477,6 +506,7 @@ describe('standalone-untrusted sync-blocked warning chip', () => {
       swState: 'active',
       installState: 'standalone-untrusted',
       isReady: false,
+      installCheckPending: false,
       triggerInstall: null,
     };
     // hasPending is false by default from beforeEach reset

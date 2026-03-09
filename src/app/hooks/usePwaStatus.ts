@@ -17,13 +17,14 @@
  */
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import {
-  PWA_ENABLED_KEY,
-  PWA_ACTIVATION_EVENT,
-} from '@/app/context/PwaActivationContext';
+import { PWA_ENABLED_KEY, PWA_ACTIVATION_EVENT } from '@/app/context/PwaActivationContext';
 
 export type SwState = 'unsupported' | 'checking' | 'inactive' | 'installing' | 'active';
-export type InstallState = 'standalone' | 'standalone-untrusted' | 'installable' | 'not-installable';
+export type InstallState =
+  | 'standalone'
+  | 'standalone-untrusted'
+  | 'installable'
+  | 'not-installable';
 
 const TRUSTED_KEY = 'device-trusted';
 const TRUST_CHANGED_EVENT = 'device-trust-changed';
@@ -37,7 +38,12 @@ interface BeforeInstallPromptEvent extends Event {
 export interface PwaStatus {
   swState: SwState;
   installState: InstallState;
-  isReady: boolean; // true when SW is active AND (installed or installable)
+  isReady: boolean; // true when pwaActivated AND SW is active
+  /** True during the brief window after page load before the browser has determined
+   * whether the PWA is installable (i.e. before beforeinstallprompt fires or the
+   * 5-second check timeout elapses). Use this to suppress misleading 'not installable'
+   * text in the UI. */
+  installCheckPending: boolean;
   /** Triggers the native PWA install dialog. Returns true if accepted. null when unavailable. */
   triggerInstall: (() => Promise<boolean>) | null;
 }
@@ -75,6 +81,20 @@ export function usePwaStatus(): PwaStatus {
   // triggerInstall reads the ref at call time, so no stale-closure issue.
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
 
+  // True during the brief window after page load before the browser confirms
+  // whether the PWA is installable (i.e. before beforeinstallprompt fires or
+  // a 5-second timeout elapses). Starts true only when PWA is already activated
+  // but not running in standalone mode — the exact scenario where the user sees
+  // the menu before the browser has made its verdict.
+  const [installCheckPending, setInstallCheckPending] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return (
+      localStorage.getItem(PWA_ENABLED_KEY) === 'true' &&
+      !window.matchMedia('(display-mode: standalone)').matches &&
+      !('standalone' in navigator && (navigator as { standalone?: boolean }).standalone === true)
+    );
+  });
+
   const installState = useMemo<InstallState>(() => {
     // PWA features are disabled until the user activates offline mode.
     if (!pwaActivated) return 'not-installable';
@@ -106,6 +126,7 @@ export function usePwaStatus(): PwaStatus {
       e.preventDefault();
       deferredPromptRef.current = e as BeforeInstallPromptEvent;
       setCanInstall(true);
+      setInstallCheckPending(false); // Browser confirmed its verdict
     };
 
     // App was installed in this session — clear the deferred prompt so the
@@ -128,6 +149,7 @@ export function usePwaStatus(): PwaStatus {
       if (!activated) {
         setSwState('inactive');
         setCanInstall(false);
+        setInstallCheckPending(false);
         deferredPromptRef.current = null;
       }
     };
@@ -210,12 +232,21 @@ export function usePwaStatus(): PwaStatus {
       .catch(() => setSwState('inactive'));
   }, [pwaActivated]);
 
-  // isReady: the app is fully operational (SW active, installed or installable, AND trusted).
-  // 'standalone-untrusted' is intentionally NOT ready — offline sync is blocked for security.
-  const isReady =
-    pwaActivated &&
-    swState === 'active' &&
-    (installState === 'standalone' || installState === 'installable');
+  // ── Effect 3: 5-second install-check settle timer ─────────────────────────────
+  // On mount, start a one-shot 5-second timer. If beforeinstallprompt hasn't
+  // fired (or the PWA is not installable at all), we treat the check as done
+  // after 5 seconds so the UI can show the definitive verdict.
+  // The timer is cancelled automatically on unmount.
+  useEffect(() => {
+    if (!installCheckPending) return;
+    const timer = setTimeout(() => setInstallCheckPending(false), 5_000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Intentionally empty — one-shot on mount only
+
+  // isReady: the Service Worker is active and offline caching is functional.
+  // Trust status is tracked separately (installState) and affects sync, not caching.
+  const isReady = pwaActivated && swState === 'active';
 
   // Stable function: reads deferredPromptRef at call time — no stale closure.
   const triggerInstall = useCallback(async (): Promise<boolean> => {
@@ -238,6 +269,7 @@ export function usePwaStatus(): PwaStatus {
     swState,
     installState,
     isReady,
+    installCheckPending,
     triggerInstall: installState === 'installable' ? triggerInstall : null,
   };
 }

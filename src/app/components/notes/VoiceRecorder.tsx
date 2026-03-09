@@ -13,6 +13,7 @@
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -48,6 +49,8 @@ export default function VoiceRecorder({
   initialAudio,
   initialDuration,
 }: VoiceRecorderProps) {
+  const t = useTranslations('VoiceRecorder');
+
   // Phase
   const [phase, setPhase] = useState<Phase>(() => (initialAudio ? 'done' : 'idle'));
 
@@ -152,9 +155,9 @@ export default function VoiceRecorder({
       setPhase('recording');
       startTimer();
     } catch {
-      setError('لا يمكن الوصول إلى الميكروفون. تأكد من منح الإذن.');
+      setError(t('microphoneError'));
     }
-  }, [onRecorded, startTimer]);
+  }, [onRecorded, startTimer, t]);
 
   // Pause
   const pauseRecording = useCallback(() => {
@@ -233,7 +236,7 @@ export default function VoiceRecorder({
               onClick={startRecording}
               size="large"
             >
-              بدء التسجيل
+              {t('startRecording')}
             </Button>
           )}
 
@@ -246,7 +249,7 @@ export default function VoiceRecorder({
                 startIcon={<PauseIcon />}
                 onClick={pauseRecording}
               >
-                إيقاف مؤقت
+                {t('pause')}
               </Button>
               <Button
                 variant="contained"
@@ -255,7 +258,7 @@ export default function VoiceRecorder({
                 onClick={stopRecording}
                 sx={{ animation: 'pulse 1.5s infinite' }}
               >
-                إنهاء التسجيل
+                {t('stop')}
               </Button>
             </>
           )}
@@ -269,7 +272,7 @@ export default function VoiceRecorder({
                 startIcon={<MicIcon />}
                 onClick={resumeRecording}
               >
-                استئناف
+                {t('resume')}
               </Button>
               <Button
                 variant="outlined"
@@ -277,7 +280,7 @@ export default function VoiceRecorder({
                 startIcon={<StopIcon />}
                 onClick={stopRecording}
               >
-                إنهاء التسجيل
+                {t('stop')}
               </Button>
             </>
           )}
@@ -285,7 +288,7 @@ export default function VoiceRecorder({
           {/* Done → Re-record button */}
           {phase === 'done' && (
             <Button variant="outlined" startIcon={<RestartAltIcon />} onClick={resetRecording}>
-              تسجيل جديد
+              {t('reRecord')}
             </Button>
           )}
         </Stack>
@@ -313,7 +316,7 @@ export default function VoiceRecorder({
               }}
             />
             <Typography variant="body2" color="error">
-              جار التسجيل...
+              {t('recording')}
             </Typography>
           </Box>
         )}
@@ -321,7 +324,7 @@ export default function VoiceRecorder({
         {/* Paused indicator */}
         {phase === 'paused' && (
           <Typography variant="body2" color="warning.main">
-            ⏸ إيقاف مؤقت — اضغط استئناف للمتابعة
+            {t('pausedHint')}
           </Typography>
         )}
       </Stack>

@@ -76,9 +76,7 @@ describe('pwa-enabled gate', () => {
 
     // Deactivation event
     act(() => {
-      window.dispatchEvent(
-        new CustomEvent(PWA_ACTIVATION_EVENT, { detail: { activated: false } }),
-      );
+      window.dispatchEvent(new CustomEvent(PWA_ACTIVATION_EVENT, { detail: { activated: false } }));
     });
 
     expect(result.current.swState).toBe('inactive');
@@ -159,8 +157,7 @@ describe('usePwaStatus trust gate', () => {
     });
   });
 
-  it('isReady is true when SW is active and installState is not not-installable', async () => {
-    localStorage.setItem('device-trusted', 'true');
+  it('isReady is true when pwaActivated and SW is active', async () => {
     mockGetRegistration.mockResolvedValue({
       active: { state: 'activated', addEventListener: vi.fn() },
       installing: null,
@@ -169,10 +166,6 @@ describe('usePwaStatus trust gate', () => {
     });
 
     const { result } = renderHook(() => usePwaStatus());
-
-    act(() => {
-      window.dispatchEvent(new Event('beforeinstallprompt'));
-    });
 
     await vi.waitFor(() => {
       expect(result.current.isReady).toBe(true);
@@ -400,7 +393,7 @@ describe('standalone-untrusted state', () => {
     expect(result.current.installState).toBe('standalone-untrusted');
   });
 
-  it('isReady is false for standalone-untrusted even when SW is active', async () => {
+  it('isReady is true for standalone-untrusted when SW is active', async () => {
     mockStandalone();
     mockGetRegistration.mockResolvedValue({
       active: { state: 'activated', addEventListener: vi.fn() },
@@ -413,7 +406,8 @@ describe('standalone-untrusted state', () => {
 
     await vi.waitFor(() => expect(result.current.swState).toBe('active'));
     expect(result.current.installState).toBe('standalone-untrusted');
-    expect(result.current.isReady).toBe(false);
+    // isReady = pwaActivated && swState === 'active'; trust is tracked via installState
+    expect(result.current.isReady).toBe(true);
   });
 
   it('triggerInstall is null for standalone-untrusted (already installed)', () => {
@@ -441,5 +435,71 @@ describe('standalone-untrusted state', () => {
 
     await vi.waitFor(() => expect(result.current.installState).toBe('standalone'));
     // (isReady also requires swState === 'active', tested separately)
+  });
+});
+
+// ─── installCheckPending ──────────────────────────────────────────────────────
+// Guards against showing "Not installable" during the browser's asynchronous
+// verdict window (between page load and beforeinstallprompt firing).
+
+describe('installCheckPending', () => {
+  it('starts true when pwaActivated and not in standalone mode', () => {
+    // beforeEach sets pwa-enabled=true; matchMedia returns standalone=false by default
+    const { result } = renderHook(() => usePwaStatus());
+    expect(result.current.installCheckPending).toBe(true);
+  });
+
+  it('starts false when pwa-enabled is not set', () => {
+    localStorage.removeItem(PWA_ENABLED_KEY);
+    const { result } = renderHook(() => usePwaStatus());
+    expect(result.current.installCheckPending).toBe(false);
+  });
+
+  it('becomes false when beforeinstallprompt fires', () => {
+    const { result } = renderHook(() => usePwaStatus());
+    expect(result.current.installCheckPending).toBe(true);
+
+    act(() => {
+      window.dispatchEvent(new Event('beforeinstallprompt'));
+    });
+
+    expect(result.current.installCheckPending).toBe(false);
+  });
+
+  it('becomes false when pwa:activation-changed fires with activated=false', () => {
+    const { result } = renderHook(() => usePwaStatus());
+    expect(result.current.installCheckPending).toBe(true);
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent(PWA_ACTIVATION_EVENT, { detail: { activated: false } }));
+    });
+
+    expect(result.current.installCheckPending).toBe(false);
+  });
+
+  it('becomes false after 5-second timeout', async () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => usePwaStatus());
+    expect(result.current.installCheckPending).toBe(true);
+
+    await act(async () => {
+      vi.advanceTimersByTime(5_000);
+    });
+
+    expect(result.current.installCheckPending).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it('starts false when in standalone mode', () => {
+    vi.spyOn(window, 'matchMedia').mockReturnValue({
+      matches: true,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+    } as unknown as MediaQueryList);
+
+    const { result } = renderHook(() => usePwaStatus());
+    expect(result.current.installCheckPending).toBe(false);
+
+    vi.restoreAllMocks();
   });
 });

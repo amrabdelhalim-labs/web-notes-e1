@@ -77,7 +77,7 @@ export default function RegisterPage() {
       }}
     >
       <Card sx={{ width: '100%', maxWidth: 420 }}>
-        <CardContent sx={{ p: 4 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
           <Typography variant="h5" component="h1" textAlign="center" fontWeight={700} gutterBottom>
             {APP_NAME_AR}
           </Typography>

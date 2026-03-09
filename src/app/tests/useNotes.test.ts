@@ -356,7 +356,7 @@ describe('offline CRUD', () => {
 describe('offline CRUD — untrusted device', () => {
   beforeEach(() => {
     mockOnlineStatus = false;
-    localStorage.removeItem('device-trusted');   // device NOT trusted
+    localStorage.removeItem('device-trusted'); // device NOT trusted
     mockGetCachedNotes.mockResolvedValue([sampleNote]);
   });
 
@@ -389,9 +389,7 @@ describe('offline CRUD — untrusted device', () => {
     // Security invariant: no op is queued when trust is absent.
     const { result } = renderHook(() => useNotes({ autoFetch: false }));
 
-    await expect(
-      act(() => result.current.deleteNote('n1'))
-    ).rejects.toThrow(/موثوق/);
+    await expect(act(() => result.current.deleteNote('n1'))).rejects.toThrow(/موثوق/);
 
     expect(mockEnqueuePendingOp).not.toHaveBeenCalled();
   });

@@ -5,9 +5,11 @@
  * Runs pre-push sanity checks to catch production issues before deploying:
  *   1. Required files    — .env.example, next.config.js, tsconfig.json present
  *   2. package.json      — engines field, required scripts, no forbidden patterns
- *   3. TypeScript        — tsc --noEmit passes without errors
- *   4. Test suite        — vitest run exits 0
- *   5. Environment vars  — .env.example covers all keys referenced in the source
+ *   3. Format check      — Prettier reports no unformatted files (format:check)
+ *   4. Lint              — ESLint (`eslint src/`) reports no errors
+ *   5. TypeScript        — tsc --noEmit passes without errors
+ *   6. Test suite        — vitest run exits 0
+ *   7. Environment vars  — .env.example covers all keys referenced in the source
  *
  * Usage:
  *   node validate-workflow.mjs        # run all checks, exit 1 on failure
@@ -52,7 +54,7 @@ const requiredFiles = [
   '.gitattributes',
   '.gitignore',
   '.prettierrc.json',
-  'next.config.js',
+  'next.config.mjs',
   'tsconfig.json',
   'vitest.config.ts',
   'CONTRIBUTING.md',
@@ -71,10 +73,10 @@ for (const f of requiredFiles) {
 }
 
 // Ensure duplicate config is gone
-if (existsSync(path.join(ROOT, 'next.config.mjs'))) {
-  fail('Duplicate next.config.mjs exists alongside next.config.js — remove one');
+if (existsSync(path.join(ROOT, 'next.config.js'))) {
+  fail('Duplicate next.config.js exists alongside next.config.mjs — remove one');
 } else {
-  ok('No duplicate next.config.mjs');
+  ok('No duplicate next.config.js');
 }
 
 // Ensure default Next.js placeholder SVGs are removed
@@ -107,7 +109,29 @@ if (pkg.engines?.node) {
   fail('Missing engines.node (required for Heroku)');
 }
 
-// ── 3. TypeScript ─────────────────────────────────────────────────────────────
+// ── 3. Format check ────────────────────────────────────────────────────
+
+section('Format check (Prettier)');
+
+try {
+  execSync('npm run format:check', { cwd: ROOT, stdio: 'pipe' });
+  ok('Prettier → all files formatted');
+} catch (e) {
+  fail(`Unformatted files detected:\n${e.stdout?.toString().slice(0, 800) ?? e.message}`);
+}
+
+// ── 4. Lint ─────────────────────────────────────────────────────────────────
+
+section('ESLint');
+
+try {
+  execSync('npm run lint', { cwd: ROOT, stdio: 'pipe' });
+  ok('ESLint → no errors');
+} catch (e) {
+  fail(`ESLint errors:\n${e.stdout?.toString().slice(0, 800) ?? e.message}`);
+}
+
+// ── 5. TypeScript ─────────────────────────────────────────────────────
 
 section('TypeScript');
 
@@ -118,7 +142,7 @@ try {
   fail(`TypeScript errors:\n${e.stdout?.toString() ?? e.message}`);
 }
 
-// ── 4. Test suite ─────────────────────────────────────────────────────────────
+// ── 6. Test suite ─────────────────────────────────────────────────────────
 
 section('Test suite');
 
@@ -130,7 +154,7 @@ try {
   fail(`Tests failed:\n${e.stdout?.toString().slice(-500) ?? e.message}`);
 }
 
-// ── 5. Env example coverage ───────────────────────────────────────────────────
+// ── 7. Env example coverage ───────────────────────────────────────────────
 
 section('.env.example coverage');
 

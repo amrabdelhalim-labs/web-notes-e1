@@ -90,7 +90,7 @@ export default function ProfilePage() {
 
         {user && (
           <Card sx={{ mb: 3 }}>
-            <CardContent sx={{ p: 3 }}>
+            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
               <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
                 <Chip
                   icon={<PersonIcon />}
@@ -149,7 +149,9 @@ export default function ProfilePage() {
                 color="error"
                 onClick={() => deactivate()}
                 disabled={isDeactivating}
-                startIcon={isDeactivating ? <CircularProgress size={14} color="inherit" /> : undefined}
+                startIcon={
+                  isDeactivating ? <CircularProgress size={14} color="inherit" /> : undefined
+                }
               >
                 {t('pwaDeactivateButton')}
               </Button>

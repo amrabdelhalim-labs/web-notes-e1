@@ -73,10 +73,7 @@ describe('PwaActivationDialog', () => {
 
     // Wait for the activation flow to fully complete so the background timer
     // doesn't leak into subsequent tests and inflate mockActivate call counts.
-    await waitFor(
-      () => screen.getByRole('button', { name: /^Done$|^تم$/i }),
-      { timeout: 3000 },
-    );
+    await waitFor(() => screen.getByRole('button', { name: /^Done$|^تم$/i }), { timeout: 3000 });
   }, 8000);
 
   it('calls activate() and shows success after all steps complete', async () => {
@@ -88,7 +85,7 @@ describe('PwaActivationDialog', () => {
       () => {
         expect(screen.getByRole('button', { name: /^Done$|^تم$/i })).toBeInTheDocument();
       },
-      { timeout: 5000 },
+      { timeout: 5000 }
     );
 
     expect(mockActivate).toHaveBeenCalledTimes(1);
@@ -105,7 +102,7 @@ describe('PwaActivationDialog', () => {
       () => {
         expect(screen.getByText(/Activation failed|فشل التفعيل/i)).toBeInTheDocument();
       },
-      { timeout: 2000 },
+      { timeout: 2000 }
     );
 
     expect(screen.getByText('SW registration failed')).toBeInTheDocument();
@@ -113,18 +110,13 @@ describe('PwaActivationDialog', () => {
   });
 
   it('retries activation when Retry is clicked', async () => {
-    mockActivate
-      .mockRejectedValueOnce(new Error('Network error'))
-      .mockResolvedValueOnce(undefined);
+    mockActivate.mockRejectedValueOnce(new Error('Network error')).mockResolvedValueOnce(undefined);
 
     render(<PwaActivationDialog {...defaultProps} />);
     fireEvent.click(screen.getByRole('button', { name: /^Activate$|^تفعيل$/i }));
 
     // Wait for error state
-    await waitFor(
-      () => screen.getByRole('button', { name: /^Retry$|^إعادة/i }),
-      { timeout: 2000 },
-    );
+    await waitFor(() => screen.getByRole('button', { name: /^Retry$|^إعادة/i }), { timeout: 2000 });
 
     // Retry
     fireEvent.click(screen.getByRole('button', { name: /^Retry$|^إعادة/i }));
@@ -134,7 +126,7 @@ describe('PwaActivationDialog', () => {
         // ar.json successTitle: "تم تفعيل وضع عدم الاتصال!" (note: تم تفعيل, not تم التفعيل)
         expect(screen.getByText(/Offline mode activated|تم تفعيل/i)).toBeInTheDocument();
       },
-      { timeout: 5000 },
+      { timeout: 5000 }
     );
 
     expect(mockActivate).toHaveBeenCalledTimes(2);
@@ -144,7 +136,10 @@ describe('PwaActivationDialog', () => {
     // Make activate() hang so we can observe the 'activating' phase
     let resolveActivate: (() => void) | undefined;
     mockActivate.mockImplementation(
-      () => new Promise<void>((resolve) => { resolveActivate = resolve; }),
+      () =>
+        new Promise<void>((resolve) => {
+          resolveActivate = resolve;
+        })
     );
 
     render(<PwaActivationDialog {...defaultProps} />);
@@ -159,8 +154,10 @@ describe('PwaActivationDialog', () => {
     // Wait until step 0 delay (400 ms) finishes and activate() is actually invoked,
     // so resolveActivate is properly assigned before we call it.
     await waitFor(
-      () => { expect(resolveActivate).toBeDefined(); },
-      { timeout: 3000 },
+      () => {
+        expect(resolveActivate).toBeDefined();
+      },
+      { timeout: 3000 }
     );
 
     // Cleanup: let the activate() promise resolve so no async work leaks out.
@@ -168,4 +165,3 @@ describe('PwaActivationDialog', () => {
     await waitFor(() => {}, { timeout: 500 });
   }, 10000);
 });
-

@@ -50,7 +50,7 @@ export default function ConnectionIndicator() {
   const t = useTranslations('ConnectionStatus');
   const isOnline = useOfflineStatus();
   const { pendingCount, hasPending, hasFailures, refresh } = useSyncStatus();
-  const { swState, installState, triggerInstall } = usePwaStatus();
+  const { swState, installState, installCheckPending, triggerInstall } = usePwaStatus();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -722,9 +722,11 @@ export default function ConnectionIndicator() {
                       ? t('installStandaloneUntrusted')
                       : installState === 'installable'
                         ? t('installInstallable')
-                        : isTrusted
-                          ? t('installNotInstallable')
-                          : t('installBlockedByTrust')}
+                        : installCheckPending
+                          ? t('swChecking')
+                          : isTrusted
+                            ? t('installNotInstallable')
+                            : t('installBlockedByTrust')}
                 </Typography>
               </Box>
             }
