@@ -7,6 +7,7 @@
 
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { useNotes } from '@/app/hooks/useNotes';
+import type { Device } from '@/app/types';
 
 // Mock all API functions
 vi.mock('@/app/lib/api', () => ({
@@ -15,6 +16,7 @@ vi.mock('@/app/lib/api', () => ({
   createNoteApi: vi.fn(),
   updateNoteApi: vi.fn(),
   deleteNoteApi: vi.fn(),
+  getDevicesApi: vi.fn(),
 }));
 
 let mockOnlineStatus = true;
@@ -39,6 +41,7 @@ import {
   createNoteApi,
   updateNoteApi,
   deleteNoteApi,
+  getDevicesApi,
 } from '@/app/lib/api';
 
 import {
@@ -65,6 +68,7 @@ const mockGetNote = vi.mocked(getNoteApi);
 const mockCreateNote = vi.mocked(createNoteApi);
 const mockUpdateNote = vi.mocked(updateNoteApi);
 const mockDeleteNote = vi.mocked(deleteNoteApi);
+const mockGetDevices = vi.mocked(getDevicesApi);
 
 const sampleNote = {
   _id: 'n1',
@@ -88,9 +92,10 @@ const oneNoteResponse = {
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
-  // processQueue requires device-trusted='true' to sync; set it by default
-  // so existing tests don't need to be updated individually.
+  // processQueue requires device-trusted='true' and device-id to be set;
+  // configure both so existing tests don't need per-test boilerplate.
   localStorage.setItem('device-trusted', 'true');
+  localStorage.setItem('device-id', 'test-device-id');
   // Restore defaults after clearAllMocks wipes call history but not implementations
   mockOnlineStatus = true;
   mockGetNotes.mockResolvedValue(emptyResponse);
@@ -101,6 +106,10 @@ beforeEach(() => {
   mockRemoveCachedNote.mockResolvedValue(undefined);
   mockIncrementPendingOpFailure.mockResolvedValue(undefined);
   vi.mocked(cacheNotes).mockResolvedValue(undefined);
+  vi.mocked(cleanStaleNotes).mockResolvedValue(0);
+  // processQueue server-side trust verification: current device is trusted by default.
+  // Individual tests that want a revoked-device scenario override this.
+  mockGetDevices.mockResolvedValue({ data: [{ deviceId: 'test-device-id' } as unknown as Device] });
 });
 
 // ─── Initial state & auto-fetch ─────────────────────────────────────────────
@@ -832,7 +841,113 @@ describe('processQueue', () => {
 
     expect(mockCleanStaleNotes).toHaveBeenCalledOnce();
   });
-});
+  // ── Server-side trust verification ─────────────────────────────────────────
+
+  it('aborts sync when server confirms device is no longer trusted', async () => {
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 16,
+        type: 'create',
+        payload: { title: 'Secret Note', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
+    ]);
+    // Server returns a device list that does NOT contain the current device
+    mockGetDevices.mockResolvedValue({ data: [] as Device[] });
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    // No API writes must have occurred
+    expect(vi.mocked(createNoteApi)).not.toHaveBeenCalled();
+    expect(mockRemovePendingOp).not.toHaveBeenCalled();
+  });
+
+  it('dispatches device:trust-revoked event when server says device is not trusted', async () => {
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 17,
+        type: 'create',
+        payload: { title: 'Note', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
+    ]);
+    mockGetDevices.mockResolvedValue({ data: [] as Device[] });
+
+    const listener = vi.fn();
+    window.addEventListener('device:trust-revoked', listener, { once: true });
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    expect(listener).toHaveBeenCalledOnce();
+    window.removeEventListener('device:trust-revoked', listener);
+  });
+
+  it('aborts sync when getDevicesApi throws (server unreachable during verification)', async () => {
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 18,
+        type: 'create',
+        payload: { title: 'Note', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
+    ]);
+    mockGetDevices.mockRejectedValueOnce(new Error('Network error'));
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    // Conservative policy: sync is blocked when trust cannot be verified
+    expect(vi.mocked(createNoteApi)).not.toHaveBeenCalled();
+    expect(mockRemovePendingOp).not.toHaveBeenCalled();
+  });
+
+  it('aborts when device-id is missing from localStorage (device identity unknown)', async () => {
+    localStorage.removeItem('device-id');
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 19,
+        type: 'create',
+        payload: { title: 'Note', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
+    ]);
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+    await act(() => result.current.processQueue());
+
+    // device-id is required for getDevicesApi — neither should be called
+    expect(mockGetDevices).not.toHaveBeenCalled();
+    expect(vi.mocked(createNoteApi)).not.toHaveBeenCalled();
+  });
+
+  // ── Concurrency mutex ──────────────────────────────────────────────────
+
+  it('concurrent calls: second call is a no-op while the first is in-flight', async () => {
+    mockGetPendingOps.mockResolvedValue([
+      {
+        id: 20,
+        type: 'create',
+        payload: { title: 'Concurrent Note', type: 'text', content: '' },
+        timestamp: Date.now(),
+      },
+    ]);
+    vi.mocked(createNoteApi).mockResolvedValue({ data: sampleNote, message: 'ok' });
+
+    const { result } = renderHook(() => useNotes({ autoFetch: false }));
+
+    // Fire both calls synchronously before any awaits resolve.
+    // The mutex (processingRef) is set synchronously at the top of the first
+    // call, so the second call sees it immediately and returns with no-op.
+    const first = result.current.processQueue();
+    const second = result.current.processQueue();
+    await act(() => Promise.all([first, second]));
+
+    // createNoteApi and getPendingOps must each be called exactly once
+    expect(vi.mocked(createNoteApi)).toHaveBeenCalledOnce();
+    expect(mockGetPendingOps).toHaveBeenCalledOnce();
+  });});
 
 // ─── Offline filter / applyLocalFilter ───────────────────────────────────────
 

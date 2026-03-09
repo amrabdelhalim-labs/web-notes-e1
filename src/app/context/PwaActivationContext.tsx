@@ -136,6 +136,10 @@ export function PwaActivationProvider({ children }: { children: ReactNode }) {
   const initDone = useRef(false);
   // Guards against concurrent deactivation (e.g. user double-clicks the button).
   const deactivatingRef = useRef(false);
+  // Guards against handleRevoked running more than once — both processQueue and
+  // useDevices.fetchDevices can dispatch `device:trust-revoked` nearly
+  // simultaneously on reconnect (each independently verifies trust with the server).
+  const revokedRef = useRef(false);
 
   /** Notify usePwaStatus and any other listeners of the new state. */
   const broadcast = useCallback((activated: boolean) => {
@@ -214,6 +218,10 @@ export function PwaActivationProvider({ children }: { children: ReactNode }) {
      * trigger window.location.reload() and race with AuthContext's redirect.
      */
     const handleRevoked = () => {
+      // Prevent concurrent/duplicate cleanup when multiple sources dispatch
+      // the event at the same time (processQueue + useDevices.fetchDevices).
+      if (revokedRef.current) return;
+      revokedRef.current = true;
       removeManifest();
       localStorage.removeItem(PWA_ENABLED_KEY);
       // Full cleanup: SW + caches + IndexedDB + push — all fire-and-forget

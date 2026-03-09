@@ -16,6 +16,7 @@ import {
   createNoteApi,
   updateNoteApi,
   deleteNoteApi,
+  getDevicesApi,
 } from '@/app/lib/api';
 import { useOfflineStatus } from '@/app/hooks/useOfflineStatus';
 import {
@@ -99,6 +100,11 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
   // Background Sync handles the "first load while already online" case via the
   // SW bridge in providers.tsx → 'notes:process-offline-queue' window event.
   const prevOnline = useRef(true);
+  // Prevents concurrent processQueue calls from double-processing the same
+  // pending op.  Without this guard a create op could reach the server twice
+  // (e.g. the online-event useEffect fires while the SW bridge also invokes
+  // processQueue) resulting in duplicate notes.
+  const processingRef = useRef(false);
   /**
    * Fetch notes with offline-first strategy:
    * 1. Load from cache immediately (instant UI)
@@ -405,52 +411,94 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
   );
 
   const processQueue = useCallback(async () => {
-    // Security gate: never sync from a device that is no longer trusted.
-    // Trust is checked at runtime against localStorage (written by useDevices
-    // after every server fetch) rather than relying on stale in-memory state.
-    if (localStorage.getItem('device-trusted') !== 'true') return;
+    // Guard 1 — Concurrency mutex.
+    // If processQueue is invoked again while a previous run is still in-flight
+    // (e.g. the online-event useEffect fires while the SW bridge also calls it),
+    // the duplicate call is dropped immediately.  This is the primary defense
+    // against double-processing the same pending op (which could, for example,
+    // post the same create request twice and mint duplicate notes on the server).
+    if (processingRef.current) return;
+    processingRef.current = true;
 
-    const ops = await getPendingOps();
-    if (ops.length === 0) return;
-    for (const op of ops) {
+    try {
+      // Guard 2 — Fast-path localStorage check.
+      // Avoids any network round-trips when trust is already known to be absent
+      // (e.g. after logout or after a trust-revoked event was handled locally).
+      if (localStorage.getItem('device-trusted') !== 'true') return;
+
+      const ops = await getPendingOps();
+      if (ops.length === 0) return;
+
+      // Guard 3 — Server-side trust verification.
+      // The localStorage flag may be stale: another device could have revoked
+      // trust while this device was offline.  We MUST verify with the server
+      // BEFORE making any state-mutating API calls so a revoked device can
+      // never silently sync data that should no longer be allowed.
+      const currentDeviceId = localStorage.getItem('device-id');
+      if (!currentDeviceId) return; // Cannot identify device — abort.
+
       try {
-        if (op.type === 'create' && op.payload) {
-          const res = await createNoteApi(op.payload as NoteInput);
-          if (op.tempId) {
-            // Temp notes are not added to UI state (see createNote offline path),
-            // but this map is kept as a safety net for any edge-case where a
-            // tmp_ note might slip into state (e.g. direct state manipulation).
-            setNotes((prev) => prev.map((n) => (n._id === op.tempId ? res.data : n)));
-            // Delete the stale Dexie entry immediately.  The real server note
-            // (with a proper _id) is about to be cached by cacheNotes below.
-            removeCachedNote(op.tempId).catch(() => {});
-          }
-          // Cache the authoritative server note.
-          cacheNotes([res.data]).catch(() => {});
-        } else if (
-          op.type === 'update' &&
-          op.noteId &&
-          !op.noteId.startsWith('tmp_') &&
-          op.payload
-        ) {
-          const res = await updateNoteApi(op.noteId, op.payload as UpdateNoteInput);
-          setNotes((prev) => prev.map((n) => (n._id === op.noteId ? res.data : n)));
-          cacheNotes([res.data]).catch(() => {});
-        } else if (op.type === 'delete' && op.noteId && !op.noteId.startsWith('tmp_')) {
-          await deleteNoteApi(op.noteId);
+        const { data: trustedDevices } = await getDevicesApi(currentDeviceId);
+        const isStillTrusted =
+          Array.isArray(trustedDevices) &&
+          trustedDevices.some((d) => d.deviceId === currentDeviceId);
+        if (!isStillTrusted) {
+          // Device was revoked on another device while this one was offline.
+          // Trigger the same cleanup flow as a real-time revocation event.
+          window.dispatchEvent(new CustomEvent('device:trust-revoked'));
+          return;
         }
-        // Only remove from queue on success
-        if (op.id !== undefined) await removePendingOp(op.id);
       } catch {
-        // Keep the op in queue, just mark it as failed for display purposes
-        if (op.id !== undefined) await incrementPendingOpFailure(op.id);
+        // Could not verify trust status — abort sync conservatively.
+        // Pending ops remain queued and will be retried on the next online
+        // transition.  The risk of syncing from a revoked device outweighs
+        // the cost of deferring for one cycle.
+        return;
       }
+
+      // All trust checks passed — process ops in insertion order.
+      for (const op of ops) {
+        try {
+          if (op.type === 'create' && op.payload) {
+            const res = await createNoteApi(op.payload as NoteInput);
+            if (op.tempId) {
+              // Temp notes are not added to UI state (see createNote offline path),
+              // but this map is kept as a safety net for any edge-case where a
+              // tmp_ note might slip into state (e.g. direct state manipulation).
+              setNotes((prev) => prev.map((n) => (n._id === op.tempId ? res.data : n)));
+              // Delete the stale Dexie entry immediately.  The real server note
+              // (with a proper _id) is about to be cached by cacheNotes below.
+              removeCachedNote(op.tempId).catch(() => {});
+            }
+            // Cache the authoritative server note.
+            cacheNotes([res.data]).catch(() => {});
+          } else if (
+            op.type === 'update' &&
+            op.noteId &&
+            !op.noteId.startsWith('tmp_') &&
+            op.payload
+          ) {
+            const res = await updateNoteApi(op.noteId, op.payload as UpdateNoteInput);
+            setNotes((prev) => prev.map((n) => (n._id === op.noteId ? res.data : n)));
+            cacheNotes([res.data]).catch(() => {});
+          } else if (op.type === 'delete' && op.noteId && !op.noteId.startsWith('tmp_')) {
+            await deleteNoteApi(op.noteId);
+          }
+          // Only remove from queue on success
+          if (op.id !== undefined) await removePendingOp(op.id);
+        } catch {
+          // Keep the op in queue, just mark it as failed for display purposes
+          if (op.id !== undefined) await incrementPendingOpFailure(op.id);
+        }
+      }
+      // Catch-all cleanup: remove any tmp_* Dexie entries that were not cleaned up
+      // above (e.g. stale entries created by older app versions that lacked the
+      // per-op removeCachedNote call).  This is fast and idempotent.
+      await cleanStaleNotes().catch(() => {});
+      await fetchNotes();
+    } finally {
+      processingRef.current = false;
     }
-    // Catch-all cleanup: remove any tmp_* Dexie entries that were not cleaned up
-    // above (e.g. stale entries created by older app versions that lacked the
-    // per-op removeCachedNote call).  This is fast and idempotent.
-    await cleanStaleNotes().catch(() => {});
-    await fetchNotes();
   }, [fetchNotes]);
 
   // Process offline queue when connection is restored (after processQueue is defined)
