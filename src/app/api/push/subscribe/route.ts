@@ -23,9 +23,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { userId } = auth;
 
     const body = await request.json();
-    const { endpoint, keys, deviceInfo } = body as {
+    const { endpoint, keys, deviceId, deviceInfo } = body as {
       endpoint: string;
       keys: { p256dh: string; auth: string };
+      deviceId?: string;
       deviceInfo?: string;
     };
 
@@ -39,19 +40,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     await connectDB();
     const subRepo = getSubscriptionRepository();
 
+    const fields = {
+      keys,
+      ...(deviceId && { deviceId }),
+      ...(deviceInfo && { deviceInfo }),
+    };
+
     // Upsert: update if endpoint already exists, else create
     const existing = await subRepo.findByEndpoint(endpoint);
     if (existing) {
-      await subRepo.update(existing._id.toString(), {
-        keys,
-        ...(deviceInfo && { deviceInfo }),
-      });
+      await subRepo.update(existing._id.toString(), fields);
     } else {
       await subRepo.create({
         user: new Types.ObjectId(userId),
         endpoint,
-        keys,
-        ...(deviceInfo && { deviceInfo }),
+        ...fields,
       });
     }
 

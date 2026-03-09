@@ -32,6 +32,14 @@ class SubscriptionRepository extends BaseRepository<ISubscription> {
   async deleteByEndpoint(endpoint: string): Promise<ISubscription | null> {
     return this.model.findOneAndDelete({ endpoint });
   }
+
+  /**
+   * Delete all subscriptions whose `deviceId` field matches the given deviceId.
+   * Used during device removal to cascade-delete push subscriptions.
+   */
+  async deleteByDeviceId(deviceId: string): Promise<number> {
+    return this.deleteWhere({ deviceId });
+  }
 }
 
 // ─── Singleton ───────────────────────────────────────────────────────────────

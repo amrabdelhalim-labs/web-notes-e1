@@ -21,6 +21,7 @@ import {
 import { useLocale } from 'next-intl';
 import type { User, SupportedLocale } from '@/app/types';
 import { db } from '@/app/lib/db';
+import { clearLocalPushState } from '@/app/lib/pushUtils';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -199,21 +200,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    // 1. Clear auth state
+    // Capture credentials before clearing state — needed for the server-side cleanup call.
+    const currentJwt = localStorage.getItem(TOKEN_KEY);
+    const deviceId = localStorage.getItem('device-id');
+
+    // 1. Clear all auth + PWA flags synchronously.
+    //    IMPORTANT: 'pwa-enabled' must be cleared alongside 'device-trusted' so that
+    //    PwaActivationContext.useEffect does not encounter the stale combination
+    //    pwa-enabled=true / device-trusted=false on the next mount and wrongly trigger
+    //    clearOfflineData() + SW unregistration (Bug: DB wiped on re-open after logout).
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_CACHE_KEY);
     localStorage.removeItem('push-subscribed');
     localStorage.removeItem('device-trusted');
+    localStorage.removeItem('pwa-enabled');
     window.dispatchEvent(new CustomEvent(TRUST_CHANGED_EVENT, { detail: { trusted: false } }));
     setToken(null);
     setUser(null);
     setPendingLocaleSuggestion(null);
 
-    // 2. Clear offline database (fire-and-forget)
+    // 2. Notify the server to remove this device and cascade-delete its push subscription.
+    //    Fire-and-forget — if offline the record is cleaned up on the next online login.
+    //    No password required: the JWT itself proves identity for a self-removal during logout.
+    if (currentJwt && deviceId) {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${currentJwt}` },
+        body: JSON.stringify({ deviceId }),
+      }).catch(() => {});
+    }
+
+    // 3. Unsubscribe from the browser PushManager without a server round-trip —
+    //    the server subscription record is handled by the device deletion cascade in step 2.
+    clearLocalPushState().catch(() => {});
+
+    // 4. Clear offline database (fire-and-forget)
     db.notes.clear().catch(() => {});
     db.pendingOps.clear().catch(() => {});
 
-    // 3. Unregister Service Worker + clear caches (works offline)
+    // 5. Unregister Service Worker + clear caches (works offline)
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .getRegistrations()

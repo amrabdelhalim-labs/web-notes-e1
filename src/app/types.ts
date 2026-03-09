@@ -75,6 +75,9 @@ export interface ISubscription extends Document {
   user: Types.ObjectId | IUser;
   endpoint: string;
   keys: { p256dh: string; auth: string };
+  /** Explicit link to the Device record. Indexed for fast cascade deletion. */
+  deviceId?: string;
+  /** Legacy human-readable string “${deviceId}|${platform} — ${userAgent}”. */
   deviceInfo?: string;
   createdAt: Date;
 }

@@ -381,7 +381,23 @@ describe('offline CRUD', () => {
     mockGetCachedNotes.mockResolvedValue([sampleNote]);
   });
 
-  it('createNote offline: adds temp note optimistically and enqueues op', async () => {
+  it('fetchNotes offline: filters out tmp_ notes from cached data', async () => {
+    const tmpNote = {
+      ...sampleNote,
+      _id: 'tmp_abc123',
+      title: 'Pending Note',
+    };
+    mockGetCachedNotes.mockResolvedValue([sampleNote, tmpNote]);
+
+    const { result } = renderHook(() => useNotes());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    // Only the real (server-persisted) note must appear; the tmp_ note is hidden.
+    expect(result.current.notes.some((n) => n._id === 'tmp_abc123')).toBe(false);
+    expect(result.current.notes.some((n) => n._id === 'n1')).toBe(true);
+  });
+
+  it('createNote offline: returns temp note, queues op, does NOT add to UI state', async () => {
     const { result } = renderHook(() => useNotes({ autoFetch: false }));
 
     const created = await act(() =>
@@ -392,6 +408,9 @@ describe('offline CRUD', () => {
     expect(mockEnqueuePendingOp).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'create', noteTitle: 'Offline Note' })
     );
+    // Pending notes must NOT appear in the notes list — navigating to /notes/{tmp_id}
+    // would crash because no server record exists yet.
+    expect(result.current.notes.some((n) => n._id === created._id)).toBe(false);
   });
 
   it('createNote offline: does NOT call createNoteApi', async () => {
@@ -489,7 +508,7 @@ describe('offline CRUD — untrusted device', () => {
       act(() => result.current.createNote({ title: 'Untrusted Note', type: 'text', content: '' }))
     ).rejects.toThrow(/موثوق/);
 
-    // Optimistic insert was rolled back
+    // No temp note was added to UI state (blocked before any state mutation)
     expect(result.current.notes).toHaveLength(0);
     // No op queued
     expect(mockEnqueuePendingOp).not.toHaveBeenCalled();
@@ -826,18 +845,23 @@ describe('offline filter (applyLocalFilter)', () => {
 // ─── Undo event listener ─────────────────────────────────────────────────────
 
 describe('undo event listener (notes:undo-op)', () => {
-  it('create undo: removes the temp note from state', async () => {
+  it('create undo: offline temp note is never in state; undo event is handled without crash', async () => {
+    // Must be offline BEFORE the hook renders so the createNote callback captures isOnline=false.
+    mockOnlineStatus = false;
     const { result } = renderHook(() => useNotes({ autoFetch: false }));
 
-    // Plant a temp note directly via optimistic path (offline)
-    mockOnlineStatus = false;
+    // Offline create — temp note is queued in pendingOps + Dexie but NOT in UI state.
     const tempNote = await act(() =>
       result.current.createNote({ title: 'To undo', type: 'text', content: '' })
     );
 
-    expect(result.current.notes.some((n) => n._id === tempNote._id)).toBe(true);
+    // Temp note must NOT be in the notes list.
+    expect(result.current.notes.some((n) => n._id === tempNote._id)).toBe(false);
 
-    // Dispatch undo event
+    const countBefore = result.current.count;
+
+    // Dispatch undo event — the handler must not crash and must not change count
+    // (the temp was never counted).
     act(() => {
       window.dispatchEvent(
         new CustomEvent('notes:undo-op', {
@@ -846,9 +870,10 @@ describe('undo event listener (notes:undo-op)', () => {
       );
     });
 
-    await waitFor(() =>
-      expect(result.current.notes.every((n) => n._id !== tempNote._id)).toBe(true)
-    );
+    await waitFor(() => {
+      expect(result.current.notes.every((n) => n._id !== tempNote._id)).toBe(true);
+      expect(result.current.count).toBe(countBefore);
+    });
   });
 
   it('update undo: restores the original note snapshot', async () => {

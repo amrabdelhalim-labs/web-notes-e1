@@ -119,7 +119,11 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
     let cachedData: typeof notes = [];
     if (offlineEnabled) {
       try {
-        cachedData = await getCachedNotes();
+        const allCached = await getCachedNotes();
+        // Exclude pending (tmp_*) notes — they have no server ID yet, so navigating
+        // to their detail page would fail. Pending ops are shown in the
+        // ConnectionIndicator instead.
+        cachedData = allCached.filter((n) => !n._id.startsWith('tmp_'));
         if (cachedData.length > 0) {
           // Apply client-side filter/search on cached data (works offline too)
           const filtered = applyLocalFilter(cachedData, typeFilter, searchQuery);
@@ -143,29 +147,12 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
           q: searchQuery || undefined,
         });
 
-        // Re-inject any optimistic creates still pending sync
-        const allPendingOps = await getPendingOps();
-        const pendingCreates = allPendingOps
-          .filter((op) => op.type === 'create' && op.tempId && op.payload)
-          .map(
-            (op) =>
-              ({
-                _id: op.tempId!,
-                title: (op.payload as NoteInput).title ?? '',
-                content: (op.payload as NoteInput).content,
-                audioData: (op.payload as NoteInput).audioData,
-                audioDuration: (op.payload as NoteInput).audioDuration,
-                type: (op.payload as NoteInput).type ?? 'text',
-                user: '',
-                createdAt: new Date(op.timestamp).toISOString(),
-                updatedAt: new Date(op.timestamp).toISOString(),
-              }) as Note
-          );
-        const serverIds = new Set(res.data.notes.map((n) => n._id));
-        const uniqueTemps = pendingCreates.filter((n) => !serverIds.has(n._id));
-        // Update UI with fresh server data + any unsynced creates
-        setNotes([...uniqueTemps, ...res.data.notes]);
-        setCount(res.data.count + uniqueTemps.length);
+        // Show only authoritative server data.
+        // Pending offline creates are tracked in the ConnectionIndicator and
+        // intentionally hidden from the notes list to prevent navigation to
+        // detail pages with non-existent server IDs.
+        setNotes(res.data.notes);
+        setCount(res.data.count);
         setTotalPages(res.data.totalPages);
 
         // Update cache in background — trusted devices only (fire and forget)
@@ -212,7 +199,6 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
 
   const createNote = useCallback(
     async (input: NoteInput): Promise<Note> => {
-      // Optimistic: show the note immediately with a temp id
       const tempId = `tmp_${crypto.randomUUID()}`;
       const tempNote: Note = {
         _id: tempId,
@@ -225,8 +211,6 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      setNotes((prev) => [tempNote, ...prev]);
-      setCount((c) => c + 1);
 
       if (!isOnline) {
         // Guard: only queue offline ops on trusted devices.
@@ -234,12 +218,14 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         // (trust may never be granted), so we refuse the mutation immediately
         // rather than silently swallowing it into an unreachable queue.
         if (localStorage.getItem('device-trusted') !== 'true') {
-          setNotes((prev) => prev.filter((n) => n._id !== tempId));
-          setCount((c) => Math.max(0, c - 1));
           throw new Error(
             'لا يمكن إنشاء ملاحظات بدون اتصال على جهاز غير موثوق. ثق بهذا الجهاز أولاً.'
           );
         }
+        // Queue the op and persist to Dexie, but do NOT add the temp note to the UI.
+        // Pending notes are hidden from the list because navigating to a /notes/{tmp_id}
+        // page would fail (no server record exists yet). The ConnectionIndicator shows
+        // the pending count so the user knows their note is queued for sync.
         await enqueuePendingOp({
           type: 'create',
           tempId,
@@ -271,6 +257,11 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
         }
         return tempNote;
       }
+
+      // Online: optimistic update — the temp note is replaced by the real note
+      // within a single server round-trip so the UX flash is imperceptible.
+      setNotes((prev) => [tempNote, ...prev]);
+      setCount((c) => c + 1);
 
       try {
         const res = await createNoteApi(input);
@@ -474,8 +465,9 @@ export function useNotes(options: UseNotesOptions = {}): UseNotesReturn {
       const op = (e as CustomEvent<{ op: PendingOperation }>).detail?.op;
       if (!op) return;
       if (op.type === 'create' && op.tempId) {
+        // Offline creates never enter state, so no note to filter and no count
+        // to decrement — just a no-op guard in case a stale event fires.
         setNotes((prev) => prev.filter((n) => n._id !== op.tempId));
-        setCount((c) => Math.max(0, c - 1));
       } else if (op.type === 'update' && op.noteId && op.noteSnapshot) {
         setNotes((prev) => prev.map((n) => (n._id === op.noteId ? op.noteSnapshot! : n)));
       } else if (op.type === 'delete' && op.noteId && op.noteSnapshot) {

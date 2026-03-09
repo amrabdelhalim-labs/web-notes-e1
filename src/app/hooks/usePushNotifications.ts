@@ -42,9 +42,10 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
 }
 
-function getDeviceInfo(): string {
+function getDeviceInfo(): { deviceId: string; deviceInfo: string } {
   const deviceId = localStorage.getItem('device-id') ?? 'unknown';
-  return `${deviceId}|${navigator.platform} — ${navigator.userAgent.slice(0, 80)}`;
+  const deviceInfo = `${deviceId}|${navigator.platform} — ${navigator.userAgent.slice(0, 80)}`;
+  return { deviceId, deviceInfo };
 }
 
 const STORAGE_KEY = 'push-subscribed';
@@ -113,7 +114,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
       await fetchApi('/api/push/subscribe', {
         method: 'POST',
-        body: JSON.stringify({ ...subJson, deviceInfo: getDeviceInfo() }),
+        body: JSON.stringify({ ...subJson, ...getDeviceInfo() }),
       });
 
       localStorage.setItem(STORAGE_KEY, 'true');

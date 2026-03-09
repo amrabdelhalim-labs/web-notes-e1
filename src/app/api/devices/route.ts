@@ -157,13 +157,19 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ message: 'الجهاز غير موجود' }, { status: 404 });
     }
 
-    // Also remove any push subscriptions that include this deviceId in deviceInfo
+    // Cascade: delete all push subscriptions linked to this device.
+    // Match on the explicit deviceId field (new records) or the legacy deviceInfo
+    // string prefix “${deviceId}|…” (records created before the deviceId field was added).
     const subs = await subRepo.findByUser(auth.userId);
-    for (const sub of subs) {
-      if (sub.deviceInfo && sub.deviceInfo.includes(deviceId)) {
-        await subRepo.deleteByEndpoint(sub.endpoint);
-      }
-    }
+    await Promise.all(
+      subs
+        .filter(
+          (s) =>
+            s.deviceId === deviceId ||
+            (s.deviceInfo && s.deviceInfo.startsWith(`${deviceId}|`))
+        )
+        .map((s) => subRepo.deleteByEndpoint(s.endpoint))
+    );
 
     return NextResponse.json({ message: 'تم إزالة الجهاز بنجاح' });
   } catch (error) {
