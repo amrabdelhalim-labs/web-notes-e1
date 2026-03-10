@@ -367,4 +367,4 @@ const mockNote: INote = {
 ---
 
 *للتعمق في بنية المشروع: [database-abstraction.md](database-abstraction.md)*  
-*للدرس التعليمي: [tutorials/lessons/07-testing-basics.md](tutorials/lessons/07-testing-basics.md) و [tutorials/lessons/08-component-testing.md](tutorials/lessons/08-component-testing.md)*
+*للدرس التعليمي: [الدرس 13: الاختبارات الشاملة](tutorials/lessons/13-testing.md)*

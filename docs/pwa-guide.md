@@ -425,4 +425,4 @@ NEXT_PUBLIC_SW_DISABLED=true
 ---
 
 *للتعمق في API الإشعارات: [api-endpoints.md](api-endpoints.md#post-apipushsubscribe)*  
-*للدرس التعليمي: [tutorials/lessons/09-pwa-basics.md](tutorials/lessons/09-pwa-basics.md) و [tutorials/lessons/10-offline-sync.md](tutorials/lessons/10-offline-sync.md)*
+*للدرس التعليمي: [الدرس 10: PWA و Service Worker](tutorials/lessons/10-pwa-service-worker.md) و [الدرس 11: الإشعارات والأجهزة](tutorials/lessons/11-push-notifications.md)*

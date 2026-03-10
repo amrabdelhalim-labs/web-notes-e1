@@ -38,7 +38,7 @@
 | 06 | نظام السمات والتخطيط | MUI ThemeProvider، الوضع الفاتح/الداكن، RTL، تخطيط الصفحة | [lessons/06-theme-system.md](lessons/06-theme-system.md) |
 | 07 | الترجمة وثنائية الاتجاه | next-intl، ملفات الرسائل، توجيه اللغة، تبديل ديناميكي | [lessons/07-internationalization.md](lessons/07-internationalization.md) |
 | 08 | واجهة إدارة الملاحظات | useNotes hook، النماذج، القوائم، البطاقات، البحث، الترقيم | [lessons/08-notes-crud.md](lessons/08-notes-crud.md) |
-| 09 | التسجيل الصوتي والمحرر النصي | MediaRecorder API، TipTap، معالجة الصوت | [lessons/09-voice-recording.md](lessons/09-voice-recording.md) |
+| 09 | محرر النصوص الغني والتسجيل الصوتي — Tiptap وMediaRecorder | Tiptap، RTL/LTR، MediaRecorder API، آلة حالة، معالجة الصوت | [lessons/09-tiptap-and-media-recorder.md](lessons/09-tiptap-and-media-recorder.md) |
 | 10 | تطبيق الويب التقدمي و Service Worker | @serwist/next، Dexie، رتل العمليات المعلّقة، المزامنة الخلفية | [lessons/10-pwa-service-worker.md](lessons/10-pwa-service-worker.md) |
 | 11 | الإشعارات الفورية وإدارة الأجهزة | VAPID Web Push، الأجهزة الموثوقة، كشف الاتصال | [lessons/11-push-notifications.md](lessons/11-push-notifications.md) |
 | 12 | الملف الشخصي وإعدادات الحساب | تعديل البيانات، تغيير كلمة المرور، حذف الحساب | [lessons/12-profile-settings.md](lessons/12-profile-settings.md) |
@@ -66,7 +66,7 @@
                           └──► الدرس 06 (السمات)
                                 └──► الدرس 07 (الترجمة)
                                       └──► الدرس 08 (الملاحظات)
-                                            └──► الدرس 09 (الصوت)
+                                            └──► الدرس 09 (Tiptap + MediaRecorder)
                                                   └──► الدرس 10 (PWA)
                                                         └──► الدرس 11 (الإشعارات)
                                                               └──► الدرس 12 (الملف الشخصي)

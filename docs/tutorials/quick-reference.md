@@ -96,10 +96,10 @@
 | `useNotes.ts` | [08](lessons/08-notes-crud.md) | CRUD ملاحظات + رتل عمليات + ترقيم + بحث |
 | `useDeviceId.ts` | [11](lessons/11-push-notifications.md) | UUID ثابت للجهاز في localStorage |
 | `useDevices.ts` | [11](lessons/11-push-notifications.md) | إدارة الأجهزة الموثوقة |
-| `useOfflineStatus.ts` | [10](lessons/10-pwa-service-worker.md) | كشف اتصال مزدوج الطبقات |
+| `useOfflineStatus.ts` | [11](lessons/11-push-notifications.md) | كشف اتصال مزدوج الطبقات |
 | `usePushNotifications.ts` | [11](lessons/11-push-notifications.md) | دورة حياة اشتراك Web Push |
 | `usePwaStatus.ts` | [10](lessons/10-pwa-service-worker.md) | حالة PWA — SW مُسجّل؟ قابل للتثبيت؟ |
-| `useSyncStatus.ts` | [10](lessons/10-pwa-service-worker.md) | عدد العمليات المعلّقة + كشف فشل |
+| `useSyncStatus.ts` | [11](lessons/11-push-notifications.md) | عدد العمليات المعلّقة + كشف فشل |
 | `useThemeMode.ts` | [06](lessons/06-theme-system.md) | واجهة وصول ThemeContext |
 
 ### المكونات (`src/app/components/`)
@@ -107,7 +107,7 @@
 | الملف | الدرس | الوصف |
 |-------|-------|-------|
 | `auth/PrivateRoute.tsx` | [04](lessons/04-authentication.md) | حراسة المسارات — تحويل لصفحة الدخول |
-| `common/ConnectionIndicator.tsx` | [10](lessons/10-pwa-service-worker.md) | مؤشر حالة الاتصال والمزامنة |
+| `common/ConnectionIndicator.tsx` | [11](lessons/11-push-notifications.md) | مؤشر حالة الاتصال والمزامنة |
 | `common/DeviceTrustPrompt.tsx` | [11](lessons/11-push-notifications.md) | حوار طلب الوثوق بالجهاز |
 | `common/LanguageToggle.tsx` | [07](lessons/07-internationalization.md) | زر تبديل اللغة (عربي ⟷ English) |
 | `common/LocaleSwitchPromptDialog.tsx` | [07](lessons/07-internationalization.md) | حوار اقتراح تغيير اللغة |
@@ -122,8 +122,8 @@
 | `notes/NoteList.tsx` | [08](lessons/08-notes-crud.md) | قائمة الملاحظات مع بحث وترقيم |
 | `notes/NoteEditorForm.tsx` | [08](lessons/08-notes-crud.md) | نموذج إنشاء/تعديل ملاحظة |
 | `notes/DeleteConfirmDialog.tsx` | [08](lessons/08-notes-crud.md) | حوار تأكيد حذف ملاحظة |
-| `notes/RichTextEditor.tsx` | [09](lessons/09-voice-recording.md) | محرر TipTap للنصوص الغنية |
-| `notes/VoiceRecorder.tsx` | [09](lessons/09-voice-recording.md) | واجهة التسجيل الصوتي (MediaRecorder) |
+| `notes/RichTextEditor.tsx` | [09](lessons/09-tiptap-and-media-recorder.md) | محرر TipTap للنصوص الغنية |
+| `notes/VoiceRecorder.tsx` | [09](lessons/09-tiptap-and-media-recorder.md) | واجهة التسجيل الصوتي (MediaRecorder) |
 | `profile/ProfileEditor.tsx` | [12](lessons/12-profile-settings.md) | نموذج تعديل الملف الشخصي |
 | `profile/DeleteAccountDialog.tsx` | [12](lessons/12-profile-settings.md) | حوار تأكيد حذف الحساب |
 
@@ -134,8 +134,8 @@
 | `layout.tsx` | [06](lessons/06-theme-system.md) | تخطيط اللغة — الخطوط، الاتجاه، Providers |
 | `page.tsx` | [01](lessons/01-project-setup.md) | الصفحة الرئيسية — توجيه حسب حالة المصادقة |
 | `not-found.tsx` | [01](lessons/01-project-setup.md) | صفحة 404 مع دعم وضع عدم الاتصال |
-| `login/page.tsx` | [04](lessons/04-authentication.md) | صفحة تسجيل الدخول |
-| `register/page.tsx` | [04](lessons/04-authentication.md) | صفحة إنشاء حساب |
+| `login/page.tsx` | [12](lessons/12-profile-settings.md) | صفحة تسجيل الدخول |
+| `register/page.tsx` | [12](lessons/12-profile-settings.md) | صفحة إنشاء حساب |
 | `notes/page.tsx` | [08](lessons/08-notes-crud.md) | قائمة الملاحظات |
 | `notes/new/page.tsx` | [08](lessons/08-notes-crud.md) | إنشاء ملاحظة جديدة |
 | `notes/[id]/page.tsx` | [08](lessons/08-notes-crud.md) | تفاصيل ملاحظة واحدة |
@@ -146,9 +146,9 @@
 
 | الملف | الدرس | الوصف |
 |-------|-------|-------|
-| `utils/audio.ts` | [09](lessons/09-voice-recording.md) | تحويل صوت: blob↔base64, formatDuration |
+| `utils/audio.ts` | [09](lessons/09-tiptap-and-media-recorder.md) | تحويل صوت: blob↔base64, formatDuration |
 | `utils/notes.ts` | [08](lessons/08-notes-crud.md) | stripHtml, formatDateShort/Long |
-| `utils/sanitize.ts` | [09](lessons/09-voice-recording.md) | تنقية HTML (DOMParser, قائمة عناصر آمنة) |
+| `utils/sanitize.ts` | [08](lessons/08-notes-crud.md) | تنقية HTML (DOMParser, قائمة عناصر آمنة) |
 | `validators/index.ts` | [05](lessons/05-api-routes.md) | دوال تحقق نقية تُرجع أخطاء عربية |
 
 ### مسارات API (`src/app/api/`)
@@ -309,7 +309,7 @@
 | 06 | [نظام السمات](lessons/06-theme-system.md) | MUI 7، فاتح/داكن، RTL، EmotionCache |
 | 07 | [الترجمة](lessons/07-internationalization.md) | next-intl 4، ملفات الرسائل، تبديل اللغة |
 | 08 | [واجهة الملاحظات](lessons/08-notes-crud.md) | useNotes، نماذج، قوائم، بحث، ترقيم |
-| 09 | [التسجيل الصوتي والمحرر](lessons/09-voice-recording.md) | MediaRecorder، TipTap 3، معالجة صوت |
+| 09 | [محرر النصوص الغني والتسجيل الصوتي](lessons/09-tiptap-and-media-recorder.md) | TipTap 3، MediaRecorder، معالجة صوت |
 | 10 | [PWA و Service Worker](lessons/10-pwa-service-worker.md) | @serwist/next 9، Dexie 4، بصمة صفرية، مزامنة |
 | 11 | [الإشعارات والأجهزة](lessons/11-push-notifications.md) | VAPID Web Push، أجهزة موثوقة، كشف اتصال |
 | 12 | [الملف الشخصي](lessons/12-profile-settings.md) | تعديل بيانات، تغيير كلمة مرور، حذف حساب |
