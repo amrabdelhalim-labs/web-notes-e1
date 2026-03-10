@@ -47,19 +47,26 @@ vi.mock('@/app/repositories/subscription.repository', () => ({
 }));
 
 vi.mock('@/app/lib/apiErrors', () => ({
+  getRequestLocale: () => 'ar',
+  serverMsg: (_locale: string, key: string) => key,
   validationError: (messages: string[]) =>
     new Response(
       JSON.stringify({ error: { code: 'VALIDATION_ERROR', message: messages.join(', ') } }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     ),
   serverError: () =>
-    new Response(JSON.stringify({ error: { code: 'SERVER_ERROR', message: 'خطأ في الخادم' } }), {
+    new Response(JSON.stringify({ error: { code: 'SERVER_ERROR', message: 'Server error' } }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     }),
-  unauthorizedError: (message = 'غير مصرح') =>
-    new Response(JSON.stringify({ error: { code: 'UNAUTHORIZED', message } }), {
+  unauthorizedError: (_locale?: string, key = 'unauthorized') =>
+    new Response(JSON.stringify({ error: { code: 'UNAUTHORIZED', message: key } }), {
       status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    }),
+  notFoundError: (_locale?: string, key = 'notFound') =>
+    new Response(JSON.stringify({ error: { code: 'NOT_FOUND', message: key } }), {
+      status: 404,
       headers: { 'Content-Type': 'application/json' },
     }),
 }));

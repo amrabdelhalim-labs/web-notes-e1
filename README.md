@@ -1,7 +1,7 @@
 # ملاحظاتي — تطبيق ويب تقدمي للملاحظات 📝
 
-> **الإصدار:** `v0.1.0` — تطبيق ويب تقدمي (PWA) كامل، يعمل بدون اتصال، مع مزامنة تلقائية وإشعارات فورية
-> **الحالة:** ٥٧٣ اختبار ✅ — النشر على Heroku — مكتمل التطوير
+> **الإصدار:** `v0.2.1` — تطبيق ويب تقدمي (PWA) كامل، يعمل بدون اتصال، مع مزامنة تلقائية وإشعارات فورية
+> **الحالة:** ٥٨١ اختبار ✅ — النشر على Heroku — مكتمل التطوير
 
 ---
 
@@ -188,7 +188,7 @@ web-notes-e1/
 
 | الإحصائية | القيمة |
 |-----------|--------|
-| **إجمالي الاختبارات** | **٥٧٣ اختبار** |
+| **إجمالي الاختبارات** | **٥٨١ اختبار** |
 | **ملفات الاختبار** | **٣٩ ملفًا** |
 | **إطار الاختبار** | Vitest + @testing-library/react |
 | **بيئة الاختبار** | jsdom |
@@ -261,6 +261,37 @@ npm run build
 | [docs/tutorials/concepts-guide.md](docs/tutorials/concepts-guide.md) | شرح كل مفهوم تقني من الصفر |
 | [docs/tutorials/quick-reference.md](docs/tutorials/quick-reference.md) | مرجع سريع وجداول أوامر وروابط |
 | [docs/tutorials/lessons/](docs/tutorials/lessons/) | ١٣ درسًا تعليميًا تفصيليًا بالعربية |
+
+---
+
+## سجل التغييرات
+
+### v0.2.1 — رسائل خطأ الخادم حسب لغة المستخدم (الإصدار الحالي)
+
+- **إصلاح:** جميع رسائل خطأ الخادم كانت نصوصًا عربية مُرمَّزة — مستخدمو الإنجليزية يتلقون أخطاء عربية
+  - أُضيف namespace جديد `ServerErrors` في `ar.json` و`en.json` (40 مفتاحاً شاملاً للأخطاء والتحقق)
+  - أُعيدت كتابة `apiErrors.ts`: `getRequestLocale()` تقرأ `x-locale` header؛ `serverMsg(locale, key)` تحل الرسالة بالترجمة الصحيحة
+  - جميع دوال المساعدة (`validationError`، `unauthorizedError`، …) تقبل `locale` كمعامل
+- **إصلاح:** `api.ts` لم يكن يُرسل اللغة إلى الخادم — أُضيف `x-locale` header مشتق من مسار URL
+- **إصلاح:** دوال التحقق (`validators/index.ts`) كانت تُعيد نصوصًا عربية ثابتة — الآن تقبل `locale` وتستخدم `serverMsg()`
+- **إصلاح:** `auth.middleware.ts` كانت رسائل tokenMissing/tokenInvalid عربية ثابتة — الآن locale-aware
+- **إصلاح:** جميع route handlers (login، register، me، notes، users، devices، push) تستخرج اللغة بـ `getRequestLocale(request)` قبل `try{}` وتُمررها لجميع دوال الخطأ
+- **إصلاح:** خطأ مطبعيان في `ar.json`: «جارِس» ← «جارٍ»، «للتثيت» ← «للتثبيت»
+- **إصلاح:** رسائل الخطأ الاحتياطية في `api.ts` و`AuthContext.tsx` استُبدلت بنص إنجليزي محايد
+- **إصلاح:** لغة المستخدم عند التسجيل تُحفظ الآن بشكل صحيح (`'ar'` | `'en'` | `'unset'`)
+- **توحيد:** مسارات push تستخدم `validationError()` بدلاً من بناء الاستجابة يدويًا
+- **اختبارات:** إصلاح اختبار `apiClient.test.ts` المعطوب (رسالة fallback عربية ← إنجليزية)؛ إضافة اختبار `x-locale` header؛ إصلاح mock في `devicesRoute.test.ts`؛ إضافة 7 اختبارات locale EN في `validators.test.ts` — **5٨١ اختبار** (+8)
+- **توثيق:** تحديث `ai/README.md`، `ai/architecture.md`، `ai/feature-guide.md`، `CONTRIBUTING.md`، ودرس `04-authentication.md`
+
+### v0.2.0 — التوثيق التعليمي الكامل
+
+- ١٣ درسًا تعليميًا بالعربية (دروس 01–13) مع مفاهيم Next.js، MongoDB، PWA، وإدارة الحالة
+- ملفات مرجعية وشاملة: concepts-guide، quick-reference، tutorials/README
+
+### v0.1.0 — الإصدار الأولي
+
+- تطبيق PWA كامل: CRUD الملاحظات، تسجيل مستخدمين، وضع بلا إنترنت، إشعارات Push
+- ٥٧٣ اختبار — نشر على Heroku
 
 ---
 

@@ -183,35 +183,52 @@ get tag(): TagRepository {
 Add new validation functions:
 
 ```typescript
-export function validateTagInput(input: TagInput): string[] {
+import { serverMsg } from '@/app/lib/apiErrors';
+import type { SupportedLocale } from '@/app/types';
+
+export function validateTagInput(input: TagInput, locale: SupportedLocale = 'ar'): string[] {
   const errors: string[] = [];
 
   if (!input.name || typeof input.name !== 'string' || input.name.trim().length === 0) {
-    errors.push('اسم الوسم مطلوب');
+    errors.push(serverMsg(locale, 'validNoteTitleRequired')); // use nearest matching key or add a new ServerErrors key
   } else if (input.name.trim().length > 50) {
-    errors.push('اسم الوسم يجب ألا يتجاوز 50 حرفاً');
-  }
-
-  if (input.color !== undefined && typeof input.color !== 'string') {
-    errors.push('لون الوسم يجب أن يكون نصاً');
+    errors.push(serverMsg(locale, 'validNoteTitleTooLong'));
   }
 
   return errors;
 }
 
-export function validateUpdateTagInput(input: UpdateTagInput): string[] {
+export function validateUpdateTagInput(input: UpdateTagInput, locale: SupportedLocale = 'ar'): string[] {
   const errors: string[] = [];
 
   if (input.name !== undefined) {
     if (typeof input.name !== 'string' || input.name.trim().length === 0) {
-      errors.push('اسم الوسم لا يمكن أن يكون فارغاً');
+      errors.push(serverMsg(locale, 'validNoteTitleRequired'));
     } else if (input.name.trim().length > 50) {
-      errors.push('اسم الوسم يجب ألا يتجاوز 50 حرفاً');
+      errors.push(serverMsg(locale, 'validNoteTitleTooLong'));
     }
   }
 
-  if (input.color !== undefined && typeof input.color !== 'string') {
-    errors.push('لون الوسم يجب أن يكون نصاً');
+  return errors;
+}
+```
+
+**Critical notes:**
+- Every validator returns `string[]` — empty = valid, non-empty = error messages.
+- Accept `locale: SupportedLocale = 'ar'` as the second parameter — route handlers pass `getRequestLocale(request)` here.
+- Use `serverMsg(locale, key)` for all error messages — never hardcode string literals.
+- If you need a new error key, add it to **both** `src/messages/ar.json` and `src/messages/en.json` under `ServerErrors` before using it.
+- Create both `validateXxxInput` and `validateUpdateXxxInput` (update allows partial input).
+
+export function validateUpdateTagInput(input: UpdateTagInput, locale: SupportedLocale = 'ar'): string[] {
+  const errors: string[] = [];
+
+  if (input.name !== undefined) {
+    if (typeof input.name !== 'string' || input.name.trim().length === 0) {
+      errors.push(serverMsg(locale, 'validNoteTitleRequired'));
+    } else if (input.name.trim().length > 50) {
+      errors.push(serverMsg(locale, 'validNoteTitleTooLong'));
+    }
   }
 
   return errors;
@@ -242,7 +259,13 @@ import { connectDB } from '@/app/lib/mongodb';
 import { authenticateRequest } from '@/app/middlewares/auth.middleware';
 import { getTagRepository } from '@/app/repositories/tag.repository';
 import { validateTagInput } from '@/app/validators';
-import { validationError, conflictError, serverError } from '@/app/lib/apiErrors';
+import {
+  getRequestLocale,
+  validationError,
+  conflictError,
+  serverError,
+  serverMsg,
+} from '@/app/lib/apiErrors';
 import type { ITag, Tag } from '@/app/types';
 
 function serializeTag(doc: ITag): Tag {
@@ -257,6 +280,7 @@ function serializeTag(doc: ITag): Tag {
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;
@@ -268,25 +292,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ data: tags.map(serializeTag) }, { status: 200 });
   } catch (error) {
     console.error('Tags list error:', error);
-    return serverError();
+    return serverError(locale);
   }
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;
 
     const body = await request.json().catch(() => ({}));
-    const errors = validateTagInput(body);
-    if (errors.length) return validationError(errors);
+    const errors = validateTagInput(body, locale);
+    if (errors.length) return validationError(errors, locale);
 
     await connectDB();
     const tagRepo = getTagRepository();
 
     // Check uniqueness
     const existing = await tagRepo.findByName(auth.userId, body.name.trim());
-    if (existing) return conflictError('يوجد وسم بهذا الاسم بالفعل');
+    if (existing) return conflictError(locale, 'conflict'); // add a specific key if needed
 
     const tag = await tagRepo.create({
       name: body.name.trim(),
@@ -295,12 +320,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
     return NextResponse.json(
-      { data: serializeTag(tag as ITag), message: 'تم إنشاء الوسم بنجاح' },
+      { data: serializeTag(tag as ITag), message: serverMsg(locale, 'conflict') },
       { status: 201 }
     );
   } catch (error) {
     console.error('Tag create error:', error);
-    return serverError();
+    return serverError(locale);
   }
 }
 ```
@@ -317,7 +342,9 @@ Follow the same pattern as `src/app/api/notes/[id]/route.ts`:
 **Critical notes:**
 - Always call `authenticateRequest()` first for protected endpoints.
 - Always call `connectDB()` before any repository operation.
-- Use `apiErrors.ts` helpers for consistent error responses — never construct errors manually.
+- Declare `const locale = getRequestLocale(request)` **before** `try{}` so it is accessible in the `catch` block.
+- Pass `locale` to validators and all `apiErrors.ts` helpers — never hardcode string literals.
+- Use `apiErrors.ts` helpers for consistent error responses — never construct `NextResponse.json()` error bodies manually.
 - Serialize Mongoose documents before sending (dates → ISO strings, ObjectIds → strings).
 - Add a `serialize*` helper at the top of the route file.
 - Document endpoints in the JSDoc comment at the top of each file.
@@ -582,7 +609,9 @@ describe('validateTagInput', () => {
 - [ ] Input types (`XxxInput`, `UpdateXxxInput`) in `types.ts`
 - [ ] Repository in `src/app/repositories/` extending `BaseRepository`
 - [ ] Singleton accessor `get*Repository()` exported
-- [ ] Validators in `src/app/validators/index.ts` (return `string[]`)
+- [ ] Validators in `src/app/validators/index.ts` (accept `locale: SupportedLocale = 'ar'`, use `serverMsg(locale, key)`)
+- [ ] Error keys in `ServerErrors` namespace of `ar.json` + `en.json` if new keys needed
+- [ ] API routes use `getRequestLocale(request)` before `try{}` and pass locale to validators + error helpers
 - [ ] API routes in `src/app/api/<entity>/route.ts` and `[id]/route.ts`
 - [ ] Auth check (`authenticateRequest`) in all protected routes
 - [ ] Serializer function in route file for Mongoose → JSON conversion

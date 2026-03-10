@@ -89,7 +89,16 @@ describe('fetchApi', () => {
       status: 500,
       json: () => Promise.resolve({}),
     });
-    await expect(fetchApi('/api/test')).rejects.toThrow('حدث خطأ غير متوقع');
+    await expect(fetchApi('/api/test')).rejects.toThrow('Unexpected server error');
+  });
+
+  it('sends x-locale header derived from URL pathname', async () => {
+    mockSuccess({ data: 'ok' });
+    await fetchApi('/api/test');
+
+    const [, options] = mockFetch.mock.calls[0];
+    // jsdom sets window.location.pathname to '/' which maps to 'ar'
+    expect(options.headers['x-locale']).toBe('ar');
   });
 });
 

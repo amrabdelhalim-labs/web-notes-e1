@@ -11,10 +11,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/app/lib/mongodb';
 import { authenticateRequest } from '@/app/middlewares/auth.middleware';
 import { getUserRepository } from '@/app/repositories/user.repository';
-import { notFoundError, serverError } from '@/app/lib/apiErrors';
+import { notFoundError, serverError, getRequestLocale } from '@/app/lib/apiErrors';
 import type { User } from '@/app/types';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const userRepo = getUserRepository();
 
     const foundUser = await userRepo.findById(auth.userId);
-    if (!foundUser) return notFoundError('المستخدم غير موجود');
+    if (!foundUser) return notFoundError(locale, 'userNotFound');
 
     const user: User = {
       _id: foundUser._id.toString(),
@@ -38,6 +39,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ data: user }, { status: 200 });
   } catch (error) {
     console.error('Auth/me error:', error);
-    return serverError();
+    return serverError(locale);
   }
 }

@@ -15,8 +15,8 @@
 | **Auth context** | استخدم `useAuth()` hook — لا import مباشر من `AuthContext` |
 | **Theme context** | استخدم `useThemeMode()` hook — لا import مباشر من `ThemeContext` |
 | **الأنواع (Types)** | جميع الأنواع المشتركة في `src/app/types.ts` — لا تعريف inline types في الصفحات |
-| **معالجة الأخطاء** | استخدم `src/app/lib/apiErrors.ts` — رسائل عربية موحَّدة |
-| **i18n** | جميع النصوص من ملفات `src/messages/*.json` — لا hardcoded strings |
+| **معالجة الأخطاء** | استخدم `src/app/lib/apiErrors.ts` — استخرج اللغة أولاً بـ `getRequestLocale(request)` ثم مرِّرها لجميع دوال الخطأ — **لا hardcoded strings** |
+| **i18n** | جميع النصوص من ملفات `src/messages/*.json` — رسائل خطأ الخادم في namespace `ServerErrors` — لا hardcoded strings |
 | **التنقل** | استخدم `redirect/useRouter` من `src/app/lib/navigation.ts` — يضمن الـ locale |
 | **UI constants** | الألوان وثوابت الـ UI من `src/app/lib/ui-constants.ts` |
 | **Icons** | من `@mui/icons-material` — لا صور SVG خارجية |

@@ -2,7 +2,7 @@
 
 > **إجمالي المسارات:** ١٨ نقطة نهاية — ١٢ مسار أساسي + ٣ مسارات للأجهزة والإشعارات + ٢ إشعارات Push + ١ فحص صحة
 > **المصادقة:** JWT عبر `Authorization: Bearer <token>` في ترويسة الطلب
-> **صالح من:** v0.1.0
+> **صالح من:** v0.2.1
 
 ---
 
@@ -68,7 +68,8 @@ Content-Type: application/json
 {
   "username": "ahmed123",
   "email": "ahmed@example.com",
-  "password": "secret123"
+  "password": "secret123",
+  "language": "ar"
 }
 ```
 
@@ -77,6 +78,7 @@ Content-Type: application/json
 | `username` | string | إلزامي — 3 إلى 30 حرف |
 | `email` | string | إلزامي — تنسيق بريد صالح |
 | `password` | string | إلزامي — 6 أحرف على الأقل |
+| `language` | `'ar'` \| `'en'` | اختياري — لغة الواجهة عند التسجيل، الافتراضي `'unset'` |
 
 **الاستجابة الناجحة (201):**
 ```json

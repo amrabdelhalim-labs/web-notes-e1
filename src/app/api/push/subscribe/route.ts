@@ -14,9 +14,10 @@ import { Types } from 'mongoose';
 import { connectDB } from '@/app/lib/mongodb';
 import { authenticateRequest } from '@/app/middlewares/auth.middleware';
 import { getSubscriptionRepository } from '@/app/repositories/subscription.repository';
-import { serverError } from '@/app/lib/apiErrors';
+import { serverError, validationError, getRequestLocale, serverMsg } from '@/app/lib/apiErrors';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;
@@ -31,10 +32,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     };
 
     if (!endpoint || !keys?.p256dh || !keys?.auth) {
-      return NextResponse.json(
-        { error: { code: 'INVALID_SUBSCRIPTION', message: 'بيانات الاشتراك غير مكتملة' } },
-        { status: 400 }
-      );
+      return validationError([serverMsg(locale, 'subscriptionIncomplete')], locale);
     }
 
     await connectDB();
@@ -72,6 +70,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
  * Body: { endpoint }
  */
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;
@@ -80,10 +79,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     const { endpoint } = body as { endpoint: string };
 
     if (!endpoint) {
-      return NextResponse.json(
-        { error: { code: 'MISSING_ENDPOINT', message: 'endpoint مطلوب' } },
-        { status: 400 }
-      );
+      return validationError([serverMsg(locale, 'endpointRequired')], locale);
     }
 
     await connectDB();

@@ -3,6 +3,7 @@
  *
  * Tests all 6 validation functions from validators/index.ts.
  * Each validator returns string[] — empty = valid.
+ * Validators accept an optional locale param ('ar' | 'en'); default is 'ar'.
  */
 
 import {
@@ -264,5 +265,57 @@ describe('validateChangePasswordInput', () => {
       confirmPassword: 'xyz',
     });
     expect(errors.length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+// ─── Locale support ─────────────────────────────────────────────────────────
+
+describe('locale support — English messages', () => {
+  it('validateRegisterInput returns English messages when locale is en', () => {
+    const errors = validateRegisterInput({ username: 'ab', email: 'bad', password: '123' }, 'en');
+    expect(errors.some((e) => e.includes('3 characters'))).toBe(true);
+    expect(errors.some((e) => e.includes('Invalid email'))).toBe(true);
+    expect(errors.some((e) => e.includes('6 characters'))).toBe(true);
+  });
+
+  it('validateLoginInput returns English messages when locale is en', () => {
+    const errors = validateLoginInput({ email: 'not-email', password: '123' }, 'en');
+    expect(errors[0]).toContain('Invalid email');
+    expect(errors[1]).toContain('6 characters');
+  });
+
+  it('validateNoteInput returns English messages when locale is en', () => {
+    const noTitle = validateNoteInput({ title: '', type: 'text', content: 'body' }, 'en');
+    expect(noTitle[0]).toContain('required');
+
+    const noContent = validateNoteInput({ title: 'T', type: 'text', content: '' }, 'en');
+    expect(noContent[0]).toContain('required');
+
+    const noAudio = validateNoteInput({ title: 'T', type: 'voice' }, 'en');
+    expect(noAudio[0]).toContain('Audio data');
+  });
+
+  it('validateUpdateNoteInput returns English messages when locale is en', () => {
+    const errors = validateUpdateNoteInput({ title: '' }, 'en');
+    expect(errors[0]).toContain('required');
+  });
+
+  it('validateUpdateUserInput returns English messages when locale is en', () => {
+    const errors = validateUpdateUserInput({ email: 'bad' }, 'en');
+    expect(errors[0]).toContain('Invalid email');
+  });
+
+  it('validateChangePasswordInput returns English messages when locale is en', () => {
+    const errors = validateChangePasswordInput(
+      { currentPassword: '', newPassword: '123', confirmPassword: '456' },
+      'en'
+    );
+    expect(errors.some((e) => e.includes('required'))).toBe(true);
+    expect(errors.some((e) => e.includes('6 characters'))).toBe(true);
+  });
+
+  it('default locale (ar) still returns Arabic messages', () => {
+    const errors = validateLoginInput({ email: 'bad', password: '12' });
+    expect(errors[0]).toContain('البريد الإلكتروني');
   });
 });

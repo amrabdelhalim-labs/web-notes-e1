@@ -12,28 +12,29 @@ import { connectDB } from '@/app/lib/mongodb';
 import { hashPassword, generateToken } from '@/app/lib/auth';
 import { getUserRepository } from '@/app/repositories/user.repository';
 import { validateRegisterInput } from '@/app/validators';
-import { validationError, conflictError, serverError } from '@/app/lib/apiErrors';
+import { validationError, conflictError, serverError, getRequestLocale } from '@/app/lib/apiErrors';
 import type { User } from '@/app/types';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const locale = getRequestLocale(request);
     const body = await request.json();
 
-    // ── Validate input ──────────────────────────────────────────────────────
-    const errors = validateRegisterInput(body);
-    if (errors.length > 0) return validationError(errors);
+    // ── Validate input ────────────────────────────────────────────────────────
+    const errors = validateRegisterInput(body, locale);
+    if (errors.length > 0) return validationError(errors, locale);
 
     await connectDB();
     const userRepo = getUserRepository();
 
-    // ── Check for duplicates ────────────────────────────────────────────────
+    // ── Check for duplicates ─────────────────────────────────────────────────────
     const [emailTaken, usernameTaken] = await Promise.all([
       userRepo.emailExists(body.email),
       userRepo.usernameExists(body.username),
     ]);
 
-    if (emailTaken) return conflictError('البريد الإلكتروني مستخدم بالفعل');
-    if (usernameTaken) return conflictError('اسم المستخدم مستخدم بالفعل');
+    if (emailTaken) return conflictError(locale, 'emailTaken');
+    if (usernameTaken) return conflictError(locale, 'usernameTaken');
 
     // ── Create user ─────────────────────────────────────────────────────────
     const hashedPassword = await hashPassword(body.password);
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       email: body.email.trim().toLowerCase(),
       password: hashedPassword,
       displayName: body.username.trim(),
-      language: 'ar',
+      language: body.language === 'ar' || body.language === 'en' ? body.language : 'unset',
     });
 
     const token = generateToken(newUser._id.toString());

@@ -37,9 +37,9 @@ These are non-negotiable architectural constraints. **Never violate them.**
 
 1. **All database access goes through repositories** — never import Mongoose models directly in route handlers. Use `getUserRepository()`, `getNoteRepository()`, etc.
 2. **Auth via `authenticateRequest()`** — every protected route must call this function first and return early on `auth.error`.
-3. **Validators return `string[]`** — empty array means valid, non-empty means the array contains Arabic error messages. Always check `.length` before proceeding.
+3. **Validators return `string[]`** — empty array means valid, non-empty means the array contains locale-aware error messages (Arabic by default, English when `locale = 'en'`). Always check `.length` before proceeding.
 4. **API errors via `apiErrors.ts` helpers** — use `validationError()`, `unauthorizedError()`, `notFoundError()`, etc. Never construct raw `NextResponse.json()` error bodies manually.
-5. **User-facing strings are Arabic** — all error messages, validation messages, and UI text default to Arabic. The i18n system handles translations; never hardcode English user-facing strings.
+5. **User-facing strings go through i18n** — UI text in components uses `useTranslations()` from next-intl. Server-side error messages use the `ServerErrors` namespace in `ar.json`/`en.json`, resolved via `serverMsg(locale, key)`. Never hardcode user-facing strings (Arabic or English) in source code.
 6. **Singletons for repositories** — each repository file exports a `get*Repository()` function that returns a cached singleton. Never instantiate repositories with `new`.
 7. **`reloadOnOnline: false` in Serwist config is critical** — enabling it causes `window.location.reload()` before React can flush the IndexedDB offline queue, silently losing pending operations.
 8. **PWA activation is opt-in per device** — the Service Worker only registers on explicitly trusted devices. This is the "Zero PWA Footprint" pattern enforced by `PwaActivationContext`.

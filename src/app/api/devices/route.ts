@@ -17,7 +17,7 @@ import { comparePassword } from '@/app/lib/auth';
 import { getDeviceRepository } from '@/app/repositories/device.repository';
 import { getUserRepository } from '@/app/repositories/user.repository';
 import { getSubscriptionRepository } from '@/app/repositories/subscription.repository';
-import { validationError, unauthorizedError, serverError } from '@/app/lib/apiErrors';
+import { validationError, unauthorizedError, notFoundError, serverError, getRequestLocale, serverMsg } from '@/app/lib/apiErrors';
 import type { Device, IDevice } from '@/app/types';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -62,6 +62,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 // ─── POST ───────────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;
@@ -76,11 +77,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     };
 
     if (!password || typeof password !== 'string') {
-      return validationError(['كلمة المرور مطلوبة']);
+      return validationError([serverMsg(locale, 'devicePasswordRequired')], locale);
     }
 
     if (!deviceId || typeof deviceId !== 'string' || deviceId.length < 8) {
-      return validationError(['معرّف الجهاز غير صالح']);
+      return validationError([serverMsg(locale, 'invalidDeviceId')], locale);
     }
 
     await connectDB();
@@ -89,9 +90,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Verify password before trusting the device
     const user = await userRepo.findById(auth.userId);
-    if (!user) return unauthorizedError('المستخدم غير موجود');
+    if (!user) return unauthorizedError(locale, 'userNotFound');
     const isMatch = await comparePassword(password, user.password);
-    if (!isMatch) return unauthorizedError('كلمة المرور غير صحيحة');
+    if (!isMatch) return unauthorizedError(locale, 'wrongPassword');
 
     // Upsert: update if already trusted, else create
     const existing = await deviceRepo.findByDeviceId(auth.userId, deviceId);
@@ -118,13 +119,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   } catch (error) {
     console.error('Device trust error:', error);
-    return serverError();
+    return serverError(locale);
   }
 }
 
 // ─── DELETE ─────────────────────────────────────────────────────────────────
 
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;
@@ -133,11 +135,11 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     const { deviceId, password } = body as { deviceId: string; password: string };
 
     if (!password || typeof password !== 'string') {
-      return validationError(['كلمة المرور مطلوبة']);
+      return validationError([serverMsg(locale, 'devicePasswordRequired')], locale);
     }
 
     if (!deviceId) {
-      return validationError(['معرّف الجهاز مطلوب']);
+      return validationError([serverMsg(locale, 'deviceIdRequired')], locale);
     }
 
     await connectDB();
@@ -147,14 +149,14 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
 
     // Verify password before allowing device removal
     const user = await userRepo.findById(auth.userId);
-    if (!user) return unauthorizedError('المستخدم غير موجود');
+    if (!user) return unauthorizedError(locale, 'userNotFound');
     const isMatch = await comparePassword(password, user.password);
-    if (!isMatch) return unauthorizedError('كلمة المرور غير صحيحة');
+    if (!isMatch) return unauthorizedError(locale, 'wrongPassword');
 
     // Delete the device
     const deleted = await deviceRepo.deleteByDeviceId(auth.userId, deviceId);
     if (!deleted) {
-      return NextResponse.json({ message: 'الجهاز غير موجود' }, { status: 404 });
+      return notFoundError(locale, 'deviceNotFound');
     }
 
     // Cascade: delete all push subscriptions linked to this device.
@@ -174,6 +176,6 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ message: 'تم إزالة الجهاز بنجاح' });
   } catch (error) {
     console.error('Device delete error:', error);
-    return serverError();
+    return serverError(locale);
   }
 }

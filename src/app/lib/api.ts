@@ -30,10 +30,17 @@ function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+/** Read the active locale from the URL path set by next-intl middleware. */
+function getClientLocale(): string {
+  if (typeof window === 'undefined') return 'ar';
+  return window.location.pathname.startsWith('/en') ? 'en' : 'ar';
+}
+
 export async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'x-locale': getClientLocale(),
     ...(options.headers as Record<string, string> | undefined),
   };
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -41,7 +48,7 @@ export async function fetchApi<T>(path: string, options: RequestInit = {}): Prom
   const res = await fetch(path, { ...options, headers });
   const json = await res.json();
   if (!res.ok) {
-    throw new Error(json.error?.message ?? 'حدث خطأ غير متوقع');
+    throw new Error(json.error?.message ?? 'Unexpected server error');
   }
   return json as T;
 }

@@ -12,16 +12,17 @@ import { connectDB } from '@/app/lib/mongodb';
 import { comparePassword, generateToken } from '@/app/lib/auth';
 import { getUserRepository } from '@/app/repositories/user.repository';
 import { validateLoginInput } from '@/app/validators';
-import { validationError, unauthorizedError, serverError } from '@/app/lib/apiErrors';
+import { validationError, unauthorizedError, serverError, getRequestLocale } from '@/app/lib/apiErrors';
 import type { User } from '@/app/types';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const body = await request.json();
 
     // ── Validate input ──────────────────────────────────────────────────────
-    const errors = validateLoginInput(body);
-    if (errors.length > 0) return validationError(errors);
+    const errors = validateLoginInput(body, locale);
+    if (errors.length > 0) return validationError(errors, locale);
 
     await connectDB();
     const userRepo = getUserRepository();
@@ -29,13 +30,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // ── Find user by email ──────────────────────────────────────────────────
     const foundUser = await userRepo.findByEmail(body.email.trim().toLowerCase());
     if (!foundUser) {
-      return unauthorizedError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      return unauthorizedError(locale, 'invalidCredentials');
     }
 
     // ── Verify password ─────────────────────────────────────────────────────
     const isMatch = await comparePassword(body.password, foundUser.password);
     if (!isMatch) {
-      return unauthorizedError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      return unauthorizedError(locale, 'invalidCredentials');
     }
 
     // ── Generate token ──────────────────────────────────────────────────────
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   } catch (error) {
     console.error('Login error:', error);
-    return serverError();
+    return serverError(locale);
   }
 }
 

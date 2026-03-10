@@ -83,7 +83,7 @@ async function apiFetch<T>(
   const res = await fetch(path, { ...options, headers });
   const json = await res.json();
   if (!res.ok) {
-    throw new Error(json.error?.message ?? 'حدث خطأ غير متوقع');
+    throw new Error(json.error?.message ?? 'Unexpected server error');
   }
   return json as T;
 }
@@ -184,20 +184,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [locale]
   );
 
-  const register = useCallback(async (username: string, email: string, password: string) => {
-    const res = await apiFetch<{ data: { token: string; user: User } }>('/api/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ username, email, password }),
-    });
-    localStorage.setItem(TOKEN_KEY, res.data.token);
-    try {
-      localStorage.setItem(USER_CACHE_KEY, JSON.stringify(res.data.user));
-    } catch {
-      /* ignore */
-    }
-    setToken(res.data.token);
-    setUser(res.data.user);
-  }, []);
+  const register = useCallback(
+    async (username: string, email: string, password: string) => {
+      const res = await apiFetch<{ data: { token: string; user: User } }>('/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ username, email, password, language: locale }),
+      });
+      localStorage.setItem(TOKEN_KEY, res.data.token);
+      try {
+        localStorage.setItem(USER_CACHE_KEY, JSON.stringify(res.data.user));
+      } catch {
+        /* ignore */
+      }
+      setToken(res.data.token);
+      setUser(res.data.user);
+    },
+    [locale]
+  );
 
   const logout = useCallback(async () => {
     // Capture credentials before clearing state — needed for the server-side cleanup call.

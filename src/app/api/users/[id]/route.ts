@@ -19,6 +19,8 @@ import {
   conflictError,
   unauthorizedError,
   serverError,
+  getRequestLocale,
+  serverMsg,
 } from '@/app/lib/apiErrors';
 import type { User } from '@/app/types';
 
@@ -51,32 +53,33 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;
 
     const { id } = await params;
-    if (auth.userId !== id) return forbiddenError();
+    if (auth.userId !== id) return forbiddenError(locale);
 
     const body = await request.json();
 
     // Handle password change separately
     if (body.currentPassword || body.newPassword || body.confirmPassword) {
-      const pwErrors = validateChangePasswordInput(body);
-      if (pwErrors.length > 0) return validationError(pwErrors);
+      const pwErrors = validateChangePasswordInput(body, locale);
+      if (pwErrors.length > 0) return validationError(pwErrors, locale);
 
       await connectDB();
       const userRepo = getUserRepository();
 
       const currentUser = await userRepo.findById(id);
-      if (!currentUser) return notFoundError('المستخدم غير موجود');
+      if (!currentUser) return notFoundError(locale, 'userNotFound');
 
       const isMatch = await comparePassword(body.currentPassword, currentUser.password);
-      if (!isMatch) return unauthorizedError('كلمة المرور الحالية غير صحيحة');
+      if (!isMatch) return unauthorizedError(locale, 'wrongCurrentPassword');
 
       const hashed = await hashPassword(body.newPassword);
       const updated = await userRepo.update(id, { password: hashed });
-      if (!updated) return notFoundError('المستخدم غير موجود');
+      if (!updated) return notFoundError(locale, 'userNotFound');
 
       return NextResponse.json({
         data: serializeUser(updated),
@@ -85,8 +88,8 @@ export async function PUT(
     }
 
     // Handle profile update
-    const profileErrors = validateUpdateUserInput(body);
-    if (profileErrors.length > 0) return validationError(profileErrors);
+    const profileErrors = validateUpdateUserInput(body, locale);
+    if (profileErrors.length > 0) return validationError(profileErrors, locale);
 
     await connectDB();
     const userRepo = getUserRepository();
@@ -95,13 +98,13 @@ export async function PUT(
     if (body.email) {
       const emailTaken = await userRepo.findByEmail(body.email.trim().toLowerCase());
       if (emailTaken && emailTaken._id.toString() !== id) {
-        return conflictError('البريد الإلكتروني مستخدم بالفعل');
+        return conflictError(locale, 'emailTaken');
       }
     }
     if (body.username) {
       const usernameTaken = await userRepo.findByUsername(body.username.trim());
       if (usernameTaken && usernameTaken._id.toString() !== id) {
-        return conflictError('اسم المستخدم مستخدم بالفعل');
+        return conflictError(locale, 'usernameTaken');
       }
     }
 
@@ -113,7 +116,7 @@ export async function PUT(
     if (body.language !== undefined) updateData.language = body.language;
 
     const updated = await userRepo.update(id, updateData);
-    if (!updated) return notFoundError('المستخدم غير موجود');
+    if (!updated) return notFoundError(locale, 'userNotFound');
 
     return NextResponse.json({
       data: serializeUser(updated),
@@ -121,7 +124,7 @@ export async function PUT(
     });
   } catch (error) {
     console.error('User update error:', error);
-    return serverError();
+    return serverError(locale);
   }
 }
 
@@ -131,31 +134,32 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;
 
     const { id } = await params;
-    if (auth.userId !== id) return forbiddenError();
+    if (auth.userId !== id) return forbiddenError(locale);
 
     // Require password confirmation for account deletion
     const body = await request.json().catch(() => ({}));
     if (!body.password) {
-      return validationError(['كلمة المرور مطلوبة لتأكيد حذف الحساب']);
+      return validationError([serverMsg(locale, 'deletePasswordRequired')], locale);
     }
 
     await connectDB();
     const userRepo = getUserRepository();
 
     const currentUser = await userRepo.findById(id);
-    if (!currentUser) return notFoundError('المستخدم غير موجود');
+    if (!currentUser) return notFoundError(locale, 'userNotFound');
 
     const isMatch = await comparePassword(body.password, currentUser.password);
-    if (!isMatch) return unauthorizedError('كلمة المرور غير صحيحة');
+    if (!isMatch) return unauthorizedError(locale, 'wrongPassword');
 
     // Cascade delete with MongoDB transaction (prevents partial failure)
     const deleted = await userRepo.deleteUserCascade(id);
-    if (!deleted) return notFoundError('المستخدم غير موجود');
+    if (!deleted) return notFoundError(locale, 'userNotFound');
 
     return NextResponse.json(
       { message: 'تم حذف الحساب وجميع البيانات المرتبطة بنجاح' },
@@ -163,6 +167,6 @@ export async function DELETE(
     );
   } catch (error) {
     console.error('User delete error:', error);
-    return serverError();
+    return serverError(locale);
   }
 }

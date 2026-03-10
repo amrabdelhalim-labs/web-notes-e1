@@ -14,7 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/app/lib/auth';
-import { unauthorizedError } from '@/app/lib/apiErrors';
+import { getRequestLocale, unauthorizedError } from '@/app/lib/apiErrors';
 import type { ApiResponse } from '@/app/types';
 
 interface AuthSuccess {
@@ -34,10 +34,11 @@ export type AuthResult = AuthSuccess | AuthFailure;
  * Returns `{ userId }` on success or `{ error }` on failure.
  */
 export function authenticateRequest(request: NextRequest): AuthResult {
+  const locale = getRequestLocale(request);
   const header = request.headers.get('authorization');
 
   if (!header || !header.startsWith('Bearer ')) {
-    return { error: unauthorizedError('رمز المصادقة مفقود') };
+    return { error: unauthorizedError(locale, 'tokenMissing') };
   }
 
   const token = header.slice(7); // strip "Bearer "
@@ -46,6 +47,6 @@ export function authenticateRequest(request: NextRequest): AuthResult {
     const payload = verifyToken(token);
     return { userId: payload.id };
   } catch {
-    return { error: unauthorizedError('رمز المصادقة غير صالح أو منتهي الصلاحية') };
+    return { error: unauthorizedError(locale, 'tokenInvalid') };
   }
 }

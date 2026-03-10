@@ -80,9 +80,11 @@ import { connectDB } from '@/app/lib/mongodb';
 import { authenticateRequest } from '@/app/middlewares/auth.middleware';
 import { getNoteRepository } from '@/app/repositories/note.repository';
 import { validateNoteInput } from '@/app/validators';
-import { validationError, serverError } from '@/app/lib/apiErrors';
+import { getRequestLocale, validationError, serverError } from '@/app/lib/apiErrors';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // Detect locale BEFORE try{} so it is accessible in the catch block
+  const locale = getRequestLocale(request);
   try {
     // 1. Auth check (protected routes only)
     const auth = authenticateRequest(request);
@@ -90,8 +92,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // 2. Parse and validate input
     const body = await request.json();
-    const errors = validateNoteInput(body);
-    if (errors.length) return validationError(errors);
+    const errors = validateNoteInput(body, locale);
+    if (errors.length) return validationError(errors, locale);
 
     // 3. Connect to DB and get repository
     await connectDB();
@@ -104,7 +106,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ data: serializeNote(note), message: '...' }, { status: 201 });
   } catch (error) {
     console.error('...', error);
-    return serverError();
+    return serverError(locale);
   }
 }
 ```
@@ -133,9 +135,10 @@ File: `src/app/validators/index.ts`
 All 6 validators follow the same contract:
 
 ```typescript
-function validateXxxInput(input: XxxInput): string[]
+function validateXxxInput(input: XxxInput, locale: SupportedLocale = 'ar'): string[]
 // Empty array → valid
-// Non-empty → array of Arabic error messages
+// Non-empty → array of locale-aware error messages (Arabic by default, English when locale = 'en')
+// Messages are resolved from src/messages/{locale}.json ServerErrors namespace
 ```
 
 Available validators:
@@ -219,15 +222,24 @@ File: `src/app/lib/apiErrors.ts`
 
 All return `NextResponse<ApiResponse<null>>`:
 
-| Function             | HTTP Status | Error Code          |
-| -------------------- | ----------- | ------------------- |
-| `apiError(code, msg)` | 400        | Custom code         |
-| `validationError(msgs)` | 400     | `VALIDATION_ERROR`  |
-| `unauthorizedError(msg?)` | 401   | `UNAUTHORIZED`      |
-| `forbiddenError(msg?)` | 403      | `FORBIDDEN`         |
-| `notFoundError(msg?)` | 404       | `NOT_FOUND`         |
-| `conflictError(msg)` | 409        | `CONFLICT`          |
-| `serverError(msg?)`  | 500        | `SERVER_ERROR`      |
+| Function | HTTP Status | Error Code |
+| -------- | ----------- | ---------- |
+| `apiError(code, msg, status?)` | varies | Custom code |
+| `validationError(msgs, locale?)` | 400 | `VALIDATION_ERROR` |
+| `unauthorizedError(locale?, key?)` | 401 | `UNAUTHORIZED` |
+| `forbiddenError(locale?)` | 403 | `FORBIDDEN` |
+| `notFoundError(locale?, key?)` | 404 | `NOT_FOUND` |
+| `conflictError(locale?, key?)` | 409 | `CONFLICT` |
+| `serverError(locale?)` | 500 | `SERVER_ERROR` |
+
+Locale helpers:
+
+| Function | Description |
+| -------- | ----------- |
+| `getRequestLocale(request)` | Reads `x-locale` header; defaults to `'ar'` |
+| `serverMsg(locale, key)` | Resolves a `ServerErrorKey` from `ar.json`/`en.json` |
+
+All message strings live in the `ServerErrors` namespace of `src/messages/{ar,en}.json`. The `locale` param defaults to `'ar'` in every helper, so callers must explicitly pass the locale returned by `getRequestLocale()` to support English clients.
 
 ### Auth Utilities
 

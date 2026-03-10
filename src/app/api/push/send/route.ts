@@ -15,10 +15,11 @@ import { authenticateRequest } from '@/app/middlewares/auth.middleware';
 import { getSubscriptionRepository } from '@/app/repositories/subscription.repository';
 import { sendPushNotification } from '@/app/lib/webpush';
 import type { PushPayload } from '@/app/lib/webpush';
-import { serverError } from '@/app/lib/apiErrors';
+import { serverError, validationError, getRequestLocale, serverMsg } from '@/app/lib/apiErrors';
 import type { PushSubscription } from 'web-push';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;
@@ -28,10 +29,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { title, body: msgBody, url } = body as Partial<PushPayload>;
 
     if (!title || !msgBody) {
-      return NextResponse.json(
-        { error: { code: 'MISSING_FIELDS', message: 'title و body مطلوبان' } },
-        { status: 400 }
-      );
+      return validationError([serverMsg(locale, 'pushTitleBodyRequired')], locale);
     }
 
     await connectDB();

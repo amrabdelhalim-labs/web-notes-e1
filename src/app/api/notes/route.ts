@@ -15,7 +15,7 @@ import { connectDB } from '@/app/lib/mongodb';
 import { authenticateRequest } from '@/app/middlewares/auth.middleware';
 import { getNoteRepository } from '@/app/repositories/note.repository';
 import { validateNoteInput } from '@/app/validators';
-import { validationError, serverError } from '@/app/lib/apiErrors';
+import { validationError, serverError, getRequestLocale } from '@/app/lib/apiErrors';
 import type { INote, Note, NoteType } from '@/app/types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -88,13 +88,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 // ─── POST ─────────────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   try {
     const auth = authenticateRequest(request);
     if (auth.error) return auth.error;
 
     const body = await request.json().catch(() => ({}));
-    const errors = validateNoteInput(body);
-    if (errors.length) return validationError(errors);
+    const errors = validateNoteInput(body, locale);
+    if (errors.length) return validationError(errors, locale);
 
     await connectDB();
     const noteRepo = getNoteRepository();
