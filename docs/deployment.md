@@ -340,22 +340,22 @@ heroku certs:auto:enable --app my-notes-app
 ## الملخص — قائمة التحقق قبل كل نشر
 
 ```bash
-# ١. تحقق من صحة الكود
+# 1. تحقق من صحة الكود
 npm run validate
 
-# ٢. شغّل الاختبارات
+# 2. شغّل الاختبارات
 npm run test
 
-# ٣. بناء محلي
+# 3. بناء محلي
 npm run build
 
-# ٤. ادفع للـ Heroku
+# 4. ادفع للـ Heroku
 git push heroku main
 
-# ٥. تحقق من الصحة
+# 5. تحقق من الصحة
 curl https://my-notes-app.herokuapp.com/api/health
 
-# ٦. راقب السجلات
+# 6. راقب السجلات
 heroku logs --tail --app my-notes-app
 ```
 

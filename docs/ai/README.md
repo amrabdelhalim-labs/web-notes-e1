@@ -29,6 +29,7 @@
 | [../api-endpoints.md](../api-endpoints.md)  | All 18 REST endpoints reference                   |
 | [../pwa-guide.md](../pwa-guide.md)          | Service Worker, offline sync, Web Push            |
 | [../testing.md](../testing.md)              | Test architecture and patterns                    |
+| [../tutorials/README.md](../tutorials/README.md) | Educational tutorials index (Arabic, 13 lessons) |
 
 ## Critical Rules
 
