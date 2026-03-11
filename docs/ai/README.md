@@ -45,12 +45,14 @@ These are non-negotiable architectural constraints. **Never violate them.**
 8. **PWA activation is opt-in per device** — the Service Worker only registers on explicitly trusted devices. This is the "Zero PWA Footprint" pattern enforced by `PwaActivationContext`.
 9. **`@/*` path alias maps to `./src/*`** — all imports use this alias (e.g., `@/app/types`, `@/app/lib/auth`).
 10. **CJS config files** — `next.config.mjs` and `eslint.config.mjs` use `.mjs` extensions; `vitest.config.ts` uses TypeScript.
+11. **No Arabic characters inside code fences in documentation** — the Arabic comma `,` (U+060C) and other Arabic punctuation trigger the Unicode Bidi algorithm, causing code blocks to render right-to-left. Use only Latin punctuation inside `` ``` `` blocks. Arabic is allowed only in code **comments** (`// عربي`). See `docs/ai-patterns-reference.md §10` for the full rule.
+12. **First line of every code block must start with a Latin character** — The Unicode Bidi Algorithm sets a code block's render direction from its **first strong-directional character**. If the first non-empty line starts with Arabic text (even inside a `// comment`), the **entire block** renders right-to-left. **Rule:** always put a real code line (`import`, `const`, class declaration…) on line 1 and move Arabic label comments to line 2+. Emoji (`✅`, `❌`) and `//` are Bidi-neutral and do **not** protect against this. See `docs/ai-tutorials-guide.md §2.6`.
 
 ## Key File Locations
 
 ### Server
 
-```
+```text
 src/app/
 ├── config.ts                          # App constants (locale, pagination, offline limits)
 ├── types.ts                           # ALL shared TypeScript types and interfaces
@@ -111,7 +113,7 @@ src/app/
 
 ### Client Pages
 
-```
+```text
 src/app/[locale]/
 ├── layout.tsx                         # Locale layout (HTML lang/dir, fonts, MUI Emotion cache, Providers)
 ├── page.tsx                           # Landing / dashboard

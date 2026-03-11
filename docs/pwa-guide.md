@@ -32,11 +32,11 @@
 
 **المنظومة التقنية:**
 
-```
-@serwist/next     ← إطار عمل Service Worker
-Dexie (IndexedDB) ← قاعدة البيانات الاوف لاين
-Web Push API      ← الإشعارات
-VAPID             ← مصادقة Push Server
+```text
+@serwist/next  // إطار عمل Service Worker
+Dexie (IndexedDB)  // قاعدة البيانات الاوف لاين
+Web Push API  // الإشعارات
+VAPID  // مصادقة Push Server
 ```
 
 ---
@@ -47,14 +47,14 @@ VAPID             ← مصادقة Push Server
 
 **الحل:** الـ PWA **معطّل بالكامل افتراضياً**. المستخدم يختار تفعيله من صفحة الملف الشخصي.
 
-```
-المستخدم الجديد
+```text
+           ├─ PwaActivationContext يضيف <link rel="manifest">
     │
-    ├─ [يتجاهل PWA] → لا Service Worker، لا Manifest، صفحات عادية
+    ├─ [يتجاهل PWA]  // لا Service Worker, لا Manifest, صفحات عادية
     │
     └─ [يثق الجهاز من الملف الشخصي]
            │
-           ├─ PwaActivationContext يضيف <link rel="manifest">
+المستخدم الجديد
            ├─ Service Worker يُسجَّل
            └─ الجهاز يُضاف إلى قائمة الأجهزة الموثوقة
 ```
@@ -87,17 +87,17 @@ const TRUSTED_KEY      = 'device-trusted'; // 'true' أو غير موجود
 ### شرح الاستراتيجيات
 
 **NetworkOnly** (لـ `/api/*`):
-```
-الطلب → الشبكة مباشرةً → الاستجابة
+```text
+الطلب  // الشبكة مباشرةً  // الاستجابة
                 ↓ (إذا فشل)
            خطأ شبكة — Dexie تتولى
 ```
 
 **CacheFirst** (للموارد الثابتة):
-```
-الطلب → الـ Cache → وُجد؟ أرجعه
+```text
+الطلب  // الـ Cache  // وُجد؟ أرجعه
               ↓ (لم يوجد)
-         الشبكة → تخزين في Cache → الاستجابة
+         الشبكة  // تخزين في Cache  // الاستجابة
 ```
 
 ### تهيئة الـ @serwist في next.config
@@ -172,8 +172,8 @@ const db = new Dexie('mynotes_offline_db');
 #### عمليات الملاحظات
 
 ```typescript
-// تخزين الملاحظات مؤقتاً (مع حد أقصى MAX_CACHED_NOTES)
 await db.cacheNotes(notes: INote[]): Promise<void>
+// تخزين الملاحظات مؤقتاً (مع حد أقصى MAX_CACHED_NOTES)
 // تضيف _cachedAt = Date.now() وتحافظ على audioData الموجودة مسبقاً
 // تحذف أقدم المداخل إذا تجاوز العدد الحد الأقصى
 
@@ -192,8 +192,8 @@ await db.cleanStaleNotes(): Promise<number>
 #### عمليات قائمة الانتظار (Pending Operations)
 
 ```typescript
-// إضافة عملية للانتظار
 await db.enqueuePendingOp(op: Omit<PendingOperation, 'id'>): Promise<number>
+// إضافة عملية للانتظار
 // تُرجع المعرّف التلقائي (id) للعملية
 
 // جلب جميع العمليات المعلّقة (مرتبة بالتسلسل)
@@ -212,8 +212,8 @@ await db.incrementPendingOpFailure(id: number): Promise<void>
 #### عمليات الأجهزة
 
 ```typescript
-// تخزين الأجهزة مؤقتاً
 await db.cacheDevices(devices: IDevice[]): Promise<void>
+// تخزين الأجهزة مؤقتاً
 
 // جلب الأجهزة من الـ Cache
 const devices = await db.getCachedDevices(): Promise<CachedDevice[]>
@@ -222,8 +222,8 @@ const devices = await db.getCachedDevices(): Promise<CachedDevice[]>
 #### إعادة الضبط
 
 ```typescript
-// مسح البيانات الحساسة (عند تسجيل الخروج أو إلغاء الثقة)
 await db.clearOfflineData(): Promise<void>
+// مسح البيانات الحساسة (عند تسجيل الخروج أو إلغاء الثقة)
 // تمسح: notes + pendingOps (تبقي devices لأنها بيانات وصفية فقط)
 ```
 
@@ -235,10 +235,10 @@ await db.clearOfflineData(): Promise<void>
 
 عندما يكتب المستخدم ملاحظة أثناء الاوف لاين:
 
-```
-المستخدم يكتب ملاحظة (اوف لاين)
+```text
+    ├─ Dexie.enqueuePendingOp()  // تخزين العملية محلياً
     │
-    ├─ Dexie.enqueuePendingOp() ← تخزين العملية محلياً
+المستخدم يكتب ملاحظة (اوف لاين)
     ├─ UI يعرض الملاحظة فوراً (optimistic update)
     │
     └─ [عودة الاتصال]
@@ -270,8 +270,8 @@ self.addEventListener('sync', (event) => {
 ### تشغيل Background Sync (من الـ UI)
 
 ```typescript
-// يُستدعى من React hook عند وجود عمليات معلّقة
 const registration = await navigator.serviceWorker.ready;
+// يُستدعى من React hook عند وجود عمليات معلّقة
 await registration.sync.register('notes-sync');
 ```
 
@@ -281,10 +281,10 @@ await registration.sync.register('notes-sync');
 
 ### البنية العامة
 
-```
-خادم ملاحظاتي
-    │
+```text
     │ (VAPID + الـ subscription)
+    │
+خادم ملاحظاتي
     ↓
 خدمة Push (FCM/APNs/...)
     │
@@ -292,7 +292,7 @@ await registration.sync.register('notes-sync');
 Service Worker
     │
     ├─ يعرض الإشعار (title, body, icon)
-    └─ click → يفتح الـ URL المحدد في الإشعار
+    └─ click  // يفتح الـ URL المحدد في الإشعار
 ```
 
 ### مفاتيح VAPID
@@ -343,7 +343,7 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
     self.clients.matchAll({ type: 'window' }).then((clients) => {
-      // يُعيد التركيز على تبويب مفتوح، أو يفتح تبويباً جديداً
+      // يُعيد التركيز على تبويب مفتوح, أو يفتح تبويباً جديداً
       const existing = clients.find((c) => c.url.includes(data.url));
       return existing ? existing.focus() : self.clients.openWindow(data.url);
     })
@@ -354,8 +354,8 @@ self.addEventListener('notificationclick', (event) => {
 ### تسجيل اشتراك Push (العميل)
 
 ```typescript
-// الحصول على المفتاح العام + الاشتراك
 const registration = await navigator.serviceWorker.ready;
+// الحصول على المفتاح العام + الاشتراك
 const subscription = await registration.pushManager.subscribe({
   userVisibleOnly: true,
   applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
@@ -384,8 +384,8 @@ await fetch('/api/push/subscribe', {
 ### إلغاء الثقة / تسجيل الخروج
 
 ```typescript
-// عند تسجيل الخروج أو إلغاء الثقة:
 await db.clearOfflineData();                          // مسح الـ Cache
+// عند تسجيل الخروج أو إلغاء الثقة:
 localStorage.removeItem('pwa-enabled');
 localStorage.removeItem('device-trusted');
 // SW يُلغى تسجيله تلقائياً
@@ -394,8 +394,8 @@ localStorage.removeItem('device-trusted');
 ### تعطيل SW في بيئة التطوير
 
 ```bash
-# في .env.local
 NEXT_PUBLIC_SW_DISABLED=true
+# في .env.local
 ```
 
 ---

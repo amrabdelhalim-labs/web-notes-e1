@@ -39,16 +39,16 @@
 
 ### خريطة التبعيات
 
-```
+```text
 ConnectionIndicator
-    ├─ useOfflineStatus        ← طبقة 1: online/offline events
-    │       └─ pingServer()   ← طبقة 2: HEAD /api/health
+    ├─ useOfflineStatus  // طبقة 1: online/offline events
+    │       └─ pingServer()  // طبقة 2: HEAD /api/health
     ├─ useSyncStatus          ← Dexie pendingOps
     └─ usePwaStatus           ← SW state + install state (الدرس 10)
 
 DeviceTrustPrompt
     ├─ useDevices
-    │       ├─ useDeviceId    ← معرّف ثابت
+    │       ├─ useDeviceId  // معرّف ثابت
     │       └─ useOfflineStatus
     └─ useAuth
 
@@ -155,7 +155,7 @@ export function useDeviceId(): DeviceIdInfo {
 
 ### المشكلة: `navigator.onLine` كاذب أحيانًا
 
-```
+```text
 المستخدم متصل بـ WiFi الراوتر: navigator.onLine = true ✓
 لكن الراوتر لا يصل للإنترنت:  navigator.onLine = true ✗ (كاذب!)
 ```
@@ -330,7 +330,7 @@ export function useSyncStatus() {
   return {
     pendingCount,
     isChecking,
-    hasPending: pendingCount > 0, // ← مشتق، لا حالة إضافية
+    hasPending: pendingCount > 0, // ← مشتق, لا حالة إضافية
     hasFailures,
     refresh: checkPendingOps,    // ← يُتيح التحديث الفوري
   };
@@ -523,18 +523,18 @@ useEffect(() => {
 
 ### ما هو VAPID Web Push؟
 
-```
+```text
 VAPID = Voluntary Application Server Identification
        (تعريف اختياري لخادم التطبيق)
 ```
 
 **تدفق الإشعارات:**
 
-```
-المتصفح                خادمنا          Push Service (Google/Mozilla/Apple)
+```text
+     │                    │── endpoint ─────────►│
      │                    │                    │
      │── اشتراك ──────────►│                    │
-     │                    │── endpoint ─────────►│
+المتصفح                خادمنا          Push Service (Google/Mozilla/Apple)
      │                    │                    │
      │                    │ (لاحقًا: حدث جديد)  │
      │                    │── رسالة VAPID ──────►│
@@ -937,8 +937,8 @@ const handleUndoOp = async (op: PendingOperation) => {
 ### قسم حالة PWA
 
 ```tsx
-{/* حالة Service Worker */}
 <MenuItem disabled>
+{/* حالة Service Worker */}
   <ListItemIcon>
     <ConstructionIcon sx={{ color: swState === 'active' ? 'success.dark' : 'text.disabled' }} />
   </ListItemIcon>

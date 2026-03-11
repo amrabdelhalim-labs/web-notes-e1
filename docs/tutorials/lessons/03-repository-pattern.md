@@ -32,8 +32,8 @@
 ### كود بدون Repository
 
 ```ts
-// ❌ في route.ts — Controller يتحدث مباشرة مع النموذج
 import Note from '@/app/models/Note';
+// ❌ في route.ts — Controller يتحدث مباشرة مع النموذج
 
 // استعلام مكرر في كل route يحتاج ملاحظات المستخدم
 const notes = await Note.find({ user: userId }).sort({ createdAt: -1 });
@@ -52,8 +52,8 @@ const notes = await Note.find({ user: userId }).sort({ createdAt: -1 });
 ### كود مع Repository
 
 ```ts
-// ✅ في route.ts — Controller يتحدث مع Repository فقط
 import { getRepositoryManager } from '@/app/repositories';
+// ✅ في route.ts — Controller يتحدث مع Repository فقط
 
 const repos = getRepositoryManager();
 const result = await repos.note.findByUserPaginated(userId, page, limit);
@@ -67,38 +67,38 @@ const result = await repos.note.findByUserPaginated(userId, page, limit);
 
 ### هيكل الطبقات
 
-```
-IRepository<T>                     ← العقد (repository.interface.ts)
+```text
+IRepository<T>  // العقد (repository.interface.ts)
       ↑ implements
-BaseRepository<T>                  ← التطبيق العام (base.repository.ts)
+BaseRepository<T>  // التطبيق العام (base.repository.ts)
       ↑ extends
 ┌─────────────────┬──────────────────┬──────────────────────┬───────────────────┐
 │ UserRepository  │ NoteRepository   │ SubscriptionRepo     │ DeviceRepository  │
 │ (user.repo.ts)  │ (note.repo.ts)   │ (subscription.repo)  │ (device.repo.ts)  │
 └─────────────────┴──────────────────┴──────────────────────┴───────────────────┘
                             ↓ aggregated by
-                    RepositoryManager                         ← نقطة الوصول (index.ts)
+                    RepositoryManager  // نقطة الوصول (index.ts)
 ```
 
 ### مبدأ الوراثة
 
 كل مستودع متخصص **يرث** من `BaseRepository` ويكتسب تلقائيًا 11 عملية CRUD أساسية؛ وعليه هو يُضيف فقط ما يخصّه.
 
-```
+```text
 BaseRepository<INote>
-  +findAll()         ← موروثة
-  +findById()        ← موروثة
-  +create()          ← موروثة
-  +update()          ← موروثة
-  +delete()          ← موروثة
+  +findAll()  // موروثة
+  +findById()  // موروثة
+  +create()  // موروثة
+  +update()  // موروثة
+  +delete()  // موروثة
   ... (6 عمليات أخرى)
 
 NoteRepository extends BaseRepository<INote>
-  +findByUser()      ← مضافة
-  +findByUserPaginated() ← مضافة
-  +findByType()      ← مضافة
-  +search()          ← مضافة
-  +deleteByUser()    ← مضافة
+  +findByUser()  // مضافة
+  +findByUserPaginated()  // مضافة
+  +findByType()  // مضافة
+  +search()  // مضافة
+  +deleteByUser()  // مضافة
 ```
 
 ---
@@ -233,7 +233,7 @@ async findPaginated(
   filter: QueryFilter<T> = {} as QueryFilter<T>,
   options: QueryOptions<T> = {}
 ): Promise<PaginatedResult<T>> {
-  // 1. تأمين حدود المدخلات (لا pages سالبة، لا 10000 نتيجة)
+  // 1. تأمين حدود المدخلات (لا pages سالبة, لا 10000 نتيجة)
   const safePage = Math.max(1, page);                          // لا يقل عن 1
   const safeLimit = Math.min(Math.max(1, limit), MAX_PAGE_SIZE); // بين 1 و 50
 
@@ -257,14 +257,14 @@ async findPaginated(
 
 **لماذا `Promise.all`؟**
 
-```
+```text
+  ① find()  // انتظر → ②  countDocuments() →  // النتيجة
 بدون Promise.all:
-  ① find() → انتظر → ②  countDocuments() → ←  النتيجة
   الوقت الكلي = وقت① + وقت②
 
 مع Promise.all:
   ① find() ↘
-            → ← النتيجة
+            →  // النتيجة
   ② countDocuments() ↗
   الوقت الكلي = max(وقت①, وقت②)
 ```
@@ -317,7 +317,7 @@ async count(filter: QueryFilter<T> = {} as QueryFilter<T>): Promise<number> {
 **لماذا `create()` يستخدم `new Model + save()` وليس `Model.create()`؟**
 
 ```ts
-// Model.create() — أقصر، لكن يتجاوز بعض Middlewares في بعض الإصدارات
+// Model.create() — أقصر, لكن يتجاوز بعض Middlewares في بعض الإصدارات
 await Model.create(data);
 
 // new Model + save() — الأضمن
@@ -402,23 +402,23 @@ async deleteUserCascade(userId: string): Promise<IUser | null> {
 
 تخيّل حذف المستخدم بدون Transaction:
 
-```
-① حذف Note.deleteMany({ user }) ← نجح
-② حذف Subscription.deleteMany({ user }) ← نجح
-③ حذف User.findByIdAndDelete() ← فشل (خطأ شبكة)
+```text
+① حذف Note.deleteMany({ user })  // نجح
+② حذف Subscription.deleteMany({ user })  // نجح
+③ حذف User.findByIdAndDelete()  // فشل (خطأ شبكة)
 
 النتيجة: ملاحظات المستخدم حُذفت لكنه لا يزال موجودًا!
-         → بيانات غير متسقة (orphaned records)
+  // بيانات غير متسقة (orphaned records)
 ```
 
 مع Transaction:
 
-```
-① حذف Notes ← في الذاكرة مؤقتًا
-② حذف Subscriptions ← في الذاكرة مؤقتًا
-③ حذف User ← فشل
+```text
   ↓ abortTransaction()
-← يُلغى كل شيء — قاعدة البيانات تعود لحالتها السابقة
+② حذف Subscriptions  // في الذاكرة مؤقتًا
+③ حذف User  // فشل
+① حذف Notes  // في الذاكرة مؤقتًا
+  // يُلغى كل شيء — قاعدة البيانات تعود لحالتها السابقة
 ```
 
 ### ملاحظة: النماذج مباشرةً في `deleteUserCascade`
@@ -553,16 +553,16 @@ class SubscriptionRepository extends BaseRepository<ISubscription> {
 
 ### سلسلة الحذف المتسلسل
 
-```
-حذف المستخدم
+```text
   ↓ deleteUserCascade()
-  ├── Note.deleteMany({ user })       ← ملاحظاته
-  ├── Subscription.deleteMany({ user }) ← اشتراكاته
-  └── Device.deleteMany({ user })    ← أجهزته
+حذف المستخدم
+  ├── Note.deleteMany({ user })  // ملاحظاته
+  ├── Subscription.deleteMany({ user })  // اشتراكاته
+  └── Device.deleteMany({ user })  // أجهزته
 
 حذف جهاز محدد
   ↓ DeviceRepository.deleteByDeviceId()
-  └── SubscriptionRepository.deleteByDeviceId(deviceId) ← اشتراكات الجهاز
+  └── SubscriptionRepository.deleteByDeviceId(deviceId)  // اشتراكات الجهاز
 ```
 
 الحذف المتسلسل للأجهزة يستخدم `deleteByDeviceId` وليس `deleteByUser` — لأننا نحذف جهازًا واحدًا وليس كل الأجهزة.
@@ -650,14 +650,14 @@ async search(
 ### أمان البحث — لماذا escape الـ Regex؟
 
 ```ts
-// مدخل المستخدم: "ملاحظة.*جديدة"
+const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // بدون escape: regex = /ملاحظة.*جديدة/i
 // .* = أي شيء → هذا regex صالح لكن قد يُعيد نتائج غير متوقعة
 // أو: "(?:)" → كسر regex pattern
 
 // مع escape: regex = /ملاحظة\.\*جديدة/i
 // يبحث حرفيًا عن "ملاحظة.*جديدة" وليس عن pattern
-const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// مدخل المستخدم: "ملاحظة.*جديدة"
 ```
 
 هذا التحصين يمنع **ReDoS (Regex Denial of Service)** — هجوم يمكن إطلاقه بأنماط regex متداخلة تُرهق المعالج.

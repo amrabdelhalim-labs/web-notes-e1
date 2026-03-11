@@ -100,69 +100,69 @@ npm run dev
 
 ## هيكل المجلدات
 
-```
+```text
 web-notes-e1/
-├── .env.example              ← نموذج المتغيرات البيئية
-├── next.config.mjs           ← إعداد Next.js + @serwist/next
+├── .env.example  // نموذج المتغيرات البيئية
+├── next.config.mjs  // إعداد Next.js + @serwist/next
 ├── README.md
 │
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx        ← التخطيط الجذري
-│   │   ├── providers.tsx     ← تغليف Theme + Auth Providers
-│   │   ├── config.ts         ← ثوابت مركزية
-│   │   ├── types.ts          ← أنواع TypeScript المشتركة
+│   │   ├── layout.tsx  // التخطيط الجذري
+│   │   ├── providers.tsx  // تغليف Theme + Auth Providers
+│   │   ├── config.ts  // ثوابت مركزية
+│   │   ├── types.ts  // أنواع TypeScript المشتركة
 │   │   │
-│   │   ├── [locale]/         ← توجيه حسب اللغة (ar | en)
-│   │   │   ├── login/        ← تسجيل الدخول
-│   │   │   ├── register/     ← إنشاء حساب
-│   │   │   ├── notes/        ← قائمة + عرض + إنشاء + تعديل
-│   │   │   └── profile/      ← الملف الشخصي
+│   │   ├── [locale]/  // توجيه حسب اللغة (ar | en)
+│   │   │   ├── login/  // تسجيل الدخول
+│   │   │   ├── register/  // إنشاء حساب
+│   │   │   ├── notes/  // قائمة + عرض + إنشاء + تعديل
+│   │   │   └── profile/  // الملف الشخصي
 │   │   │
 │   │   ├── api/              ← Route Handlers (Next.js API)
 │   │   │   ├── auth/         ← login, register, me, logout
 │   │   │   ├── notes/        ← CRUD للملاحظات
-│   │   │   ├── devices/      ← إدارة الأجهزة الموثوقة
+│   │   │   ├── devices/  // إدارة الأجهزة الموثوقة
 │   │   │   ├── push/         ← subscribe + send
-│   │   │   └── health/       ← فحص الصحة
+│   │   │   └── health/  // فحص الصحة
 │   │   │
-│   │   ├── components/       ← مكونات React (layout, notes, profile, common, auth)
+│   │   ├── components/  // مكونات React (layout, notes, profile, common, auth)
 │   │   ├── context/          ← ThemeContext + AuthContext + PwaActivationContext
 │   │   ├── hooks/            ← useNotes, usePushNotifications, useDevices, usePwaStatus, …
 │   │   ├── lib/              ← api.ts, auth.ts, db.ts, mongodb.ts, webpush.ts, …
 │   │   ├── models/           ← Mongoose Models (User, Note, Device, Subscription)
 │   │   ├── repositories/     ← Repository Pattern (base + user + note + device + sub)
-│   │   ├── validators/       ← التحقق من المدخلات
+│   │   ├── validators/  // التحقق من المدخلات
 │   │   ├── middlewares/      ← auth.middleware.ts
 │   │   └── utils/            ← audio.ts, notes.ts, sanitize.ts
 │   │
-│   ├── i18n/                 ← إعداد next-intl (routing + request)
-│   ├── messages/             ← ملفات الترجمة (ar.json + en.json)
+│   ├── i18n/  // إعداد next-intl (routing + request)
+│   ├── messages/  // ملفات الترجمة (ar.json + en.json)
 │   ├── sw.ts                 ← Service Worker المصدري (@serwist)
-│   ├── proxy.ts              ← توجيه اللغة (next-intl middleware)
-│   └── instrumentation.ts    ← خطاف بدء الخادم
+│   ├── proxy.ts  // توجيه اللغة (next-intl middleware)
+│   └── instrumentation.ts  // خطاف بدء الخادم
 │
 ├── public/
 │   ├── manifest.json         ← PWA Manifest
-│   └── icons/                ← أيقونات التطبيق (72×72 → 512×512)
+│   └── icons/  // أيقونات التطبيق (72×72 → 512×512)
 │
 ├── scripts/
-│   ├── validate-workflow.mjs ← فحص شامل قبل الدفع
-│   ├── http-smoke.mjs        ← اختبارات HTTP دخانية
-│   ├── format.mjs            ← تنسيق Prettier
-│   ├── generate-icons.mjs    ← توليد أيقونات PWA
-│   └── convert-icons.mjs     ← تحويل SVG → PNG
+│   ├── validate-workflow.mjs  // فحص شامل قبل الدفع
+│   ├── http-smoke.mjs  // اختبارات HTTP دخانية
+│   ├── format.mjs  // تنسيق Prettier
+│   ├── generate-icons.mjs  // توليد أيقونات PWA
+│   └── convert-icons.mjs  // تحويل SVG → PNG
 │
 └── docs/
-    ├── plans/                ← خطط المشروع
-    ├── api-endpoints.md      ← مرجع API الكامل
+    ├── plans/  // خطط المشروع
+    ├── api-endpoints.md  // مرجع API الكامل
     ├── database-abstraction.md
     ├── repository-quick-reference.md
     ├── testing.md
     ├── deployment.md
     ├── pwa-guide.md
-    ├── ai/                   ← توثيقات لأدوات AI (إنجليزي)
-    └── tutorials/            ← توثيقات تعليمية (عربي) — 13 درسًا
+    ├── ai/  // توثيقات لأدوات AI (إنجليزي)
+    └── tutorials/  // توثيقات تعليمية (عربي) — 13 درسًا
 ```
 
 ---
@@ -210,8 +210,8 @@ npm run test:coverage       # تقرير التغطية
 التطبيق مُعدٌّ للنشر على **Heroku** عبر النشر التلقائي من الفرع الرئيسي.
 
 ```bash
-# التحقق قبل النشر
 npm run validate
+# التحقق قبل النشر
 
 # اختبار التطوير الكامل
 npm run build

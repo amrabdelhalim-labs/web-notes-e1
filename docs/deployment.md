@@ -62,8 +62,8 @@ npx web-push generate-vapid-keys
 ### تحديد قيمة JWT_SECRET
 
 ```bash
-# توليد مفتاح عشوائي آمن (PowerShell)
 [System.Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(64))
+# توليد مفتاح عشوائي آمن (PowerShell)
 
 # أو عبر Node.js
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
@@ -78,8 +78,8 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ### تسجيل الدخول وإنشاء التطبيق
 
 ```bash
-# تسجيل الدخول
 heroku login
+# تسجيل الدخول
 
 # إنشاء التطبيق (اختر اسماً فريداً)
 heroku create my-notes-app
@@ -117,7 +117,7 @@ heroku config --app my-notes-app
 
 يجب وجود `Procfile` في جذر المشروع:
 
-```
+```text
 web: npm start
 ```
 
@@ -128,8 +128,8 @@ web: npm start
 ### قبل النشر — التحقق من الجاهزية
 
 ```bash
-# التحقق من عدم وجود أخطاء
 npm run validate
+# التحقق من عدم وجود أخطاء
 
 # بناء محلي للتأكد
 npm run build
@@ -143,8 +143,8 @@ npm run build
 ### نشر عبر Git
 
 ```bash
-# إضافة remote الـ Heroku (إذا لم يُضَف تلقائياً)
 heroku git:remote -a my-notes-app
+# إضافة remote الـ Heroku (إذا لم يُضَف تلقائياً)
 
 # النشر
 git push heroku main
@@ -155,7 +155,7 @@ git push heroku my-branch:main
 
 ### ما يحدث أثناء النشر
 
-```
+```text
 Counting objects...
 Compressing objects...
 Writing objects...
@@ -176,8 +176,8 @@ remote:        https://my-notes-app.herokuapp.com/ deployed!
 ### فحص الصحة الأساسي
 
 ```bash
-# عبر الـ CLI
 heroku open --app my-notes-app
+# عبر الـ CLI
 
 # أو مباشرةً
 curl https://my-notes-app.herokuapp.com/api/health
@@ -200,8 +200,8 @@ curl https://my-notes-app.herokuapp.com/api/health
 ### مشاهدة السجلات
 
 ```bash
-# السجلات الحية
 heroku logs --tail --app my-notes-app
+# السجلات الحية
 
 # آخر 200 سطر
 heroku logs -n 200 --app my-notes-app
@@ -231,8 +231,8 @@ git push heroku main
 ### التراجع عن نشر
 
 ```bash
-# عرض الإصدارات السابقة
 heroku releases --app my-notes-app
+# عرض الإصدارات السابقة
 
 # التراجع لإصدار محدد
 heroku rollback v5 --app my-notes-app
@@ -251,8 +251,8 @@ heroku restart --app my-notes-app
 ### مشكلة: التطبيق لا يبدأ
 
 ```bash
-# تحقق من السجلات
 heroku logs --tail
+# تحقق من السجلات
 
 # تحقق من الـ Procfile
 cat Procfile
@@ -265,29 +265,29 @@ cat Procfile
 ### مشكلة: خطأ قاعدة البيانات
 
 ```bash
-# تحقق من DATABASE_URL
 heroku config:get DATABASE_URL
+# تحقق من DATABASE_URL
 
 # تحقق من إمكانية الوصول من Heroku إلى Atlas
-# في Atlas: Network Access → أضف 0.0.0.0/0 (كل العناوين)
+# في Atlas: Network Access  // أضف 0.0.0.0/0 (كل العناوين)
 ```
 
 ### مشكلة: إشعارات Push لا تصل
 
 ```bash
-# تحقق من VAPID keys
 heroku config | grep VAPID
+# تحقق من VAPID keys
 
-# تأكد من أن NEXT_PUBLIC_VAPID_PUBLIC_KEY هو المفتاح العام، وليس الخاص
+# تأكد من أن NEXT_PUBLIC_VAPID_PUBLIC_KEY هو المفتاح العام, وليس الخاص
 ```
 
 ### مشكلة: بناء فاشل (Build Error)
 
 ```bash
-# البناء محلياً للكشف عن الأخطاء
 npm run build
+# البناء محلياً للكشف عن الأخطاء
 
-# إذا نجح محلياً، تحقق من إصدار Node
+# إذا نجح محلياً, تحقق من إصدار Node
 heroku stack --app my-notes-app
 # يجب أن يتطابق مع engines في package.json
 ```
@@ -326,8 +326,8 @@ heroku ps --app my-notes-app
 Heroku يوفر HTTPS تلقائياً على النطاقات `*.herokuapp.com`. عند استخدام نطاق مخصص:
 
 ```bash
-# تفعيل SSL المُدار تلقائياً
 heroku certs:auto:enable --app my-notes-app
+# تفعيل SSL المُدار تلقائياً
 ```
 
 ### VAPID Private Key
@@ -340,8 +340,8 @@ heroku certs:auto:enable --app my-notes-app
 ## الملخص — قائمة التحقق قبل كل نشر
 
 ```bash
-# 1. تحقق من صحة الكود
 npm run validate
+# 1. تحقق من صحة الكود
 
 # 2. شغّل الاختبارات
 npm run test

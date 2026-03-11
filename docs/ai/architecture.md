@@ -2,7 +2,7 @@
 
 ## Layer Diagram
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                              CLIENT (Browser)                               │
 │                                                                             │
@@ -155,7 +155,7 @@ See [../database-abstraction.md](../database-abstraction.md) for the full Reposi
 
 **Hierarchy:**
 
-```
+```text
 IRepository<T>                    (repository.interface.ts)
   └── BaseRepository<T>           (base.repository.ts)
         ├── UserRepository        (user.repository.ts)
@@ -314,7 +314,7 @@ File: `src/app/context/ThemeContext.tsx`
 
 File: `src/app/providers.tsx`
 
-```
+```text
 ThemeProviderWrapper
   └── PwaActivationProvider
         └── AuthProvider
@@ -523,7 +523,7 @@ Support files: `setup.ts` (global test setup), `utils.tsx` (test utilities / ren
 
 ### 1. Create Note (Online)
 
-```
+```text
 User types note in <NoteEditorForm> → clicks Save
     │
     ▼
@@ -559,7 +559,7 @@ useNotes updates local state → UI re-renders with new note
 
 ### 2. Create Note (Offline → Sync)
 
-```
+```text
 User types note in <NoteEditorForm> → clicks Save
     │
     ▼
@@ -601,7 +601,7 @@ fetchNotes() → refresh full list from server → update local state
 
 ### 3. Login → Push Notification
 
-```
+```text
 User submits login form
     │
     ▼

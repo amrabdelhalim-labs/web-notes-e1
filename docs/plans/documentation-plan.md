@@ -82,33 +82,33 @@
 
 ## 3. البنية المستهدفة
 
-```
+```text
 web-notes-e1/
-├── README.md                          ← بطاقة المشروع (يُحدَّث)
-├── CONTRIBUTING.md                    ← موجود (لا تغيير)
+├── README.md  // بطاقة المشروع (يُحدَّث)
+├── CONTRIBUTING.md  // موجود (لا تغيير)
 │
 ├── docs/
 │   ├── plans/
-│   │   ├── project-plan.md            ← خطة البناء (موجود — نُقل إلى هنا)
-│   │   └── documentation-plan.md      ← هذا الملف (خطة التوثيق)
+│   │   ├── project-plan.md  // خطة البناء (موجود — نُقل إلى هنا)
+│   │   └── documentation-plan.md  // هذا الملف (خطة التوثيق)
 │   │
-│   ├── api-endpoints.md               ← مرجع API كامل
-│   ├── database-abstraction.md        ← شرح طبقة البيانات
-│   ├── repository-quick-reference.md  ← مرجع سريع للمستودعات
-│   ├── testing.md                     ← استراتيجية الاختبار
-│   ├── deployment.md                  ← دليل النشر
-│   ├── pwa-guide.md                   ← دليل PWA الشامل
+│   ├── api-endpoints.md  // مرجع API كامل
+│   ├── database-abstraction.md  // شرح طبقة البيانات
+│   ├── repository-quick-reference.md  // مرجع سريع للمستودعات
+│   ├── testing.md  // استراتيجية الاختبار
+│   ├── deployment.md  // دليل النشر
+│   ├── pwa-guide.md  // دليل PWA الشامل
 │   │
-│   ├── ai/                            ← توثيقات لأدوات AI (إنجليزي)
+│   ├── ai/  // توثيقات لأدوات AI (إنجليزي)
 │   │   ├── README.md
 │   │   ├── architecture.md
 │   │   └── feature-guide.md
 │   │
-│   └── tutorials/                     ← التوثيقات التعليمية (عربي)
+│   └── tutorials/  // التوثيقات التعليمية (عربي)
 │       ├── README.md
 │       ├── concepts-guide.md
 │       ├── quick-reference.md
-│       └── lessons/                   ← مجلد واحد (مشروع SSR — لا فصل server/client)
+│       └── lessons/  // مجلد واحد (مشروع SSR — لا فصل server/client)
 │           ├── 01-project-setup.md
 │           ├── 02-database-models.md
 │           ├── 03-repository-pattern.md
@@ -207,7 +207,7 @@ web-notes-e1/
 ### ١.١ [الفكرة]
 [شرح نثري + تشبيه]
 ### ١.٢ [التنفيذ في ملاحظاتي]
-```typescript
+```
 // تعليق عربي يشرح ما يفعله هذا السطر
 const example = 'code';
 ‎```
@@ -224,11 +224,11 @@ const example = 'code';
 
 ---
 *الدرس التالي → [رابط]*
-```
+```text
 
-### ٥.٣ فهرس الدروس (١٣ درسًا)
+#### `docs/tutorials/README.md`
 
-ملاحظة: الترتيب يتبع المنطق المعماري (كما في خطة البناء)، و**داخل كل درس** يكون التسلسل: نقطة الدخول/التهيئة ← منطق المجال ← طبقة التكامل ← عناصر العرض/الاستهلاك.
+ملاحظة: الترتيب يتبع المنطق المعماري (كما في خطة البناء), و**داخل كل درس** يكون التسلسل: نقطة الدخول/التهيئة  // منطق المجال  // طبقة التكامل  // عناصر العرض/الاستهلاك.
 
 | # | عنوان الدرس | الملفات المشمولة | إجمالي الأسطر |
 |---|------------|-----------------|--------------|
@@ -248,9 +248,9 @@ const example = 'code';
 
 ### ٥.٤ الملفات المساندة
 
-#### `docs/tutorials/README.md`
+### ٥.٣ فهرس الدروس (١٣ درسًا)
 
-```markdown
+```
 # توثيقات تعليمية — مشروع ملاحظاتي 📝
 > شروحات تفصيلية سطرًا بسطر لكل أجزاء المشروع
 
@@ -271,7 +271,7 @@ const example = 'code';
 [مسار ASCII لثلاثة أهداف مختلفة: مبتدئ كامل / مطور يريد فهم PWA / مطور يريد فهم الاختبارات]
 
 *جميع الشروحات بالعربية — أسماء الملفات بالإنجليزية*
-```
+```text
 
 #### `docs/tutorials/concepts-guide.md`
 
@@ -279,21 +279,21 @@ const example = 'code';
 
 | القسم | المفاهيم |
 |-------|---------|
-| **أطر العمل** | Next.js App Router، SSR vs CSR vs SSG، API Routes |
-| **اللغات والأنواع** | TypeScript، الأنواع الصارمة، Generics، Type Guards |
-| **واجهة المستخدم** | React، MUI (Material UI)، Emotion CSS-in-JS، RTL |
-| **قاعدة البيانات** | MongoDB، Mongoose، Schema/Model، التفهرس (Indexing)، المعاملات (Transactions) |
-| **نمط المستودعات** | Repository Pattern، Singleton، واجهة عامة (Generic Interface) |
-| **المصادقة** | JWT، bcrypt، Middleware، Protected Routes |
-| **التخزين المحلي** | IndexedDB، Dexie.js، Cache API |
-| **PWA** | Service Worker، Manifest، استراتيجيات التخزين، بصمة صفرية |
-| **المزامنة** | Background Sync، معالجة التعارضات، processQueue |
-| **الإشعارات** | Web Push API، VAPID، Push Subscription |
-| **الترجمة** | next-intl، الرسائل (Messages)، RTL/LTR |
-| **الاختبار** | Vitest، Testing Library، Mocking، AAA Pattern |
-| **أنماط التصميم** | Context + Hook، Optimistic UI، Mutex، State Machine |
-| **جودة الكود** | Prettier، ESLint، Conventional Commits، Annotated Tags |
-| **النشر** | Heroku، المتغيرات البيئية، CI/CD |
+| **أطر العمل** | Next.js App Router, SSR vs CSR vs SSG, API Routes |
+| **اللغات والأنواع** | TypeScript, الأنواع الصارمة, Generics, Type Guards |
+| **واجهة المستخدم** | React, MUI (Material UI), Emotion CSS-in-JS, RTL |
+| **قاعدة البيانات** | MongoDB, Mongoose, Schema/Model, التفهرس (Indexing), المعاملات (Transactions) |
+| **نمط المستودعات** | Repository Pattern, Singleton, واجهة عامة (Generic Interface) |
+| **المصادقة** | JWT, bcrypt, Middleware, Protected Routes |
+| **التخزين المحلي** | IndexedDB, Dexie.js, Cache API |
+| **PWA** | Service Worker, Manifest, استراتيجيات التخزين, بصمة صفرية |
+| **المزامنة** | Background Sync, معالجة التعارضات, processQueue |
+| **الإشعارات** | Web Push API, VAPID, Push Subscription |
+| **الترجمة** | next-intl, الرسائل (Messages), RTL/LTR |
+| **الاختبار** | Vitest, Testing Library, Mocking, AAA Pattern |
+| **أنماط التصميم** | Context + Hook, Optimistic UI, Mutex, State Machine |
+| **جودة الكود** | Prettier, ESLint, Conventional Commits, Annotated Tags |
+| **النشر** | Heroku, المتغيرات البيئية, CI/CD |
 
 #### `docs/tutorials/quick-reference.md`
 
@@ -312,7 +312,7 @@ const example = 'code';
 
 ### ٦.١ ملفات المصدر (مرتبة منطقيًا حسب الطبقات)
 
-> هذا الجرد يُستخدم للتخطيط والربط فقط. أولوية الشرح تكون حسب المنطق المعماري وتدفق البيانات، وليس حسب حجم الملف.
+> هذا الجرد يُستخدم للتخطيط والربط فقط. أولوية الشرح تكون حسب المنطق المعماري وتدفق البيانات, وليس حسب حجم الملف.
 
 #### المكونات (Components) — ٢٠ ملف
 
@@ -573,7 +573,7 @@ const example = 'code';
 
 | الترتيب | الملف | الأسطر | ما يُشرح |
 |---------|-------|--------|----------|
-| 1 | `package.json` | 68 | تعريف المشروع، الأوامر، التبعيات، وبيئة التشغيل |
+| 1 | `package.json` | 68 | تعريف المشروع, الأوامر, التبعيات, وبيئة التشغيل |
 | 2 | `.env.example` | 15 | المتغيرات البيئية المطلوبة قبل أي تشغيل |
 | 3 | `tsconfig.json` | 35 | إعدادات TypeScript ومسارات الاستيراد |
 | 4 | `next.config.mjs` | 30 | تكوين Next.js وإضافات PWA/i18n |
@@ -817,7 +817,7 @@ const example = 'code';
 7. **اختبارات الصفحات** — `login.test.tsx`, `register.test.tsx`, `NotesPage.test.tsx`, `NoteDetailPage.test.tsx`, `NewNotePage.test.tsx`, `EditNotePage.test.tsx`, `ProfilePage.test.tsx`
 8. **اختبارات تكاملية** — `offlineLogout.test.tsx`
 
-**داخل كل قسم** تُشرح الملفات بحسب دورة الاختبار الطبيعية: setup أولًا، ثم unit، ثم integration، ثم component/page، ثم سيناريوهات التكامل النهائي.
+**داخل كل قسم** تُشرح الملفات بحسب دورة الاختبار الطبيعية: setup أولًا, ثم unit, ثم integration, ثم component/page, ثم سيناريوهات التكامل النهائي.
 
 ---
 
@@ -827,8 +827,8 @@ const example = 'code';
 
 | من | إلى | النوع |
 |----|-----|-------|
-| كل درس | `README.md` | رابط "← العودة إلى الفهرس" في الأعلى |
-| كل درس | الدرس السابق والتالي | "← الدرس السابق" + "الدرس التالي →" في الأسفل |
+| كل درس | `README.md` | رابط "  // العودة إلى الفهرس" في الأعلى |
+| كل درس | الدرس السابق والتالي | "  // الدرس السابق" + "الدرس التالي →" في الأسفل |
 | كل درس يذكر مفهومًا | `concepts-guide.md#القسم` | رابط مضمّن داخل النص |
 | `README.md` | كل درس | جدول فهرس الدروس |
 | `quick-reference.md` | كل درس | خريطة الملفات + روابط الدروس |
@@ -867,10 +867,10 @@ const example = 'code';
 
 ### ٩.١ قائمة التحقق لكل ملف توثيق
 
-- [ ] النثر بالعربية، الكود بالإنجليزية مع تعليقات عربية
+- [ ] النثر بالعربية, الكود بالإنجليزية مع تعليقات عربية
 - [ ] لا ذكر لأي مشروع آخر (لا مقارنات)
 - [ ] **توافق الرموز العربية واللاتينية** — القاعدة الكاملة:
-  - في **النثر العربي**: استخدم `،` و`؛` و`؟` (الرموز العربية)
+  - في **النثر العربي**: استخدم `,` و`؛` و`؟` (الرموز العربية)
   - في **كتل الكود** (```` ``` ````): استخدم `,` و`;` و`?` و`%` والأرقام الغربية `0-9` (حتى داخل التعليقات العربية التي تحتوي أسماء تقنية أو أرقام)
   - **الاستثناء الوحيد**: نصوص المستخدم العربية الحرفية داخل الكود (مثل رسائل الخطأ `'البريد غير صالح'`) تبقى بترقيمها العربي الأصلي
   - الأرقام الهندية-العربية (`٠١٢٣٤٥٦٧٨٩`) تُستخدم في النثر العربي فقط — داخل الكود دائمًا `0123456789`
@@ -886,7 +886,7 @@ const example = 'code';
 - [ ] يحتوي جدولًا واحدًا على الأقل
 - [ ] ينتهي بقسم "ملخص" مع جدول
 - [ ] الأقسام مرقمة تسلسليًّا (لا ثغرات)
-- [ ] الملفات مشروحة وفق التسلسل المنطقي (تهيئة ← منطق الأعمال ← التكامل ← العرض ← التحقق)
+- [ ] الملفات مشروحة وفق التسلسل المنطقي (تهيئة  // منطق الأعمال  // التكامل  // العرض  // التحقق)
 - [ ] رابط "الدرس السابق" و"الدرس التالي" في الأسفل
 - [ ] تحديث `README.md` بعد إضافة الدرس
 - [ ] تحديث `quick-reference.md` بعد إضافة الدرس
@@ -938,13 +938,13 @@ const example = 'code';
     ├── د.١١ lessons/11-push-notifications.md
     ├── د.١٢ lessons/12-offline-sync.md
     └── د.١٣ lessons/13-testing.md
-```
+```text
 
-### إيداعات Git المتوقعة
+| 1 | `docs: update README and add production documentation` | المرحلة أ |
 
 | الإيداع | الرسالة | النطاق |
 |---------|---------|--------|
-| 1 | `docs: update README and add production documentation` | المرحلة أ |
+### إيداعات Git المتوقعة
 | 2 | `docs(ai): add architecture, feature guide, and AI README` | المرحلة ب |
 | 3 | `docs(tutorials): add tutorial index, concepts guide, and quick reference` | المرحلة ج |
 | 4 | `docs(tutorials): add lessons 01-07 (setup through i18n)` | المرحلة د (النصف الأول) |
@@ -957,7 +957,7 @@ const example = 'code';
 ```
 git tag -a v0.2.0 -m "Release v0.2.0 — Comprehensive Documentation"
 git push origin v0.2.0
-```
+```text
 
 ---
 

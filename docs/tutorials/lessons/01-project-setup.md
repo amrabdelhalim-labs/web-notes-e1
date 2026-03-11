@@ -49,34 +49,34 @@
 
 ### هيكل المجلدات على مستوى الجذر
 
-```
-web-notes-e1/              ← جذر المشروع
-  src/                     ← كل كود المصدر هنا
+```text
+web-notes-e1/  // جذر المشروع
+  src/  // كل كود المصدر هنا
     app/                   ← Next.js App Router
-      api/                 ← مسارات API (الخادم)
-      components/          ← مكوّنات React
-      context/             ← سياقات (Context) المشتركة
-      hooks/               ← خطّافات (Hooks) مخصصة
-      lib/                 ← مكتبات مساعدة
-      middlewares/         ← وسطاء المنطق
-      models/              ← نماذج Mongoose
-      repositories/        ← طبقة المستودعات
-      tests/               ← كل الاختبارات
-      utils/               ← أدوات مساعدة
-      validators/          ← دوال التحقق
-      [locale]/            ← صفحات مع مسار اللغة
-    i18n/                  ← إعداد الترجمة
-    messages/              ← ملفات الرسائل (ar/en)
-    proxy.ts               ← وسيط next-intl
+      api/  // مسارات API (الخادم)
+      components/  // مكوّنات React
+      context/  // سياقات (Context) المشتركة
+      hooks/  // خطّافات (Hooks) مخصصة
+      lib/  // مكتبات مساعدة
+      middlewares/  // وسطاء المنطق
+      models/  // نماذج Mongoose
+      repositories/  // طبقة المستودعات
+      tests/  // كل الاختبارات
+      utils/  // أدوات مساعدة
+      validators/  // دوال التحقق
+      [locale]/  // صفحات مع مسار اللغة
+    i18n/  // إعداد الترجمة
+    messages/  // ملفات الرسائل (ar/en)
+    proxy.ts  // وسيط next-intl
     sw.ts                  ← Service Worker
-    instrumentation.ts     ← تهيئة الخادم
-  docs/                    ← التوثيق التقني
-  scripts/                 ← سكربتات المساعدة
-  public/                  ← ملفات عامة (أيقونات، manifest)
-  package.json             ← تعريف المشروع
-  tsconfig.json            ← إعدادات TypeScript
-  next.config.mjs          ← تكوين Next.js
-  vitest.config.ts         ← إعداد الاختبارات
+    instrumentation.ts  // تهيئة الخادم
+  docs/  // التوثيق التقني
+  scripts/  // سكربتات المساعدة
+  public/  // ملفات عامة (أيقونات, manifest)
+  package.json  // تعريف المشروع
+  tsconfig.json  // إعدادات TypeScript
+  next.config.mjs  // تكوين Next.js
+  vitest.config.ts  // إعداد الاختبارات
 ```
 
 ---
@@ -220,8 +220,8 @@ VAPID_EMAIL=mailto:your-email@example.com
 أي متغير بيئي بادئته `NEXT_PUBLIC_` يصبح **متاحًا في كود المتصفح**. إذا حذفت البادئة، يبقى المتغير خادمًا فقط — وستحصل على `undefined` إذا حاولت الوصول إليه من المتصفح.
 
 ```ts
-// صحيح — NEXT_PUBLIC_ يصل للعميل والخادم
 process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+// صحيح — NEXT_PUBLIC_ يصل للعميل والخادم
 
 // صحيح — بدون NEXT_PUBLIC_ يصل للخادم فقط
 process.env.VAPID_PRIVATE_KEY        // لن تراه أبدًا في المتصفح
@@ -280,8 +280,8 @@ process.env.DATABASE_URL             // خادم فقط — كما ينبغي
 
 **`strict: true`** هو أهم خيار — يعني:
 ```ts
-// ❌ لن يُقبل:
 function greet(name) {  // name ضمني any
+// ❌ لن يُقبل:
   return 'مرحبًا ' + name;
 }
 
@@ -293,8 +293,8 @@ function greet(name: string): string {
 
 **`paths: { "@/*": ["./src/*"] }` — مسارات الاستيراد المختصرة:**
 ```ts
-// بدون @/* تحتاج:
 import { AuthProvider } from '../../../context/AuthContext';
+// بدون @/* تحتاج:
 
 // مع @/*:
 import { AuthProvider } from '@/app/context/AuthContext';
@@ -337,13 +337,13 @@ const withSerwistConfig = withSerwist({
   reloadOnOnline: false,      // مهم جدًا — انظر الشرح أدناه
 });
 
-// 4. ترتيب التغليف مهم — Serwist خارجًا، next-intl داخلًا
+// 4. ترتيب التغليف مهم — Serwist خارجًا, next-intl داخلًا
 export default withSerwistConfig(withNextIntl(nextConfig));
 ```
 
 ### ٥.١ ترتيب التغليف
 
-```
+```text
 withSerwistConfig(
   withNextIntl(
     nextConfig
@@ -360,9 +360,9 @@ withSerwistConfig(
 هذا الخيار مهم جدًا ويستحق الفهم العميق:
 
 ```js
-// إذا كانت قيمته true (الافتراضية في بعض الإعدادات):
-// عند عودة الاتصال، سيُضيف Serwist:
 //   window.addEventListener('online', () => location.reload())
+// عند عودة الاتصال, سيُضيف Serwist:
+// إذا كانت قيمته true (الافتراضية في بعض الإعدادات):
 // 
 // هذا يعني: الصفحة تُعاد تحميلها قبل أن يُنهي React معالجة رتل
 // العمليات المعلقة في IndexedDB — فتضيع كل التعديلات التي أجراها
@@ -430,19 +430,19 @@ export default eslintConfig;
 
 ### ٦.٣ .prettierignore — استثناءات التنسيق
 
-```
-node_modules           ← تبعيات خارجية — لا نلمسها
-.next                  ← مخرجات البناء — تتغير دائمًا
-public                 ← ملفات مُنشأة آليًا (sw.js، أيقونات)
-package-lock.json      ← يُدار بالكامل بواسطة npm
-src/app/tests/setup.ts ← تنسيقه الخاص عمد
+```text
+node_modules  // تبعيات خارجية — لا نلمسها
+.next  // مخرجات البناء — تتغير دائمًا
+public  // ملفات مُنشأة آليًا (sw.js, أيقونات)
+package-lock.json  // يُدار بالكامل بواسطة npm
+src/app/tests/setup.ts  // تنسيقه الخاص عمد
 ```
 
 ### ٦.٤ .gitattributes — توحيد نهايات الأسطر
 
 ```gitattributes
-# يفرض LF على كل الملفات النصية
 * text=auto eol=lf
+# يفرض LF على كل الملفات النصية
 
 # الملفات الثنائية — لا تلمس نهاياتها
 *.png binary
@@ -457,11 +457,11 @@ src/app/tests/setup.ts ← تنسيقه الخاص عمد
 الملفات المُستثناة الأهم:
 
 ```gitignore
-/node_modules      ← ضخم جدًا (عشرات الآلاف من الملفات)
-/.next/            ← مخرجات البناء، تختلف بين الأجهزة
-.env               ← الأسرار — لا تُودَع أبدًا!
-!.env.example      ← استثناء: example مسموح به (لا أسرار فيه)
-public/sw.js       ← يُنشأ تلقائيًا وقت البناء من src/sw.ts
+/node_modules  // ضخم جدًا (عشرات الآلاف من الملفات)
+/.next/  // مخرجات البناء, تختلف بين الأجهزة
+.env  // الأسرار — لا تُودَع أبدًا!
+!.env.example  // استثناء: example مسموح به (لا أسرار فيه)
+public/sw.js  // يُنشأ تلقائيًا وقت البناء من src/sw.ts
 ```
 
 ---
@@ -494,7 +494,7 @@ import "./.next/types/routes.d.ts";
 /**
  * التخطيط الجذري — مطلوب من Next.js App Router.
  *
- * الـ <html> و <body> الحقيقية، الخطوط، سكريبت السمة، ومزودو الحالة
+ * الـ <html> و <body> الحقيقية, الخطوط, سكريبت السمة, ومزودو الحالة
  * كلها في app/[locale]/layout.tsx الذي يُغلّف كل مسارات اللغة.
  *
  * هذا الملف موجود فقط لإرضاء متطلبات Next.js من التخطيط الجذري.
@@ -508,11 +508,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 في مشروع عادي، `app/layout.tsx` يحتوي `<html>` و `<body>`. لكن **ملاحظاتي** يستخدم نمط `[locale]` — كل مسار مسبوق برمز اللغة (`/ar/*` أو `/en/*`). هذا يعني أن التخطيط الفعلي في `app/[locale]/layout.tsx` هو من يُحدد اتجاه الصفحة (RTL/LTR)، الخط، ومزودو الحالة.
 
-```
+```text
+  app/layout.tsx  // فارغ — يمرر children فقط
 / (جذر)
-  app/layout.tsx        ← فارغ — يمرر children فقط
   app/[locale]/
-    layout.tsx          ← التخطيط الحقيقي (<html lang=...>، providers، إلخ)
+    layout.tsx  // التخطيط الحقيقي (<html lang=...>, providers, إلخ)
     ar/
       notes/            ← /ar/notes
     en/
@@ -573,7 +573,7 @@ function PwaRuntime() {
 
 هذا المكوّن يحل مشكلة إتصال مهمة:
 
-```
+```text
 Service Worker (خيط مستقل)    ←→    React (نافذة المتصفح)
 
 SW: "انتهيت من Background Sync"
@@ -636,8 +636,8 @@ body {
 **الحل في ملاحظاتي:**
 
 ```css
-/* هذه القواعد تُطبَّق فورًا من CSS — قبل أي JavaScript */
 html[data-color-scheme='dark'] body {
+/* هذه القواعد تُطبَّق فورًا من CSS — قبل أي JavaScript */
   background-color: #121212;
   color: #e8eaed;
 }
@@ -675,8 +675,8 @@ html:not([data-color-scheme]) body {
 ## 10. config.ts — الثوابت المركزية
 
 ```ts
-// أسماء التطبيق بكلتا اللغتين
 export const APP_NAME_AR = 'ملاحظاتي';
+// أسماء التطبيق بكلتا اللغتين
 export const APP_NAME_EN = 'My Notes';
 export const APP_DESCRIPTION =
   'تطبيق ويب تقدمي لإدارة الملاحظات النصية والصوتية مع مزامنة وإشعارات.';
@@ -699,8 +699,8 @@ export const MAX_CACHED_NOTES = 100; // أقصى ملاحظات في IndexedDB
 
 استخدام `as const` مهم للأنواع:
 ```ts
-// بدون as const:
 SUPPORTED_LOCALES // النوع: string[]
+// بدون as const:
 
 // مع as const:
 SUPPORTED_LOCALES // النوع: readonly ['ar', 'en']
@@ -807,9 +807,9 @@ MongoDB لا يعمل إلا في Node.js — لذا نتحقق أولًا.
 ### ١٢.٣ Import الديناميكي (`await import()`)
 
 ```ts
-// ليس: import mongoose from 'mongoose'; (في الأعلى)
-// بل:
 const mongoose = await import('mongoose');
+// بل:
+// ليس: import mongoose from 'mongoose'; (في الأعلى)
 const { connectDB } = await import('./app/lib/mongodb');
 ```
 
@@ -848,8 +848,8 @@ export default defineConfig({
 ### ١٣.٢ `globals: true`
 
 ```ts
-// بدون globals: true — يجب الاستيراد في كل ملف:
 import { describe, it, expect } from 'vitest';
+// بدون globals: true — يجب الاستيراد في كل ملف:
 
 // مع globals: true — متاحة مباشرة:
 describe('...', () => {

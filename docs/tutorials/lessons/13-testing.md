@@ -38,29 +38,29 @@
 
 ### هيكل ملفات الاختبار — 41 ملفًا في مكان واحد
 
-```
+```text
 src/app/tests/
-├── setup.ts              ← تهيئة عامة (يُشغَّل قبل كل ملف اختبار)
+├── setup.ts  // تهيئة عامة (يُشغَّل قبل كل ملف اختبار)
 ├── utils.tsx             ← render مُعزَّز بـ MUI + i18n
 │
 ├── # ── Tier 1: Unit ─────────────────────────────────────
-├── config.test.ts        ← اختبار ثوابت التطبيق
-├── types.test.ts         ← اختبار Type Guards
-├── validators.test.ts    ← اختبار دوال التحقق (6 validators)
-├── noteUtils.test.ts     ← اختبار دوال تنسيق الملاحظات
-├── audioUtils.test.ts    ← اختبار دوال الصوت
+├── config.test.ts  // اختبار ثوابت التطبيق
+├── types.test.ts  // اختبار Type Guards
+├── validators.test.ts  // اختبار دوال التحقق (6 validators)
+├── noteUtils.test.ts  // اختبار دوال تنسيق الملاحظات
+├── audioUtils.test.ts  // اختبار دوال الصوت
 │
 ├── # ── Tier 2: API Layer ───────────────────────────────
-├── apiClient.test.ts     ← اختبار fetchApi + كل API functions
-├── devicesRoute.test.ts  ← اختبار Route Handler الأجهزة (server-side)
-├── deviceApi.test.ts     ← اختبار client-side device API
+├── apiClient.test.ts  // اختبار fetchApi + كل API functions
+├── devicesRoute.test.ts  // اختبار Route Handler الأجهزة (server-side)
+├── deviceApi.test.ts  // اختبار client-side device API
 │
 ├── # ── Tier 3: Hooks ───────────────────────────────────
 ├── useAuth.test.tsx      ← hook wiring + AuthContext
 ├── useNotes.test.ts      ← 42KB — hook شامل مع offline queue
-├── useDevices.test.ts    ← دورة حياة الأجهزة
+├── useDevices.test.ts  // دورة حياة الأجهزة
 ├── usePwaStatus.test.ts  ← SW state + install state
-├── useOfflineStatus.test.ts ← طبقتا الكشف + events
+├── useOfflineStatus.test.ts  // طبقتا الكشف + events
 ├── useSyncStatus.test.ts ← polling + hasFailures + refresh
 ├── useDeviceId.test.ts   ← UUID ثابت + UA detection
 │
@@ -176,8 +176,8 @@ Object.defineProperty(window, 'matchMedia', {
 MUI يستخدم `window.matchMedia` للـ responsive breakpoints. jsdom لا يُطبّقها (ليس متصفحًا حقيقيًا). بدون المحاكاة، كل render لمكوّن MUI يُلقي خطأ `matchMedia is not a function`.
 
 ```typescript
-// ── 2. محاكاة localStorage ────────────────────────────────────────────────
 const localStorageMock = (() => {
+// ── 2. محاكاة localStorage ────────────────────────────────────────────────
   let store: Record<string, string> = {};
   return {
     getItem:    (key: string) => store[key] ?? null,
@@ -194,8 +194,8 @@ Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 jsdom يوفّر `localStorage` حقيقيًا — لكنه **مشترك بين الاختبارات** في نفس العملية. مصدر bug خفي: اختبار يُعيّن `'auth-token'` → اختبار تالٍ يجد token موجودًا. المحاكاة بـ `let store = {}` قابلة للإفراغ التام في `beforeEach`.
 
 ```typescript
-// ── 3. كتم تحذيرات React/MUI المعروفة ───────────────────────────────────────
 const originalError = console.error.bind(console);
+// ── 3. كتم تحذيرات React/MUI المعروفة ───────────────────────────────────────
 beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
     const msg = String(args[0] ?? '');
@@ -219,8 +219,8 @@ afterEach(() => {
 ### mock التنقل العام
 
 ```typescript
-// ── 4. محاكاة @/app/lib/navigation ───────────────────────────────────────
 vi.mock('@/app/lib/navigation', () => ({
+// ── 4. محاكاة @/app/lib/navigation ───────────────────────────────────────
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
   usePathname: () => '/notes',
   Link: ({ children, href, ...props }) =>
@@ -291,8 +291,8 @@ import { render, screen, fireEvent, waitFor } from './utils';
 **الدالة الخالصة** (pure function) — تُعيد نفس النتيجة لنفس المدخلات، لا آثار جانبية:
 
 ```typescript
-// الدالة الخالصة في validators/index.ts
 function validateRegisterInput({ username, email, password }) {
+// الدالة الخالصة في validators/index.ts
   const errors: string[] = [];
   if (!username || username.length < 3) errors.push('اسم المستخدم يجب أن يكون 3 أحرف على الأقل');
   if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) errors.push('البريد الإلكتروني غير صحيح');
@@ -322,7 +322,7 @@ describe('validateRegisterInput', () => {
 
   it('rejects short username (< 3 chars)', () => {
     const errors = validateRegisterInput({ ...valid, username: 'ab' });
-    expect(errors[0]).toContain('3'); // ← الرقم في الرسالة، لا النص كاملًا
+    expect(errors[0]).toContain('3'); // ← الرقم في الرسالة, لا النص كاملًا
   });
 
   it('rejects long username (> 30 chars)', () => {
@@ -340,7 +340,7 @@ describe('validateRegisterInput', () => {
 
 **نمط `{ ...valid, username: 'ab' }`** — Spread + Override:
 
-```
+```text
 valid = { username: 'testuser', email: 'test@example.com', password: '123456' }
 { ...valid, username: 'ab' } = { username: 'ab', email: 'test@example.com', password: '123456' }
 ```
@@ -378,8 +378,8 @@ valid = { username: 'testuser', email: 'test@example.com', password: '123456' }
 ### apiClient.test.ts — عزل fetch بالكامل
 
 ```typescript
-// ── المحاكاة الأساسية ────────────────────────────────────────────────────────
 const mockFetch = vi.fn();
+// ── المحاكاة الأساسية ────────────────────────────────────────────────────────
 global.fetch = mockFetch; // ← استبدال global.fetch بالكامل
 
 // ── مساعدات لتبسيط الإعداد ────────────────────────────────────────────────────
@@ -455,8 +455,8 @@ describe('fetchApi', () => {
 **`expect(fn).rejects.toThrow('msg')`** — للتحقق من Promise المرفوضة:
 
 ```typescript
-// الخطأ: تُلقي exception وليس تُعيد false
 await expect(fetchApi('/bad')).rejects.toThrow('رسالة الخطأ');
+// الخطأ: تُلقي exception وليس تُعيد false
 ```
 
 ---
@@ -503,8 +503,8 @@ const { result } = renderHook(() => useSyncStatus());
 ### vi.mock — محاكاة وحدات Dexie
 
 ```typescript
-// في useSyncStatus.test.ts
 vi.mock('@/app/lib/db', () => ({
+// في useSyncStatus.test.ts
   hasPendingOps: vi.fn(),
   getPendingOps: vi.fn(),
 }));
@@ -574,7 +574,7 @@ it('switches to false when "offline" event fires', async () => {
     window.dispatchEvent(new Event('offline'));  // ← يُطلق state update
   });
 
-  expect(result.current).toBe(false); // ← بعد act، التحديثات مُطبَّقة
+  expect(result.current).toBe(false); // ← بعد act, التحديثات مُطبَّقة
 });
 ```
 
@@ -651,8 +651,8 @@ it('detects server-unreachable even when navigator.onLine is true', async () => 
 هذا الاختبار يُثبت القيمة الجوهرية للطبقة الثانية: `navigator.onLine` كذّاب — ping يكشف الحقيقة.
 
 ```typescript
-// اختبار إذاعة الحدث
 it('broadcasts connectivity:status event after verification', async () => {
+// اختبار إذاعة الحدث
   const handler = vi.fn();
   window.addEventListener(CONNECTIVITY_STATUS_EVENT, handler);
 
@@ -669,8 +669,8 @@ it('broadcasts connectivity:status event after verification', async () => {
 **تعيين event listener قبل renderHook** — لما يُشغَّل الـ hook ويُطلق الحدث، العداد `handler` يُسجّله.
 
 ```typescript
-// اختبار تنظيف event listeners
 it('removes event listeners on unmount', async () => {
+// اختبار تنظيف event listeners
   const removeSpy = vi.spyOn(window, 'removeEventListener');
   const { unmount } = renderHook(() => useOfflineStatus());
   unmount(); // ← يُشغّل cleanup function من useEffect
@@ -762,7 +762,7 @@ fireEvent.click(button);
 fireEvent.submit(form);
 fireEvent.change(input, { target: { value: 'new text' } });
 
-// userEvent: يُحاكي سلوك مستخدم حقيقي (أبطأ، أكثر دقة)
+// userEvent: يُحاكي سلوك مستخدم حقيقي (أبطأ, أكثر دقة)
 await userEvent.type(input, 'new text'); // ← keydown/keypress/keyup + change
 await userEvent.click(button);
 ```
@@ -861,8 +861,8 @@ it('has role="status" aria-live region for accessibility', () => {
 ### login.test.tsx — نمط الصفحة الشامل
 
 ```typescript
-// ── مساعد إعداد مركزي ────────────────────────────────────────────────────────
 function setupAuth(overrides: Record<string, unknown> = {}) {
+// ── مساعد إعداد مركزي ────────────────────────────────────────────────────────
   mockPush.mockReset();
   mockReplace.mockReset();
   mockLogin.mockReset();

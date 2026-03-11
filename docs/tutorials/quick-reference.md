@@ -350,8 +350,8 @@
 | `VoiceRecorder` | التسجيل الصوتي | أزرار التسجيل |
 
 ```tsx
-// طريقة الاستخدام
 import { useTranslations } from 'next-intl';
+// طريقة الاستخدام
 const t = useTranslations('NoteList'); // اختر النطاق
 return <p>{t('emptyMessage')}</p>;     // استخدم المفتاح
 ```

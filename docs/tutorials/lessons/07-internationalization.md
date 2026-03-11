@@ -37,7 +37,7 @@
 
 ### بنية المسارات مع اللغة
 
-```
+```text
 /                   → middleware يُعيد التوجيه لـ /ar
 /ar                 → [locale=ar]/page.tsx
 /ar/notes           → [locale=ar]/notes/page.tsx
@@ -49,25 +49,25 @@
 
 ### خريطة الملفات في هذا الدرس
 
-```
+```text
 src/
   i18n/
-    routing.ts                                  ← اللغات المدعومة
-    request.ts                                  ← تحميل القاموس (سيرفر)
+    routing.ts  // اللغات المدعومة
+    request.ts  // تحميل القاموس (سيرفر)
   proxy.ts                                      ← middleware
   app/
     lib/
-      navigation.ts                             ← تنقل واعٍ باللغة
+      navigation.ts  // تنقل واعٍ باللغة
     [locale]/
-      layout.tsx                                ← غلاف اللغة (html, dir, خطوط)
-      page.tsx                                  ← نقطة دخول → تحويل حسب المصادقة
+      layout.tsx  // غلاف اللغة (html, dir, خطوط)
+      page.tsx  // نقطة دخول → تحويل حسب المصادقة
       not-found.tsx                             ← 404 ثنائي اللغة
     components/common/
-      LanguageToggle.tsx                        ← زر تبديل اللغة
-      LocaleSwitchPromptDialog.tsx              ← اقتراح اللغة بعد الدخول
+      LanguageToggle.tsx  // زر تبديل اللغة
+      LocaleSwitchPromptDialog.tsx  // اقتراح اللغة بعد الدخول
   messages/
-    ar.json                                     ← قاموس عربي (~350 مفتاح)
-    en.json                                     ← قاموس إنجليزي (~350 مفتاح)
+    ar.json  // قاموس عربي (~350 مفتاح)
+    en.json  // قاموس إنجليزي (~350 مفتاح)
 ```
 
 ---
@@ -96,10 +96,10 @@ export type Locale = (typeof routing.locales)[number];
 
 **لماذا العربية هي الافتراضية؟**
 
-```
+```text
 /       → middleware → /ar (الافتراضي)
 /notes  → middleware → /ar/notes
-/en     → يبقى كما هو (locale صريح)
+/en  // يبقى كما هو (locale صريح)
 ```
 
 الجمهور المستهدف عرب — العربية هي التجربة الأولى بدون حاجة لتحديد اللغة في URL.
@@ -107,8 +107,8 @@ export type Locale = (typeof routing.locales)[number];
 ### النوع `Locale` في التطبيق
 
 ```ts
-// يُستخدم في:
 // - [locale]/layout.tsx: (locale as Locale)
+// يُستخدم في:
 // - types.ts: SupportedLocale = Locale
 // - ProfileEditor: يحفظ تفضيل اللغة كـ 'ar' | 'en'
 ```
@@ -153,8 +153,8 @@ const messages = (await import(`../messages/${locale}.json`)).default;
 ### أين يُسجَّل هذا الملف؟
 
 ```ts
-// في next.config.mjs
 import createNextIntlPlugin from 'next-intl/plugin';
+// في next.config.mjs
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 // ↑ يخبر next-intl: "ملف تكوين الطلبات هنا"
 ```
@@ -176,27 +176,27 @@ export const config = {
   // ↑ يُطابق كل المسارات عدا:
   //   /api/...       → مسارات API (لا تحتاج locale)
   //   /_next/...     → ملفات Next.js الداخلية
-  //   /.*\\..*       → الملفات الثابتة (favicon.ico، manifest.json، ...)
+  //   /.*\\..*       → الملفات الثابتة (favicon.ico, manifest.json, ...)
 };
 ```
 
 ### ما يفعله middleware تلقائيًا
 
-```
+```text
+  → locale غير محدد  // تحويل إلى GET /ar
 طلب: GET /
-  → locale غير محدد → تحويل إلى GET /ar
 
 طلب: GET /notes
-  → locale غير محدد → تحويل إلى GET /ar/notes
+  → locale غير محدد  // تحويل إلى GET /ar/notes
 
 طلب: GET /en/notes
-  → locale = 'en' → يمر كما هو
+  → locale = 'en'  // يمر كما هو
 
 طلب: GET /api/notes
-  → matcher لا يطابقه → يمر مباشرة إلى API handler
+  → matcher لا يطابقه  // يمر مباشرة إلى API handler
 
 طلب: GET /favicon.ico
-  → الملف له نقطة (.*\\..*) → يمر مباشرة → لا تحويل
+  // الملف له نقطة (.*\\..*)  // يمر مباشرة  // لا تحويل
 ```
 
 ### لماذا الملف اسمه `proxy.ts` وليس `middleware.ts`؟
@@ -239,8 +239,8 @@ router.push('/notes');   // → يذهب إلى /ar/notes أو /en/notes (حسب
 ### usePathname — بدون locale prefix
 
 ```ts
-// المسار الحقيقي في URL: /ar/notes/123
 const pathname = usePathname(); // ← '/notes/123' (بدون /ar)
+// المسار الحقيقي في URL: /ar/notes/123
 
 // يمكن الاستخدام مباشرة:
 pathname.startsWith('/notes') // ← true ✅ بدون قلق من locale prefix
@@ -299,12 +299,12 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 ```tsx
 <html lang={locale} dir={dir} suppressHydrationWarning>
   {/*
-    lang="ar" أو lang="en" → للمتصفح ولقارئات الشاشة
-    dir="rtl" أو dir="ltr" → يؤثر على:
+    lang="ar" أو lang="en"  // للمتصفح ولقارئات الشاشة
+    dir="rtl" أو dir="ltr"  // يؤثر على:
       - ترتيب نص HTML الخام
       - اتجاه MUI layout (مع direction: dir في createTheme)
       - هوامش وحاشية CSS تتقلب تلقائيًا
-    suppressHydrationWarning → يتجاهل فارق data-color-scheme بين SSR والعميل
+    suppressHydrationWarning  // يتجاهل فارق data-color-scheme بين SSR والعميل
   */}
   <head>
     {/* Script حاجب لمنع وميض السمة — من الدرس 06 */}
@@ -312,9 +312,9 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   </head>
   <body className={`${cairo.variable} ${geistMono.variable}`} suppressHydrationWarning>
     <NextIntlClientProvider messages={messages} locale={locale}>
-      {/* ← يُتيح useTranslations() في كل مكون عميل */}
+      {/*  // يُتيح useTranslations() في كل مكون عميل */}
       <EmotionCacheProvider dir={dir}>
-        {/* ← يُهيّئ Emotion بالاتجاه الصحيح */}
+        {/*  // يُهيّئ Emotion بالاتجاه الصحيح */}
         <Providers>{children}</Providers>
       </EmotionCacheProvider>
     </NextIntlClientProvider>
@@ -325,20 +325,20 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 ### لماذا `suppressHydrationWarning` على body؟
 
 ```tsx
-// الخادم يُولّد: <body class="..." data-*="value">
-// العميل: React يُلاحظ فارقًا في data-* بسبب script الـ theme
 // suppressHydrationWarning: "أعرف هذا الفارق — تجاهله"
+// العميل: React يُلاحظ فارقًا في data-* بسبب script الـ theme
+// الخادم يُولّد: <body class="..." data-*="value">
 // بدونه: تحذيرات hydration في console كثيرة
 ```
 
 ### تسلسل الاستدعاء عند تغيير اللغة
 
-```
-1. المستخدم يضغط LanguageToggle
+```text
 2. router.replace(pathname, { locale: 'en' })
+1. المستخدم يضغط LanguageToggle
 3. URL يتغير: /ar/notes → /en/notes
 4. Next.js يُعيد تصيير [locale]/layout.tsx مع locale='en'
-5. dir='ltr'، getMessages() يُحضر en.json
+5. dir='ltr', getMessages() يُحضر en.json
 6. html lang="en" dir="ltr"
 7. EmotionCacheProvider يُعيد init Emotion بـ LTR
 8. buildTheme(mode, 'ltr') → theme.direction='ltr'
@@ -378,7 +378,7 @@ export default function Home() {
 
 هذه الصفحة **شاشة توجيه فقط** — لا تعرض محتوى. مهمتها الوحيدة: قرار المنطق → أين يذهب المستخدم؟
 
-```
+```text
 /ar      → Home → user=true  → /ar/notes
 /ar      → Home → user=false → /ar/login
 /en      → Home → user=true  → /en/notes
@@ -412,10 +412,10 @@ export default function NotFound() {
 ### لماذا لا يستخدم `useTranslations`؟
 
 ```tsx
-// هذه الصفحة تظهر حتى لو فشل تحميل الرسائل
+const t = useLocale(); // بدلًا من useTranslations
 // لو استخدم useTranslations والرسائل غير متاحة → خطأ داخل صفحة الخطأ!
 // الحل: نصوص مباشرة (inline) مع isAr للتحقق من اللغة
-const t = useLocale(); // بدلًا من useTranslations
+// هذه الصفحة تظهر حتى لو فشل تحميل الرسائل
 
 const backLabel = isAr ? 'العودة إلى الملاحظات' : 'Back to Notes';
 const retryLabel = isAr ? 'إعادة المحاولة' : 'Retry';
@@ -465,7 +465,7 @@ export default function LanguageToggle() {
       <IconButton color="inherit" onClick={handleToggle} aria-label={label}>
         <Typography variant="button" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>
           {locale === 'ar' ? 'EN' : 'ع'}
-          {/* ↑ أظهر الاختصار المستهدف (EN للتحويل للإنجليزية، ع للعربية) */}
+          {/*  // أظهر الاختصار المستهدف (EN للتحويل للإنجليزية, ع للعربية) */}
         </Typography>
       </IconButton>
     </Tooltip>
@@ -477,9 +477,9 @@ export default function LanguageToggle() {
 
 ### قاعدة UX: أظهر الوجهة لا الحالة
 
-```
-الوضع الحالي: عربية  → الزر يُظهر: "EN" (التحويل للإنجليزية)
-الوضع الحالي: إنجليزي → الزر يُظهر: "ع" (التحويل للعربية)
+```text
+الوضع الحالي: عربية  // الزر يُظهر: "EN" (التحويل للإنجليزية)
+الوضع الحالي: إنجليزي  // الزر يُظهر: "ع" (التحويل للعربية)
 ```
 
 نفس مبدأ `ThemeToggle` — أظهر ما سيحدث لو ضغطت، لا ما هو الآن.
@@ -490,12 +490,12 @@ export default function LanguageToggle() {
 
 ### السياق الكامل
 
-```
-1. المستخدم يفتح التطبيق من متصفح بـ locale='ar'
+```text
+   → pendingLocaleSuggestion = 'en'
 2. يُسجّل دخوله
 3. أثناء login: AuthContext يقرأ user.languagePref من API
 4. لو user.languagePref = 'en' والمستخدم الآن في /ar/...
-   → pendingLocaleSuggestion = 'en'
+1. المستخدم يفتح التطبيق من متصفح بـ locale='ar'
 5. LocaleSwitchPromptDialog يظهر تلقائيًا
 ```
 
@@ -578,8 +578,8 @@ export default function LocaleSwitchPromptDialog() {
 ### كيفية الاستخدام في المكونات
 
 ```tsx
-// مكوّن عميل
 import { useTranslations } from 'next-intl';
+// مكوّن عميل
 
 function AppBar() {
   const t = useTranslations('AppBar'); // ← namespace
@@ -588,8 +588,8 @@ function AppBar() {
 ```
 
 ```tsx
-// مكوّن خادم
 import { getTranslations } from 'next-intl/server';
+// مكوّن خادم
 
 async function ServerComponent({ locale }: { locale: string }) {
   const t = await getTranslations({ locale, namespace: 'NoteList' });
@@ -600,15 +600,15 @@ async function ServerComponent({ locale }: { locale: string }) {
 ### Interpolation — القيم الديناميكية
 
 ```json
-// في القاموس
 "noteCount": "{count} ملاحظة"
+// في القاموس
 "body": "تفضيلك المحفوظ هو لغة ال{lang}. هل تريد التبديل إليها الآن؟"
 "deleteBody": "هل أنت متأكد من حذف الملاحظة \"{noteTitle}\"؟"
 ```
 
 ```tsx
-// في الكود
 t('noteCount', { count: 42 })             // "42 ملاحظة"
+// في الكود
 t('body', { lang: 'إنجليزية' })           // "تفضيلك هو لغة الإنجليزية..."
 t('deleteBody', { noteTitle: 'ملاحظتي' }) // "هل أنت متأكد من حذف الملاحظة "ملاحظتي"؟"
 ```
@@ -649,9 +649,9 @@ t('noteCount', { count: 5 })  // "5 notes"
 
 ### الطريق الكامل لطلب "GET /ar/notes"
 
-```
+```text
+2. proxy.ts (middleware): locale='ar' ✅ في القائمة  // يمر
 1. المتصفح: GET /ar/notes
-2. proxy.ts (middleware): locale='ar' ✅ في القائمة → يمر
 3. Next.js: يُطابق src/app/[locale]/notes/page.tsx
 4. i18n/request.ts: يُحضر ar.json ديناميكيًا
 5. [locale]/layout.tsx:
@@ -661,7 +661,7 @@ t('noteCount', { count: 5 })  // "5 notes"
    - EmotionCacheProvider dir="rtl"
 6. ThemeContext.buildTheme(mode, 'rtl') → theme.direction='rtl'
 7. MUI: يعكس التخطيط (padding/margin) تلقائيًا
-8. المكوّنات: useTranslations('NoteList') → يُعيد النصوص العربية
+8. المكوّنات: useTranslations('NoteList')  // يُعيد النصوص العربية
 ```
 
 ### جدول المكونات والمسؤوليات

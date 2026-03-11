@@ -40,18 +40,18 @@
 
 ### خريطة الملفات
 
-```
+```text
 src/
-├── sw.ts                                    ← يُشغَّل في worker thread (وليس في React)
+├── sw.ts  // يُشغَّل في worker thread (وليس في React)
 └── app/
-    ├── context/PwaActivationContext.tsx     ← يُدير lifecycle التفعيل/الإلغاء
-    ├── hooks/usePwaStatus.ts               ← يشتق حالة PWA للواجهة
+    ├── context/PwaActivationContext.tsx  // يُدير lifecycle التفعيل/الإلغاء
+    ├── hooks/usePwaStatus.ts  // يشتق حالة PWA للواجهة
     ├── components/common/
-    │   ├── PwaActivationDialog.tsx          ← واجهة التفعيل متعددة المراحل
-    │   └── OfflineBanner.tsx               ← بانر الاتصال
+    │   ├── PwaActivationDialog.tsx  // واجهة التفعيل متعددة المراحل
+    │   └── OfflineBanner.tsx  // بانر الاتصال
     └── lib/
         ├── db.ts                            ← Dexie — التخزين المحلي
-        └── warmUpCache.ts                   ← بذر الكاش بعد التفعيل
+        └── warmUpCache.ts  // بذر الكاش بعد التفعيل
 ```
 
 **الترتيب المنطقي:** `sw.ts` (core) → `db.ts` (storage) → `warmUpCache.ts` (seeding) → `PwaActivationContext` (lifecycle) → `usePwaStatus` (state) → `PwaActivationDialog` (UI) → `OfflineBanner` (UI)
@@ -183,8 +183,8 @@ runtimeCaching: [
 ### Background Sync — مزامنة خلفية
 
 ```typescript
-// نوع SyncEvent غير مدعوم في TypeScript بعد — نُعلن عنه يدويًا
 interface SyncEvent extends ExtendableEvent {
+// نوع SyncEvent غير مدعوم في TypeScript بعد — نُعلن عنه يدويًا
   readonly tag: string;
   readonly lastChance: boolean;
 }
@@ -405,8 +405,8 @@ export interface PendingOperation {
 ### دوال الطابور
 
 ```typescript
-/** إضافة عملية للطابور */
 export async function enqueuePendingOp(op: Omit<PendingOperation, 'id'>): Promise<number> {
+/** إضافة عملية للطابور */
   return db.pendingOps.add({ ...op, timestamp: Date.now() }) as Promise<number>;
   // يُعيد الـ id المُسنَد للعملية
 }
@@ -579,7 +579,7 @@ export async function warmUpOfflineCache(): Promise<void> {
 
   // ── Phase 2b: جلب هياكل الصفحات (awaited — يجب قبل نجاح Dialog) ──────
   await prefetchPageShells(noteIds);
-  // ↑ بعد هذا، الصفحات موجودة في كاش SW جاهزة للـ offline
+  // ↑ بعد هذا, الصفحات موجودة في كاش SW جاهزة للـ offline
 }
 ```
 
@@ -609,7 +609,7 @@ const MANIFEST_PATH = '/manifest.json';
 ```
 
 **شرطان للبقاء "مُفعَّلًا":**
-```
+```text
 isActivated = localStorage['pwa-enabled'] === 'true'
            && localStorage['device-trusted'] === 'true'
 ```

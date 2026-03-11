@@ -24,11 +24,11 @@
 
 ### بنية المشروع
 
-```
+```text
 src/
 ├── app/
 │   ├── [locale]/            # صفحات i18n (ar / en)
-│   │   ├── notes/           # قائمة، جديدة، تفاصيل، تعديل
+│   │   ├── notes/           # قائمة, جديدة, تفاصيل, تعديل
 │   │   ├── profile/         # إدارة الحساب
 │   │   ├── login/
 │   │   └── register/
@@ -65,13 +65,13 @@ src/
 
 ## 2. أسماء الفروع
 
-```
-main             ← كود جاهز للإنتاج؛ هيروكو يبني تلقائياً من هذا الفرع
-feat/<topic>     ← ميزة جديدة  (مثال: feat/note-tags)
-fix/<topic>      ← إصلاح خطأ  (مثال: fix/push-token-refresh)
-docs/<topic>     ← توثيق فقط   (مثال: docs/api-endpoints)
-chore/<topic>    ← أدوات، اعتماديات، إعداد (مثال: chore/update-deps)
-refactor/<topic> ← إعادة هيكلة بدون تغيير في السلوك
+```text
+main  // كود جاهز للإنتاج؛ هيروكو يبني تلقائياً من هذا الفرع
+feat/<topic>  // ميزة جديدة  (مثال: feat/note-tags)
+fix/<topic>  // إصلاح خطأ  (مثال: fix/push-token-refresh)
+docs/<topic>  // توثيق فقط   (مثال: docs/api-endpoints)
+chore/<topic>  // أدوات, اعتماديات, إعداد (مثال: chore/update-deps)
+refactor/<topic>  // إعادة هيكلة بدون تغيير في السلوك
 ```
 
 > **تنبيه:** هيروكو يبني `main` تلقائياً — لا ترفع كوداً غير مكتمل إليه.
@@ -82,7 +82,7 @@ refactor/<topic> ← إعادة هيكلة بدون تغيير في السلوك
 
 الصيغة: **[Conventional Commits](https://www.conventionalcommits.org/) — بالإنجليزية فقط**.
 
-```
+```text
 <type>(<scope>): <short description>
 
 - change 1
@@ -123,8 +123,8 @@ refactor/<topic> ← إعادة هيكلة بدون تغيير في السلوك
 ### أمثلة
 
 ```bash
-# ✅ صحيح
 git commit -m "feat(notes): add note pinning feature
+# ✅ صحيح
 
 - Add isPinned field to Note model
 - Update notes list to show pinned notes first
@@ -201,8 +201,8 @@ git push origin v1.1.0
 ## 6. سير العمل قبل الرفع (Pre-push Checklist)
 
 ```bash
-# 1. تحقق من TypeScript
 npx tsc --noEmit
+# 1. تحقق من TypeScript
 
 # 2. شغّل الاختبارات
 npm test
@@ -252,8 +252,8 @@ cp .env.example .env.local
 - متغيرات البيئة تُضبط في **Heroku Config Vars** فقط — لا `.env`
 
 ```bash
-# تأكد من وجود engines في package.json
 "engines": { "node": ">=20.x", "npm": ">=10.x" }
+# تأكد من وجود engines في package.json
 
 # تأكد من وجود Procfile إذا احتجت تخصيص الأمر
 web: npm start

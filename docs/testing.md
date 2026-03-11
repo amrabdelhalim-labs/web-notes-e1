@@ -114,63 +114,63 @@ Object.defineProperty(navigator, 'serviceWorker', {
 
 جميع ملفات الاختبار في مجلد واحد مُسطح — بدون مجلدات فرعية:
 
-```
+```text
 src/app/tests/
-├── setup.ts                          ← إعداد عام لجميع الاختبارات
-├── utils.tsx                         ← مساعدات خاصة بالاختبارات
+├── setup.ts  // إعداد عام لجميع الاختبارات
+├── utils.tsx  // مساعدات خاصة بالاختبارات
 │
 │   ── الإعداد والأنواع ──
-├── config.test.ts                    ← ثوابت التطبيق (config.ts)
-├── types.test.ts                     ← أنواع TypeScript
-├── validators.test.ts                ← دوال التحقق من المدخلات
+├── config.test.ts  // ثوابت التطبيق (config.ts)
+├── types.test.ts  // أنواع TypeScript
+├── validators.test.ts  // دوال التحقق من المدخلات
 │
 │   ── طبقة API والأدوات المساعدة ──
-├── apiClient.test.ts                 ← عميل API (fetch wrapper)
-├── deviceApi.test.ts                 ← استدعاءات API الأجهزة
-├── devicesRoute.test.ts              ← مسار API الأجهزة
-├── noteUtils.test.ts                 ← دوال مساعدة للملاحظات
-├── audioUtils.test.ts                ← دوال معالجة الصوت
-├── warmUpCache.test.ts               ← تدفئة الـ Cache
+├── apiClient.test.ts  // عميل API (fetch wrapper)
+├── deviceApi.test.ts  // استدعاءات API الأجهزة
+├── devicesRoute.test.ts  // مسار API الأجهزة
+├── noteUtils.test.ts  // دوال مساعدة للملاحظات
+├── audioUtils.test.ts  // دوال معالجة الصوت
+├── warmUpCache.test.ts  // تدفئة الـ Cache
 │
 │   ── Custom Hooks ──
-├── useAuth.test.tsx                  ← خطاف المصادقة
-├── useNotes.test.ts                  ← خطاف الملاحظات
-├── useDevices.test.ts                ← خطاف الأجهزة
-├── useDeviceId.test.ts               ← خطاف معرّف الجهاز
-├── useOfflineStatus.test.ts          ← خطاف حالة الاتصال
-├── useSyncStatus.test.ts             ← خطاف حالة المزامنة
-├── usePwaStatus.test.ts              ← خطاف حالة PWA
+├── useAuth.test.tsx  // خطاف المصادقة
+├── useNotes.test.ts  // خطاف الملاحظات
+├── useDevices.test.ts  // خطاف الأجهزة
+├── useDeviceId.test.ts  // خطاف معرّف الجهاز
+├── useOfflineStatus.test.ts  // خطاف حالة الاتصال
+├── useSyncStatus.test.ts  // خطاف حالة المزامنة
+├── usePwaStatus.test.ts  // خطاف حالة PWA
 │
 │   ── Contexts ──
-├── ThemeContext.test.tsx              ← سياق السمات (فاتح/داكن)
-├── PwaActivationDialog.test.tsx      ← حوار تفعيل PWA
+├── ThemeContext.test.tsx  // سياق السمات (فاتح/داكن)
+├── PwaActivationDialog.test.tsx  // حوار تفعيل PWA
 │
 │   ── المكونات ──
-├── AppBar.test.tsx                   ← شريط التطبيق العلوي
-├── SideBar.test.tsx                  ← القائمة الجانبية
-├── ThemeToggle.test.tsx              ← زر تبديل السمة
-├── LanguageToggle.test.tsx           ← زر تبديل اللغة
-├── NoteCard.test.tsx                 ← بطاقة الملاحظة
-├── NoteList.test.tsx                 ← قائمة الملاحظات
-├── NoteEditorForm.test.tsx           ← نموذج تحرير الملاحظة
-├── DeleteConfirmDialog.test.tsx      ← حوار تأكيد الحذف
-├── DeleteAccountDialog.test.tsx      ← حوار حذف الحساب
-├── ConnectionIndicator.test.tsx      ← مؤشر الاتصال
-├── OfflineBanner.test.tsx            ← شريط الاوف لاين
-├── ProfileEditor.test.tsx            ← محرر الملف الشخصي
-├── PrivateRoute.test.tsx             ← حارس المسارات الخاصة
+├── AppBar.test.tsx  // شريط التطبيق العلوي
+├── SideBar.test.tsx  // القائمة الجانبية
+├── ThemeToggle.test.tsx  // زر تبديل السمة
+├── LanguageToggle.test.tsx  // زر تبديل اللغة
+├── NoteCard.test.tsx  // بطاقة الملاحظة
+├── NoteList.test.tsx  // قائمة الملاحظات
+├── NoteEditorForm.test.tsx  // نموذج تحرير الملاحظة
+├── DeleteConfirmDialog.test.tsx  // حوار تأكيد الحذف
+├── DeleteAccountDialog.test.tsx  // حوار حذف الحساب
+├── ConnectionIndicator.test.tsx  // مؤشر الاتصال
+├── OfflineBanner.test.tsx  // شريط الاوف لاين
+├── ProfileEditor.test.tsx  // محرر الملف الشخصي
+├── PrivateRoute.test.tsx  // حارس المسارات الخاصة
 │
 │   ── الصفحات ──
-├── login.test.tsx                    ← صفحة تسجيل الدخول
-├── register.test.tsx                 ← صفحة إنشاء الحساب
-├── NotesPage.test.tsx                ← صفحة قائمة الملاحظات
-├── NewNotePage.test.tsx              ← صفحة إنشاء ملاحظة
-├── NoteDetailPage.test.tsx           ← صفحة تفاصيل ملاحظة
-├── EditNotePage.test.tsx             ← صفحة تعديل ملاحظة
-├── ProfilePage.test.tsx              ← صفحة الملف الشخصي
+├── login.test.tsx  // صفحة تسجيل الدخول
+├── register.test.tsx  // صفحة إنشاء الحساب
+├── NotesPage.test.tsx  // صفحة قائمة الملاحظات
+├── NewNotePage.test.tsx  // صفحة إنشاء ملاحظة
+├── NoteDetailPage.test.tsx  // صفحة تفاصيل ملاحظة
+├── EditNotePage.test.tsx  // صفحة تعديل ملاحظة
+├── ProfilePage.test.tsx  // صفحة الملف الشخصي
 │
 │   ── التكامل والتدفقات ──
-└── offlineLogout.test.tsx            ← تدفق تسجيل الخروج الاوف لاين
+└── offlineLogout.test.tsx  // تدفق تسجيل الخروج الاوف لاين
 ```
 
 ---
@@ -183,8 +183,8 @@ src/app/tests/
 **الملفات:** `config.test.ts`, `types.test.ts`, `validators.test.ts`, `noteUtils.test.ts`, `audioUtils.test.ts`, `warmUpCache.test.ts`
 
 ```typescript
-// مثال: validators.test.ts
 describe('validateEmail', () => {
+// مثال: validators.test.ts
   it('يقبل بريد صحيح', () => {
     expect(validateEmail('user@example.com')).toBe(true);
   });
@@ -200,8 +200,8 @@ describe('validateEmail', () => {
 **الملفات:** `apiClient.test.ts`, `deviceApi.test.ts`, `devicesRoute.test.ts`
 
 ```typescript
-// مثال: apiClient.test.ts
 describe('createNote', () => {
+// مثال: apiClient.test.ts
   it('يرسل POST إلى /api/notes مع البيانات الصحيحة', async () => {
     await notesApi.create({ title: 'ملاحظة', type: 'text' });
     expect(fetch).toHaveBeenCalledWith(
@@ -218,8 +218,8 @@ describe('createNote', () => {
 **الملفات:** `useAuth.test.tsx`, `useNotes.test.ts`, `useDevices.test.ts`, `useDeviceId.test.ts`, `useOfflineStatus.test.ts`, `useSyncStatus.test.ts`, `usePwaStatus.test.ts`
 
 ```typescript
-// مثال: useNotes.test.ts باستخدام renderHook
 const { result } = renderHook(() => useNotes(), { wrapper: TestProviders });
+// مثال: useNotes.test.ts باستخدام renderHook
 await waitFor(() => expect(result.current.notes).toHaveLength(3));
 ```
 
@@ -229,8 +229,8 @@ await waitFor(() => expect(result.current.notes).toHaveLength(3));
 **الملفات:** `ThemeContext.test.tsx`, `PwaActivationDialog.test.tsx`, `AppBar.test.tsx`, `SideBar.test.tsx`, `ThemeToggle.test.tsx`, `LanguageToggle.test.tsx`, `NoteCard.test.tsx`, `NoteList.test.tsx`, `NoteEditorForm.test.tsx`, `DeleteConfirmDialog.test.tsx`, `DeleteAccountDialog.test.tsx`, `ConnectionIndicator.test.tsx`, `OfflineBanner.test.tsx`
 
 ```typescript
-// مثال: NoteCard.test.tsx
 describe('NoteCard', () => {
+// مثال: NoteCard.test.tsx
   it('يعرض عنوان الملاحظة', () => {
     render(<NoteCard note={mockNote} />);
     expect(screen.getByText('عنوان الملاحظة')).toBeInTheDocument();
@@ -256,8 +256,8 @@ describe('NoteCard', () => {
 **الملفات:** `offlineLogout.test.tsx`
 
 ```typescript
-// مثال: offlineLogout.test.tsx
 it('يتعامل مع تسجيل الخروج أثناء الاوف لاين', async () => {
+// مثال: offlineLogout.test.tsx
   render(<App />, { wrapper: TestProviders });
   // محاكاة الاوف لاين ثم تسجيل الخروج
   // ...
@@ -269,8 +269,8 @@ it('يتعامل مع تسجيل الخروج أثناء الاوف لاين', a
 ## 6. أوامر الاختبار
 
 ```bash
-# تشغيل جميع الاختبارات مرة واحدة
 npm run test
+# تشغيل جميع الاختبارات مرة واحدة
 
 # وضع المشاهدة (يُعيد التشغيل عند التغيير)
 npm run test:watch
@@ -291,7 +291,7 @@ npm run test:coverage
 
 ### قراءة النتائج
 
-```
+```text
 ✓ src/app/tests/utils/validators.test.ts (12 tests) 45ms
 ✗ src/app/tests/components/NoteForm.test.tsx (3 failed)
   × يجب أن يظهر خطأ التحقق للعنوان الفارغ
@@ -309,8 +309,8 @@ npm run test:coverage
 ### ملف `utils.tsx` — مساعدات الاختبار
 
 ```typescript
-// توفير جميع الـ Providers المطلوبة في شكل wrapper
 export function TestProviders({ children }: { children: React.ReactNode }) {
+// توفير جميع الـ Providers المطلوبة في شكل wrapper
   return (
     <QueryClientProvider client={testQueryClient}>
       <ThemeProvider theme={theme}>
@@ -331,8 +331,8 @@ export function renderWithProviders(ui: React.ReactElement) {
 ### محاكاة الوحدات (Mocking)
 
 ```typescript
-// محاكاة وحدة كاملة
 vi.mock('@/app/lib/api', () => ({
+// محاكاة وحدة كاملة
   notesApi: {
     getAll: vi.fn().mockResolvedValue([mockNote]),
     create: vi.fn().mockResolvedValue(mockNote),
@@ -352,8 +352,8 @@ afterEach(() => vi.clearAllMocks());
 ### بيانات وهمية (Mock Data)
 
 ```typescript
-// يُعرَّف عادةً في أعلى الملف أو في ملف fixtures/
 const mockNote: INote = {
+// يُعرَّف عادةً في أعلى الملف أو في ملف fixtures/
   _id: '507f1f77bcf86cd799439011',
   title: 'ملاحظة تجريبية',
   content: '<p>محتوى</p>',

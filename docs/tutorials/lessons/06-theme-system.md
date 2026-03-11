@@ -35,22 +35,22 @@
 
 ### خريطة الملفات في هذا الدرس
 
-```
+```text
 src/app/
   lib/
-    ui-constants.ts                  ← ثوابت الأبعاد والانتقالات والظلال
+    ui-constants.ts  // ثوابت الأبعاد والانتقالات والظلال
   components/layout/
-    EmotionCacheProvider.tsx         ← تهيئة Emotion (RTL/LTR)
+    EmotionCacheProvider.tsx  // تهيئة Emotion (RTL/LTR)
   context/
-    ThemeContext.tsx                 ← بناء السمة وإدارتها (428 سطر)
+    ThemeContext.tsx  // بناء السمة وإدارتها (428 سطر)
   hooks/
-    useThemeMode.ts                  ← خطاف وصول للسياق
+    useThemeMode.ts  // خطاف وصول للسياق
   components/common/
-    ThemeToggle.tsx                  ← زر تبديل الوضع (UI فقط)
+    ThemeToggle.tsx  // زر تبديل الوضع (UI فقط)
   components/layout/
-    AppBar.tsx                       ← شريط علوي ثابت (162 سطر)
-    SideBar.tsx                      ← قائمة جانبية متجاوبة (165 سطر)
-    MainLayout.tsx                   ← التخطيط العام + حماية المصادقة
+    AppBar.tsx  // شريط علوي ثابت (162 سطر)
+    SideBar.tsx  // قائمة جانبية متجاوبة (165 سطر)
+    MainLayout.tsx  // التخطيط العام + حماية المصادقة
 ```
 
 ### سلسلة Providers في providers.tsx
@@ -79,8 +79,8 @@ src/app/
 بدلًا من تكرار `240` في كل مكان يستخدم عرض الـ Drawer:
 
 ```tsx
-// ❌ بدون ثوابت — تكرار وأخطاء صامتة
 // SideBar.tsx
+// ❌ بدون ثوابت — تكرار وأخطاء صامتة
 sx={{ width: 240 }}
 // MainLayout.tsx
 marginLeft: 240
@@ -89,8 +89,8 @@ marginLeft: 250
 ```
 
 ```tsx
-// ✅ مع ثوابت
 import { DRAWER_WIDTH } from '@/app/lib/ui-constants';
+// ✅ مع ثوابت
 sx={{ width: DRAWER_WIDTH }}           // 240 في كل مكان
 ```
 
@@ -100,7 +100,7 @@ sx={{ width: DRAWER_WIDTH }}           // 240 في كل مكان
 
 ```ts
 // ─── AppBar ────────────────────────────────────────────────────
-// MUI Toolbar defaults: 56px mobile، 64px desktop
+// MUI Toolbar defaults: 56px mobile, 64px desktop
 export const APP_BAR_HEIGHT = {
   xs: 56,
   sm: 64,
@@ -110,7 +110,7 @@ export const APP_BAR_HEIGHT = {
 export const DRAWER_WIDTH = 240; // pixel
 
 // ─── Z-index layers ────────────────────────────────────────────
-// مقياس MUI: drawer=1200، appBar≈1100
+// مقياس MUI: drawer=1200, appBar≈1100
 // نرفع AppBar لـ 1201 ليعلو على الـ Drawer الثابت
 export const Z_INDEX = {
   appBar: 1201,
@@ -138,11 +138,11 @@ export const SHADOWS = {
 ### لماذا `as const`؟
 
 ```ts
-// بدون as const: TypeScript يستنتج أن DRAWER_WIDTH: number
+const width: typeof DRAWER_WIDTH = 241; // ❌ خطأ TypeScript فوري
 // مع as const: يُستنتج أن DRAWER_WIDTH: 240 (literal type)
 // المُفيد: الـ IDE يُكمل القيمة الدقيقة ويكتشف الخطأ مبكرًا
 
-const width: typeof DRAWER_WIDTH = 241; // ❌ خطأ TypeScript فوري
+// بدون as const: TypeScript يستنتج أن DRAWER_WIDTH: number
 ```
 
 ### جدول استخدام الثوابت
@@ -217,7 +217,7 @@ key: 'mui'    // ← LTR: cache عادية
 
 ### تدفق البيانات
 
-```
+```text
 [locale]/layout.tsx
   ↓ dir="rtl" أو "ltr"
 EmotionCacheProvider (dir={dir})
@@ -291,7 +291,7 @@ components: {
     },
   },
 
-  // الأزرار: خط عريض، بدون CAPS
+  // الأزرار: خط عريض, بدون CAPS
   MuiButton: {
     styleOverrides: {
       root: () => ({
@@ -330,25 +330,25 @@ components: {
 
 **المشكلة:**
 
-```
-الخادم (SSR):   يُولّد theme بـ mode='light'  → hash CSS: "abc123"
-العميل:         useState يقرأ localStorage:'dark' → theme بـ dark → hash: "xyz789"
+```text
 React hydration: هاشات مختلفة! → ⚠️ Hydration Mismatch Error
+العميل:         useState يقرأ localStorage:'dark' → theme بـ dark → hash: "xyz789"
+الخادم (SSR):   يُولّد theme بـ mode='light'  → hash CSS: "abc123"
 ```
 
 **الحل في ملاحظاتي:**
 
 ```ts
-// ❌ الطريقة الخاطئة — تؤدي لـ Hydration Mismatch
 const [mode, setMode] = useState<PaletteMode>(() => {
+// ❌ الطريقة الخاطئة — تؤدي لـ Hydration Mismatch
   const stored = localStorage.getItem(STORAGE_KEY); // ← localStorage غير متاح SSR!
   return stored === 'dark' ? 'dark' : 'light';
 });
 
 // ✅ الطريقة الصحيحة — نبدأ دائمًا بـ 'light' (يطابق الخادم)
-const [mode, setMode] = useState<PaletteMode>('light'); // ← ثابت، يطابق SSR
+const [mode, setMode] = useState<PaletteMode>('light'); // ← ثابت, يطابق SSR
 
-// بعد الـ Hydration، نُطبّق التفضيل الحقيقي
+// بعد الـ Hydration, نُطبّق التفضيل الحقيقي
 useEffect(() => {
   const stored = localStorage.getItem(STORAGE_KEY);
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -357,14 +357,14 @@ useEffect(() => {
 
   startTransition(() => setMode(resolved)); // ← تحديث لا يعوق الـ UI
   document.documentElement.setAttribute('data-color-scheme', resolved);
-}, []); // ← مرة واحدة، بعد الـ hydration
+}, []); // ← مرة واحدة, بعد الـ hydration
 ```
 
 **منع وميض الشاشة (Flash Prevention):**
 
 ```tsx
-// في [locale]/layout.tsx — script حاجب (blocking) يُنفَّذ قبل React
 <script dangerouslySetInnerHTML={{
+// في [locale]/layout.tsx — script حاجب (blocking) يُنفَّذ قبل React
   __html: `
     (function() {
       var stored = localStorage.getItem('theme-mode');
@@ -377,20 +377,20 @@ useEffect(() => {
 ```
 
 ```css
-/* في globals.css */
 html[data-color-scheme='dark'] {
-  background-color: #121212; /* ← خلفية داكنة قبل أن React يُحمَّل */
+/* في globals.css */
+  background-color: #121212; /*  // خلفية داكنة قبل أن React يُحمَّل */
   color-scheme: dark;
 }
 ```
 
 **الترتيب الكامل:**
 
-```
+```text
 1. HTML يُرسَل من الخادم (mode=light)
-2. <script> يُنفَّذ → يضع data-color-scheme='dark' على <html>
-3. globals.css: html[data-color-scheme='dark'] → خلفية داكنة فوريًا
-4. React Hydration: يبدأ بـ 'light' → يطابق الخادم ✅
+2. <script> يُنفَّذ  // يضع data-color-scheme='dark' على <html>
+3. globals.css: html[data-color-scheme='dark']  // خلفية داكنة فوريًا
+4. React Hydration: يبدأ بـ 'light'  // يطابق الخادم ✅
 5. useEffect يعمل → startTransition setMode('dark')
 6. buildTheme('dark', ...) → ThemeProvider يُعيد التصيير
 7. المستخدم يرى الوضع الداكن الصحيح — بدون وميض
@@ -421,12 +421,12 @@ const theme = useMemo(() => buildTheme(mode, dir), [mode, dir]);
 
 ```tsx
 export function ThemeProviderWrapper({ children }: { children: ReactNode }) {
-  // ... (state، locale، toggleMode، theme، ctxValue)
+  // ... (state, locale, toggleMode, theme, ctxValue)
 
   return (
     <ThemeContext.Provider value={ctxValue}> // ← { mode, toggleMode }
       <ThemeProvider theme={theme}>          // ← MUI: كل مكوّن يرث theme
-        <CssBaseline />                      // ← تطبيع CSS عالمي (margin=0، etc.)
+        <CssBaseline />                      // ← تطبيع CSS عالمي (margin=0, etc.)
         {children}
       </ThemeProvider>
     </ThemeContext.Provider>
@@ -480,8 +480,8 @@ export default function ThemeToggle() {
     <Tooltip title={label}>
       <IconButton color="inherit" onClick={toggleMode} aria-label={label}>
         {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
-        {/* ↑ في الداكن: أظهر أيقونة "الشمس" (للتحويل للفاتح)  */}
-        {/* ↑ في الفاتح: أظهر أيقونة "القمر" (للتحويل للداكن) */}
+        {/*  // في الداكن: أظهر أيقونة "الشمس" (للتحويل للفاتح)  */}
+        {/*  // في الفاتح: أظهر أيقونة "القمر" (للتحويل للداكن) */}
       </IconButton>
     </Tooltip>
   );
@@ -490,9 +490,9 @@ export default function ThemeToggle() {
 
 **قاعدة الأيقونة: أظهر الحالة المستهدفة، لا الحالية:**
 
-```
-الوضع الحالي: داكن  → الزر يُظهر ☀️ (الشمس) → "اضغط للتحويل للفاتح"
-الوضع الحالي: فاتح  → الزر يُظهر 🌙 (القمر) → "اضغط للتحويل للداكن"
+```text
+الوضع الحالي: داكن  // الزر يُظهر ☀️ (الشمس) → "اضغط للتحويل للفاتح"
+الوضع الحالي: فاتح  // الزر يُظهر 🌙 (القمر) → "اضغط للتحويل للداكن"
 ```
 
 هذا مبدأ UX مألوف: المستخدم يبحث عن "ما سيحدث"، لا "ما هو الآن".
@@ -505,8 +505,8 @@ export default function ThemeToggle() {
 
 ```tsx
 <MuiAppBar position="fixed" sx={{ zIndex: Z_INDEX.appBar }}>
-  {/* position="fixed" → لا يتحرك عند التمرير */}
-  {/* zIndex: 1201 → يعلو على SideBar الثابت (zIndex=1200) */}
+  {/* position="fixed"  // لا يتحرك عند التمرير */}
+  {/* zIndex: 1201  // يعلو على SideBar الثابت (zIndex=1200) */}
 
   <Toolbar sx={{ gap: 0.5, px: { xs: 1, sm: 2 } }}>
 
@@ -530,7 +530,7 @@ export default function ThemeToggle() {
 
     {/* ④ مجموعة أيقونات الزاوية */}
     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 0.5 } }}>
-      {isActivated && <ConnectionIndicator />} {/* ← فقط لو PWA مُفعَّل */}
+      {isActivated && <ConnectionIndicator />} {/*  // فقط لو PWA مُفعَّل */}
       <ThemeToggle />
       <LanguageToggle />
       {user && <IconButton onClick={handleMenuOpen}><AccountCircleIcon /></IconButton>}
@@ -541,7 +541,7 @@ export default function ThemeToggle() {
   {/* ⑤ قائمة المستخدم — Portal خارج الـ DOM الطبيعي */}
   {user && (
     <Menu anchorEl={anchorEl} open={menuOpen} ...>
-      <MenuItem disabled> {/* ← يعرض الاسم كمعلومة، لا كإجراء */}
+      <MenuItem disabled> {/*  // يعرض الاسم كمعلومة, لا كإجراء */}
         <Typography variant="subtitle2" fontWeight={700}>
           {user.displayName || user.username}
         </Typography>
@@ -554,7 +554,7 @@ export default function ThemeToggle() {
       <Divider />
       <MenuItem onClick={handleProfile}> ... </MenuItem>
       <Tooltip title={!isOnline ? t('logoutOfflineDisabled') : ''}>
-        <span> {/* ← ضروري: Tooltip لا يعمل مباشرة على مكوّن disabled */}
+        <span> {/*  // ضروري: Tooltip لا يعمل مباشرة على مكوّن disabled */}
           <MenuItem onClick={handleLogout} disabled={!isOnline}>
             ...
           </MenuItem>
@@ -578,7 +578,7 @@ export default function ThemeToggle() {
 
 ```tsx
 <Tooltip title="تسجيل الخروج معطَّل أثناء عدم الاتصال">
-  <span>                        {/* ← لا `<div>` لكيلا يكسر تخطيط القائمة */}
+  <span>                        {/*  // لا `<div>` لكيلا يكسر تخطيط القائمة */}
     <MenuItem disabled>...</MenuItem>
   </span>
 </Tooltip>
@@ -609,7 +609,7 @@ export default function ThemeToggle() {
   {/* Desktop — Drawer دائم (مرئي دائمًا) */}
   <Drawer
     variant="permanent"
-    anchor="left"                      // ← نفس الـ anchor، MUI يُعكسه تلقائيًا
+    anchor="left"                      // ← نفس الـ anchor, MUI يُعكسه تلقائيًا
     sx={{ display: { xs: 'none', md: 'block' }, width: DRAWER_WIDTH, ... }}
     open                               // ← لا معنى له في permanent لكن إلزامي للتعامد الصحيح
   >
@@ -635,7 +635,7 @@ items.map((item) => (
   <ListItemButton
     key={item.path}
     selected={pathname.startsWith(item.path)}
-    // ↑ /notes تُحدد عند /notes، /notes/123، /notes/123/edit
+    // ↑ /notes تُحدد عند /notes, /notes/123, /notes/123/edit
     onClick={() => navigate(item.path)}
     sx={activeItemSx}
   >
@@ -645,7 +645,7 @@ items.map((item) => (
 // activeItemSx — أنماط التحديد
 '&.Mui-selected': {
   bgcolor: 'primary.main',             // ← اللون الأساسي
-  color: 'primary.contrastText',       // ← نص آمن (كحلي في الداكن، أبيض في الفاتح)
+  color: 'primary.contrastText',       // ← نص آمن (كحلي في الداكن, أبيض في الفاتح)
   '& .MuiListItemIcon-root': {
     color: 'primary.contrastText',     // ← الأيقونة تتبع النص
   },
@@ -656,7 +656,7 @@ items.map((item) => (
 ### زر الخروج في القاع
 
 ```tsx
-<List sx={{ mt: 'auto' }}>  {/* ← يُدفع للأسفل بـ flexbox */}
+<List sx={{ mt: 'auto' }}>  {/*  // يُدفع للأسفل بـ flexbox */}
   <ListItemButton
     disabled={!isOnline}
     onClick={() => { logout(); router.push('/login'); }}
@@ -718,7 +718,7 @@ return (
     {/* ① AppBar ثابت (fixed) — لا يأخذ مساحة في التدفق */}
     <AppBar onMenuClick={() => setDrawerOpen((o) => !o)} />
 
-    {/* ② SideBar — permanent على desktop، temporary على mobile */}
+    {/* ② SideBar — permanent على desktop, temporary على mobile */}
     <SideBar open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
     {/* ③ منطقة المحتوى الرئيسي */}
@@ -740,28 +740,28 @@ return (
 
 ```css
 /* flexbox quirk: flex items لا يتقلصون أقل من min-content افتراضيًا */
-/* بدون minWidth: 0 — محتوى طويل بدون مسافات (URL، كود) يُفيض الحاوية */
+/* بدون minWidth: 0 — محتوى طويل بدون مسافات (URL, كود) يُفيض الحاوية */
 /* مع minWidth: 0 — المحتوى يلتزم بحدود الحاوية ويقطع عند الحاجة */
 ```
 
 ### خريطة التفاعلات
 
-```
-المستخدم يضغط زر القائمة في AppBar
+```text
   ↓ onMenuClick() → setDrawerOpen(true)
+المستخدم يضغط زر القائمة في AppBar
   ↓ SideBar تفتح (open={true})
-  ↓ المستخدم يضغط خارج الـ Drawer
+  // المستخدم يضغط خارج الـ Drawer
   ↓ onClose() → setDrawerOpen(false)
   ↓ SideBar تُغلق
 
 المستخدم يختار صفحة من SideBar
   ↓ navigate(path) → router.push(path)
-  ↓ onClose() → setDrawerOpen(false)  ← يُغلق على mobile تلقائيًا
+  ↓ onClose() → setDrawerOpen(false)  // يُغلق على mobile تلقائيًا
 ```
 
 ### الثلاثي: AppBar + SideBar + Toolbar spacer
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │  AppBar (fixed, z=1201)                                  │  64px
 ├──────────┬──────────────────────────────────────────────┤

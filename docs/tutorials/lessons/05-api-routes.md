@@ -30,7 +30,7 @@
 
 ### نظام الملفات كمسارات
 
-```
+```text
 src/app/
   api/
     health/
@@ -105,7 +105,7 @@ export async function GET(
 // HEAD — مسبار خفيف الوزن (للتحقق من اتصال الشبكة فقط)
 export async function HEAD(): Promise<NextResponse> {
   return new NextResponse(null, { status: 200 });
-  // لا جسم، لا قاعدة بيانات — مجرد 200 OK
+  // لا جسم, لا قاعدة بيانات — مجرد 200 OK
 }
 
 // GET — تقرير كامل عن صحة التطبيق
@@ -148,10 +148,10 @@ export async function GET(): Promise<NextResponse> {
 
 ```ts
 // HEAD — مجرد فحص هل الخادم متاح؟
-// لا يتصل بقاعدة البيانات → استجابة أسرع، ضغط أقل
+// لا يتصل بقاعدة البيانات → استجابة أسرع, ضغط أقل
 
 // GET — تقرير شامل
-// يتصل بقاعدة البيانات، يختبر المستودعات → أبطأ، لمراقبة الإنتاج
+// يتصل بقاعدة البيانات, يختبر المستودعات → أبطأ, لمراقبة الإنتاج
 ```
 
 فصل المسبار الخفيف عن التقرير الشامل نمط شائع في الإنتاج (لiveness probe vs. health check كامل).
@@ -236,11 +236,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 **شجرة قرار الاستعلام:**
 
-```
+```text
 GET /api/notes
-  ├── ?q=كلمة          → noteRepo.search()              ← بحث نصي
-  ├── ?type=text|voice  → noteRepo.findByType()          ← تصفية النوع
-  └── (لا شيء)         → noteRepo.findByUserPaginated()  ← كل الملاحظات
+  ├── ?q=كلمة          → noteRepo.search()  // بحث نصي
+  ├── ?type=text|voice  → noteRepo.findByType()  // تصفية النوع
+  └── (لا شيء)         → noteRepo.findByUserPaginated()  // كل الملاحظات
 ```
 
 ### POST /api/notes — إنشاء ملاحظة
@@ -281,10 +281,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 **دائرة البيانات الصوتية:**
 
-```
-المتصفح               الخادم                     قاعدة البيانات
-────────               ──────                     ──────────────
+```text
 audioData: "base64..." →  Buffer.from(b64,'base64') → Buffer (ثنائي)
+────────               ──────                     ──────────────
+المتصفح               الخادم                     قاعدة البيانات
                           ↑ POST /api/notes
 
 Buffer (ثنائي)        ← .toString('base64')       ← Buffer
@@ -316,8 +316,8 @@ if (ownerId !== auth.userId) return forbiddenError();
 **لماذا الـ `instanceof Types.ObjectId` check؟**
 
 ```ts
-// إذا استخدم findById دون populate:
 note.user = Types.ObjectId("507f...") // ObjectId خام
+// إذا استخدم findById دون populate:
 
 // إذا استخدم findById مع populate('user'):
 note.user = { _id: "507f...", username: "ahmed", ... } // IUser كامل
@@ -330,8 +330,8 @@ note.user = { _id: "507f...", username: "ahmed", ... } // IUser كامل
 ### PUT /api/notes/[id] — القيود الثابتة (Immutable Invariants)
 
 ```ts
-// النوع لا يتغيّر بعد الإنشاء — هذا ليس تحقق إدخال بل حارس منطق أعمال
 if (existing.type === 'text' && (body.audioData !== undefined || body.audioDuration !== undefined)) {
+// النوع لا يتغيّر بعد الإنشاء — هذا ليس تحقق إدخال بل حارس منطق أعمال
   return validationError(['الملاحظات النصية لا تقبل بيانات صوتية']);
 }
 if (existing.type === 'voice' && body.content !== undefined) {
@@ -458,7 +458,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 **نمط Upsert:**
 
-```
+```text
 POST /api/devices
   ├── الجهاز موجود → touch() → 200 "موثوق بالفعل"
   └── الجهاز جديد  → create() → 201 "تم التوثيق"
@@ -663,7 +663,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     ...(deviceInfo && { deviceInfo }),   // أضف فقط إذا وُجد
   };
 
-  // Upsert: إذا الـ endpoint موجود → حدّث، إلا → أنشئ
+  // Upsert: إذا الـ endpoint موجود → حدّث, إلا → أنشئ
   const existing = await subRepo.findByEndpoint(endpoint);
   if (existing) {
     await subRepo.update(existing._id.toString(), fields);
@@ -704,9 +704,9 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
 
 ### تدفق الاشتراك الكامل
 
-```
-المتصفح
+```text
   1. navigator.serviceWorker.ready
+المتصفح
   2. pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: VAPID_PUBLIC_KEY })
      → { endpoint, keys: { p256dh, auth } }
   3. POST /api/push/subscribe { endpoint, keys, deviceId }
@@ -771,7 +771,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 try {
   const success = await sendPushNotification(pushSub, payload);
   // ...
-} catch { failed++; } // ← نُعدّ الفشل، لا نرمي للخارج
+} catch { failed++; } // ← نُعدّ الفشل, لا نرمي للخارج
 ```
 
 `Promise.all` هنا آمنة لأن كل callback يُعالج أخطاءه داخليًا. `Promise.allSettled` للحالات التي تريد الإكمال حتى مع الأخطاء غير الملتقطة.

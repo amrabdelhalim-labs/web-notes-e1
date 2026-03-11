@@ -213,7 +213,7 @@ Content-Type: application/json
 | `q` | string | — | بحث نصي في العنوان والمحتوى |
 
 **مثال:**
-```
+```http
 GET /api/notes?page=1&limit=20&type=text&q=اجتماع
 ```
 
@@ -689,9 +689,9 @@ GET /api/notes?page=1&limit=20&type=text&q=اجتماع
 ```typescript
 interface User {
   _id: string
-  username: string           // 3-30 حرف، فريد
-  email: string              // بريد إلكتروني، فريد
-  displayName?: string       // اسم العرض، حتى 50 حرف
+  username: string           // 3-30 حرف, فريد
+  email: string              // بريد إلكتروني, فريد
+  displayName?: string       // اسم العرض, حتى 50 حرف
   language: 'ar' | 'en' | 'unset'
   createdAt: string          // ISO 8601
   updatedAt: string          // ISO 8601

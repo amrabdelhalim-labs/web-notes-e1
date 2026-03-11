@@ -38,13 +38,13 @@
 
 ### خريطة التدفق الكاملة
 
-```
-المتصفح                        الخادم (Next.js API)
-────────                        ──────────────────────────────────────────
+```text
 POST /api/auth/register
+────────                        ──────────────────────────────────────────
+المتصفح                        الخادم (Next.js API)
   { username, email, password }
       ↓
-                        validators → إعادة أخطاء فورية إن وجدت
+                        validators  // إعادة أخطاء فورية إن وجدت
                         userRepo.emailExists / usernameExists
                         hashPassword(password, 12 rounds)
                         userRepo.create(...)
@@ -143,12 +143,12 @@ export async function comparePassword(password: string, hash: string): Promise<b
 
 **الـ Salt في bcrypt:**
 
-```
+```text
 bcrypt.hash("password123", 12)
   1. يُولّد salt عشوائيًا: "$2b$12$X9mQp..."
   2. يُشفّر: password + salt → 2^12 دورة
   3. الناتج: "$2b$12$X9mQp...A1B2C3D4E5F6"
-               ↑ النتيجة تحمل الـ salt مُدمجًا
+  // النتيجة تحمل الـ salt مُدمجًا
 
 bcrypt.compare("password123", storedHash)
   1. يستخرج الـ salt من storedHash
@@ -184,9 +184,9 @@ export function apiError(
 | `serverError(msg?)` | 500 | `SERVER_ERROR` | خطأ غير متوقع |
 
 ```ts
-/** 400 — يجمع رسائل الخطأ بـ ، */
 export function validationError(messages: string[]): NextResponse<ApiResponse<null>> {
-  return apiError('VALIDATION_ERROR', messages.join('، '), 400);
+/** 400 — يجمع رسائل الخطأ بـ , */
+  return apiError('VALIDATION_ERROR', messages.join(', '), 400);
 }
 
 /** 401 — رمز مفقود أو غير صالح */
@@ -211,9 +211,9 @@ export function conflictError(message: string): NextResponse<ApiResponse<null>> 
 
 **لماذا الفصل بين 401 و403؟**
 
-```
-401 Unauthorized: لا تعرف من أنت  → سجّل دخولك أولًا
-403 Forbidden:    نعرف من أنت، لكن هذا ليس ملكك → لا يُسمح لك
+```text
+401 Unauthorized: لا تعرف من أنت  // سجّل دخولك أولًا
+403 Forbidden:    نعرف من أنت, لكن هذا ليس ملكك  // لا يُسمح لك
 
 مثال:
 GET /api/users/abc123 بدون token   → 401 (لا رمز)
@@ -321,8 +321,8 @@ export function validateChangePasswordInput(
 بدون middleware، كل route يكتب منطق التحقق يدويًا:
 
 ```ts
-// ❌ في كل route — 50+ سطر مُكرَّر
 const header = request.headers.get('authorization');
+// ❌ في كل route — 50+ سطر مُكرَّر
 if (!header || !header.startsWith('Bearer ')) {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 }
@@ -338,8 +338,8 @@ try {
 مع `authenticateRequest`:
 
 ```ts
-// ✅ سطران في كل route محمي
 const auth = authenticateRequest(request);
+// ✅ سطران في كل route محمي
 if (auth.error) return auth.error;
 const userId = auth.userId; // مضمون string هنا
 ```
@@ -439,7 +439,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const token = generateToken(newUser._id.toString());
 
-    // ── تحويل IUser ← User (حذف password، تحويل Date→string) ────────
+    // ── تحويل IUser ← User (حذف password, تحويل Date→string) ────────
     const user: User = {
       _id: newUser._id.toString(),
       username: newUser.username,
@@ -480,8 +480,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 ### تسلسل العمليات
 
 ```ts
-// 1. التحقق من المدخلات
 const errors = validateLoginInput(body);
+// 1. التحقق من المدخلات
 if (errors.length > 0) return validationError(errors);
 
 // 2. البحث بالبريد الإلكتروني
@@ -505,8 +505,8 @@ const token = generateToken(foundUser._id.toString());
 ### أمان: User Enumeration
 
 ```ts
-// ❌ رسالتان مختلفتان — تُكشف أن البريد مسجل
 if (!foundUser) return error('البريد الإلكتروني غير مسجل');
+// ❌ رسالتان مختلفتان — تُكشف أن البريد مسجل
 if (!isMatch)   return error('كلمة المرور خاطئة');
 
 // ✅ رسالة موحّدة — لا معلومات إضافية
@@ -519,8 +519,8 @@ if (!foundUser || !isMatch)
 ### إشعار الأجهزة الأخرى (Fire-and-Forget)
 
 ```ts
-// بعد نجاح تسجيل الدخول — يُرسَل إشعار لباقي الأجهزة
 notifyOtherDevices(foundUser._id.toString()).catch((err) =>
+// بعد نجاح تسجيل الدخول — يُرسَل إشعار لباقي الأجهزة
   console.warn('Push notification after login failed (non-fatal):', err)
 );
 // .catch → لا يُجمَّد الطلب إذا فشل الإشعار
@@ -535,7 +535,7 @@ await Promise.allSettled(
 );
 // Promise.allSettled يُكمل حتى بعد فشل بعض الإشعارات
 // Promise.all يتوقف عند أول فشل — غير مناسب هنا
-// إشعار فاشل (endpoint تالف) → نحذفه، لا نوقف باقي الإشعارات
+// إشعار فاشل (endpoint تالف) → نحذفه, لا نوقف باقي الإشعارات
 ```
 
 ---
@@ -571,8 +571,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 **لماذا نجلب المستخدم من قاعدة البيانات ولا نثق بمحتوى JWT؟**
 
 ```ts
-// لو خزّنا username في JWT:
 const token = jwt.sign({ id, username, email }, secret);
+// لو خزّنا username في JWT:
 
 // مشكلة: المستخدم غيّر username
 // JWT القديم لا يزال يحمل الاسم القديم
@@ -634,8 +634,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 ### التوافق مع السجلات القديمة (Legacy Support)
 
 ```ts
-// السجلات الجديدة: { deviceId: "abc-123" }
 s.deviceId === deviceId
+// السجلات الجديدة: { deviceId: "abc-123" }
 
 // السجلات القديمة: { deviceInfo: "abc-123|Android|Chrome" }
 s.deviceInfo && s.deviceInfo.startsWith(`${deviceId}|`)
@@ -829,15 +829,15 @@ const loadUser = useCallback(async (jwt: string) => {
 
 **منطق التمييز بين 401 وأخطاء الشبكة:**
 
-```
+```text
 NetworkError / TimeoutError:
-  → المستخدم بلا إنترنت
-  → لا يجب تسجيل الخروج
-  → نستعيد USER_CACHE_KEY لإبقاء التطبيق يعمل
+  // المستخدم بلا إنترنت
+  // لا يجب تسجيل الخروج
+  // نستعيد USER_CACHE_KEY لإبقاء التطبيق يعمل
 
 401 Unauthorized:
-  → الرمز منتهي أو مُخترق
-  → يجب تسجيل الخروج وحذف الرمز
+  // الرمز منتهي أو مُخترق
+  // يجب تسجيل الخروج وحذف الرمز
 ```
 
 ### login — بعد نجاح تسجيل الدخول
@@ -905,15 +905,15 @@ const logout = useCallback(async () => {
 
 **لماذا حذف `pwa-enabled` عند الخروج؟**
 
-```
-سيناريو Bug بدون حذف pwa-enabled:
-1. المستخدم يُسجّل خروجًا
+```text
 2. device-trusted يُحذف ✅
+1. المستخدم يُسجّل خروجًا
+سيناريو Bug بدون حذف pwa-enabled:
 3. pwa-enabled يبقى = 'true' ❌
 4. المستخدم يُعيد فتح التطبيق
 5. PwaActivationContext يرى: pwa-enabled=true AND device-trusted=false
-   → يُطلق clearOfflineData() + يُلغي SW
-   → قاعدة البيانات المحلية تُمسح دون سبب!
+  // يُطلق clearOfflineData() + يُلغي SW
+  // قاعدة البيانات المحلية تُمسح دون سبب!
 ```
 
 الحل: مسح `pwa-enabled` مع `device-trusted` معًا يُبطل هذا التوليف الخطأ.
@@ -1018,7 +1018,7 @@ export default function PrivateRoute({ children }: { children: React.ReactNode }
 
 **دورة الحالات الثلاث:**
 
-```
+```text
 loading = true           → <CircularProgress /> (لا نعرف بعد)
 loading = false, !user   → null + router.replace('/login')
 loading = false, !!user  → <>{children}</>

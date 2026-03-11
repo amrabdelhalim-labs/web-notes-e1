@@ -22,37 +22,37 @@
 
 طبقة البيانات في **ملاحظاتي** تتألف من ثلاث طبقات متراكبة:
 
-```
+```text
 Route Handler (api/)
       ↓
-  Repository          ← نقطة الوصول الوحيدة للبيانات
+  Repository  // نقطة الوصول الوحيدة للبيانات
       ↓
-  Mongoose Model       ← تعريف الـ Schema والتحقق
+  Mongoose Model  // تعريف الـ Schema والتحقق
       ↓
-  MongoDB              ← قاعدة البيانات الفعلية
+  MongoDB  // قاعدة البيانات الفعلية
 ```
 
 **المبدأ الجوهري:** لا يتواصل أي Route Handler مع Mongoose مباشرةً — كل وصول للبيانات يمر عبر Repository.
 
 ### هيكل الملفات
 
-```
+```text
 src/app/
 ├── lib/
 │   └── mongodb.ts                    ← Singleton اتصال MongoDB
 ├── models/
-│   ├── User.ts                       ← نموذج المستخدمين
-│   ├── Note.ts                       ← نموذج الملاحظات
-│   ├── Device.ts                     ← نموذج الأجهزة الموثوقة
-│   └── Subscription.ts               ← نموذج اشتراكات Push
+│   ├── User.ts  // نموذج المستخدمين
+│   ├── Note.ts  // نموذج الملاحظات
+│   ├── Device.ts  // نموذج الأجهزة الموثوقة
+│   └── Subscription.ts  // نموذج اشتراكات Push
 └── repositories/
-    ├── repository.interface.ts        ← الواجهة العامة
-    ├── base.repository.ts             ← التطبيق الأساسي (CRUD عام)
-    ├── user.repository.ts             ← مستودع المستخدمين
-    ├── note.repository.ts             ← مستودع الملاحظات
-    ├── device.repository.ts           ← مستودع الأجهزة
-    ├── subscription.repository.ts     ← مستودع الاشتراكات
-    └── index.ts                       ← مدير المستودعات
+    ├── repository.interface.ts  // الواجهة العامة
+    ├── base.repository.ts  // التطبيق الأساسي (CRUD عام)
+    ├── user.repository.ts  // مستودع المستخدمين
+    ├── note.repository.ts  // مستودع الملاحظات
+    ├── device.repository.ts  // مستودع الأجهزة
+    ├── subscription.repository.ts  // مستودع الاشتراكات
+    └── index.ts  // مدير المستودعات
 ```
 
 ---
@@ -68,8 +68,8 @@ export async function connectDB(): Promise<typeof mongoose>
 **التصميم:** Singleton مع Connection Pooling — الاتصال يُنشأ مرة واحدة ويُعاد استخدامه.
 
 ```typescript
-// مثال الاستخدام في أي Route Handler
 import { connectDB } from '@/app/lib/mongodb';
+// مثال الاستخدام في أي Route Handler
 
 export async function GET() {
   await connectDB();    // لا عمل إذا كان متصلاً
@@ -149,8 +149,8 @@ export async function GET() {
 **Pre-Save Hook — حارس التناسق:**
 
 ```typescript
-// قبل حفظ أي ملاحظة — التحقق من تطابق type مع البيانات
 noteSchema.pre('save', function (next) {
+// قبل حفظ أي ملاحظة — التحقق من تطابق type مع البيانات
   if (this.type === 'voice' && !this.audioData) {
     return next(new Error('الملاحظة الصوتية يجب أن تحتوي على بيانات صوتية'));
   }
@@ -250,7 +250,7 @@ interface IRepository<T extends Document> {
 **نوع `PaginatedResult<T>`:**
 ```typescript
 interface PaginatedResult<T> {
-  data: T[]
+  rows: T[]
   count: number       // إجمالي السجلات المطابقة
   page: number        // الصفحة الحالية
   totalPages: number  // مجموع الصفحات
@@ -268,8 +268,8 @@ interface PaginatedResult<T> {
 - **التعامل مع ObjectId:** التحقق من صلاحية الـ id قبل الاستعلام
 
 ```typescript
-// مثال: findPaginated آمن من الحدود
 async findPaginated(page = 1, limit = 10, filter?, options?) {
+// مثال: findPaginated آمن من الحدود
   const safePage = Math.max(1, page);
   const safeLimit = Math.min(Math.max(1, limit), MAX_PAGE_SIZE);
   // ...
@@ -374,18 +374,18 @@ const health = await manager.healthCheck();
 
 عند حذف مستخدم، يجب حذف **كل** بياناته. يستخدم التطبيق **MongoDB Transaction** لضمان الذرّية (Atomicity):
 
-```
+```text
 deleteUserCascade(userId)
     │
     ├─ Session.startTransaction()
     │
-    ├─ NoteModel.deleteMany({ user: userId })      ← الملاحظات أولاً
-    ├─ SubscriptionModel.deleteMany({ user: userId }) ← الاشتراكات ثانياً
-    ├─ DeviceModel.deleteMany({ user: userId })     ← الأجهزة ثالثاً
-    ├─ UserModel.findByIdAndDelete(userId)          ← المستخدم أخيراً
+    ├─ NoteModel.deleteMany({ user: userId })  // الملاحظات أولاً
+    ├─ SubscriptionModel.deleteMany({ user: userId })  // الاشتراكات ثانياً
+    ├─ DeviceModel.deleteMany({ user: userId })  // الأجهزة ثالثاً
+    ├─ UserModel.findByIdAndDelete(userId)  // المستخدم أخيراً
     │
-    ├─ session.commitTransaction()                  ← نجح: تأكيد الكل
-    └─ session.abortTransaction()                   ← فشل: تراجع عن الكل
+    ├─ session.commitTransaction()  // نجح: تأكيد الكل
+    └─ session.abortTransaction()  // فشل: تراجع عن الكل
 ```
 
 **الضمان:** إذا فشلت أي خطوة، تتراجع جميع الخطوات السابقة. لا يمكن أن ينتهي الأمر بحساب محذوف لكن ملاحظاته موجودة.
@@ -397,8 +397,8 @@ deleteUserCascade(userId)
 كل مستودع يُصدَّر عبر دالة Singleton تضمن إنشاء نسخة واحدة فقط طوال دورة حياة الخادم:
 
 ```typescript
-// في كل ملف repository
 let instance: UserRepository | null = null;
+// في كل ملف repository
 
 export function getUserRepository(): UserRepository {
   if (!instance) {

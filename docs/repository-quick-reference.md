@@ -46,8 +46,8 @@ const subRepo = getSubscriptionRepository();
 
 ### `findAll`
 ```typescript
-// كل السجلات (بدون فلتر)
 const notes = await noteRepo.findAll();
+// كل السجلات (بدون فلتر)
 
 // مع فلتر
 const textNotes = await noteRepo.findAll({ type: 'text' });
@@ -78,7 +78,7 @@ const result = await noteRepo.findPaginated(
 
 // الناتج
 // {
-//   data: INote[],
+//   rows: INote[],
 //   count: 42,        // إجمالي السجلات
 //   page: 1,
 //   totalPages: 5,
@@ -102,13 +102,13 @@ const updated = await noteRepo.update(noteId, {
   title: 'عنوان محدّث',
   content: '<p>محتوى محدّث</p>',
 });
-// تُرجع المستند المحدّث، أو null إذا لم يوجد
+// تُرجع المستند المحدّث, أو null إذا لم يوجد
 ```
 
 ### `updateWhere`
 ```typescript
-// تحديث جماعي
 const count = await noteRepo.updateWhere(
+// تحديث جماعي
   { user: userId, type: 'text' },  // فلتر
   { title: 'محدّث' },               // التحديثات
 );
@@ -118,7 +118,7 @@ const count = await noteRepo.updateWhere(
 ### `delete`
 ```typescript
 const deleted = await noteRepo.delete(noteId);
-// تُرجع المستند المحذوف، أو null إذا لم يوجد
+// تُرجع المستند المحذوف, أو null إذا لم يوجد
 ```
 
 ### `deleteWhere`
@@ -200,7 +200,7 @@ const notes = await noteRepo.findByUser(userId);
 ### `findByUserPaginated`
 ```typescript
 const page1 = await noteRepo.findByUserPaginated(userId);         // الافتراضي: page=1, limit=10
-const page2 = await noteRepo.findByUserPaginated(userId, 2, 20); // الصفحة 2، 20 ملاحظة
+const page2 = await noteRepo.findByUserPaginated(userId, 2, 20); // الصفحة 2, 20 ملاحظة
 // الناتج: PaginatedResult<INote>
 ```
 
@@ -262,7 +262,7 @@ const count = await deviceRepo.deleteByUser(userId);
 ### `deleteByDeviceId`
 ```typescript
 const deleted = await deviceRepo.deleteByDeviceId(userId, 'uuid-string');
-// تُرجع المستند المحذوف، أو null إذا لم يوجد
+// تُرجع المستند المحذوف, أو null إذا لم يوجد
 ```
 
 ---
@@ -399,8 +399,8 @@ export async function POST(request: NextRequest) {
 
 ### نمط الاستعلام التوازي
 ```typescript
-// لجلب بيانات متعددة في آنٍ واحد
 const [notes, devices] = await Promise.all([
+// لجلب بيانات متعددة في آنٍ واحد
   noteRepo.findByUserPaginated(userId),
   deviceRepo.findByUser(userId),
 ]);

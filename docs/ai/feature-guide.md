@@ -233,7 +233,7 @@ export function validateUpdateTagInput(input: UpdateTagInput, locale: SupportedL
 
   return errors;
 }
-```
+```text
 
 **Critical notes:**
 - Every validator returns `string[]` — empty = valid, non-empty = Arabic error messages.
@@ -247,7 +247,7 @@ export function validateUpdateTagInput(input: UpdateTagInput, locale: SupportedL
 
 **File:** `src/app/api/tags/route.ts` (list + create)
 
-```typescript
+```
 /**
  * GET  /api/tags — List the authenticated user's tags
  * POST /api/tags — Create a new tag
@@ -328,7 +328,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return serverError(locale);
   }
 }
-```
+```text
 
 **File:** `src/app/api/tags/[id]/route.ts` (get, update, delete)
 
@@ -359,7 +359,7 @@ See [../api-endpoints.md](../api-endpoints.md) for the full endpoint reference a
 
 Add API client functions:
 
-```typescript
+```
 // ─── Tags ─────────────────────────────────────────────────────────────────────
 
 export async function getTagsApi(): Promise<{ data: Tag[] }> {
@@ -386,11 +386,11 @@ export async function updateTagApi(
 export async function deleteTagApi(id: string): Promise<{ message: string }> {
   return fetchApi(`/api/tags/${id}`, { method: 'DELETE' });
 }
-```
+```text
 
 **File:** `src/app/hooks/useTags.ts`
 
-```typescript
+```
 import { useState, useEffect, useCallback } from 'react';
 import { getTagsApi, createTagApi, updateTagApi, deleteTagApi } from '@/app/lib/api';
 import type { Tag, TagInput, UpdateTagInput } from '@/app/types';
@@ -446,7 +446,7 @@ export function useTags(): UseTagsReturn {
 
   return { tags, loading, error, createTag, updateTag, deleteTag, refresh };
 }
-```
+```text
 
 **Critical notes:**
 - All API functions go through `fetchApi()` — never use raw `fetch()`.
@@ -462,7 +462,7 @@ export function useTags(): UseTagsReturn {
 
 Add keys under a new section:
 
-```json
+```
 {
   "tags": {
     "title": "الوسوم",
@@ -478,11 +478,11 @@ Add keys under a new section:
     "deleted": "تم حذف الوسم بنجاح"
   }
 }
-```
+```text
 
 **File:** `src/messages/en.json`
 
-```json
+```
 {
   "tags": {
     "title": "Tags",
@@ -498,7 +498,7 @@ Add keys under a new section:
     "deleted": "Tag deleted successfully"
   }
 }
-```
+```text
 
 **Critical notes:**
 - Both `ar.json` and `en.json` must have identical key structures — missing keys cause runtime errors.
@@ -511,7 +511,7 @@ Add keys under a new section:
 
 **File:** `src/app/tests/useTags.test.ts`
 
-```typescript
+```
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useTags } from '@/app/hooks/useTags';
@@ -566,11 +566,11 @@ describe('useTags', () => {
 
   // ... additional tests for update, delete, error handling
 });
-```
+```text
 
 **File:** `src/app/tests/validators.test.ts` — add tag validator tests to the existing file:
 
-```typescript
+```
 describe('validateTagInput', () => {
   it('returns empty array for valid input', () => {
     expect(validateTagInput({ name: 'Work' })).toEqual([]);
@@ -586,7 +586,7 @@ describe('validateTagInput', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 });
-```
+```text
 
 **Critical notes:**
 - All tests go in `src/app/tests/` (flat structure — no subdirectories).
@@ -640,7 +640,7 @@ describe('validateTagInput', () => {
 
 After completing all changes for a feature, commit following the workspace convention:
 
-```bash
+```
 # Server-only changes
 git add -A
 git commit -m "feat(server): add Tag model, repository, and API routes"
@@ -656,7 +656,7 @@ git commit -m "test: add Tag hook and validator tests"
 # Combined (if done in one pass)
 git add -A
 git commit -m "feat: add tag management with full test coverage"
-```
+```text
 
 Commit message format: `<type>(<scope>): <description>`
 

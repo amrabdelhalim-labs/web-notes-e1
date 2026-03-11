@@ -81,7 +81,7 @@
 
 ### هيكل المجلدات المتوقع
 
-```
+```text
 web-notes-e1/
 ├── .github/
 │   └── workflows/
@@ -90,9 +90,9 @@ web-notes-e1/
 ├── .gitattributes              ← LF enforcement لجميع ملفات النص
 ├── .gitignore
 ├── .env.example
-├── .prettierrc.json            ← تكوين Prettier (singleQuote, LF, tabWidth:2)
+├── .prettierrc.json  // تكوين Prettier (singleQuote, LF, tabWidth:2)
 ├── .prettierignore
-├── CONTRIBUTING.md             ← معايير المساهمة والـ commits والمعمارية
+├── CONTRIBUTING.md  // معايير المساهمة والـ commits والمعمارية
 ├── LICENSE
 ├── next.config.js              ← CJS (لا .mjs) — متوافق مع Heroku
 ├── package.json
@@ -101,31 +101,31 @@ web-notes-e1/
 ├── eslint.config.mjs
 ├── README.md
 │
-├── src/                        ← مصدر التطبيق (بنية src/ — المرحلة ٧)
+├── src/  // مصدر التطبيق (بنية src/ — المرحلة ٧)
 │   ├── app/                    ← Next.js App Router
-│   │   ├── layout.tsx              ← التخطيط الجذري (html lang, dir, Providers)
-│   │   ├── page.tsx                ← الصفحة الرئيسية (redirect → /[locale])
+│   │   ├── layout.tsx  // التخطيط الجذري (html lang, dir, Providers)
+│   │   ├── page.tsx  // الصفحة الرئيسية (redirect → /[locale])
 │   │   ├── globals.css
 │   │   ├── providers.tsx           ← ThemeProviderWrapper > AuthProvider > children
-│   │   ├── config.ts               ← الثوابت والإعدادات المركزية
-│   │   ├── types.ts                ← جميع واجهات TypeScript
+│   │   ├── config.ts  // الثوابت والإعدادات المركزية
+│   │   ├── types.ts  // جميع واجهات TypeScript
 │   │   │
-│   │   ├── [locale]/              ← التوجيه حسب اللغة (ar | en)
-│   │   │   ├── layout.tsx          ← تخطيط اللغة (lang + dir + NextIntlClientProvider)
+│   │   ├── [locale]/  // التوجيه حسب اللغة (ar | en)
+│   │   │   ├── layout.tsx  // تخطيط اللغة (lang + dir + NextIntlClientProvider)
 │   │   │   ├── login/
-│   │   │   │   └── page.tsx        ← صفحة تسجيل الدخول
+│   │   │   │   └── page.tsx  // صفحة تسجيل الدخول
 │   │   │   ├── register/
-│   │   │   │   └── page.tsx        ← صفحة إنشاء حساب
+│   │   │   │   └── page.tsx  // صفحة إنشاء حساب
 │   │   │   ├── notes/
-│   │   │   │   ├── page.tsx        ← صفحة الملاحظات (قائمة + بحث + تصفية + حذف)
+│   │   │   │   ├── page.tsx  // صفحة الملاحظات (قائمة + بحث + تصفية + حذف)
 │   │   │   │   ├── new/
-│   │   │   │   │   └── page.tsx    ← صفحة إنشاء ملاحظة جديدة
+│   │   │   │   │   └── page.tsx  // صفحة إنشاء ملاحظة جديدة
 │   │   │   │   └── [id]/
-│   │   │   │       ├── page.tsx    ← صفحة عرض ملاحظة (قراءة فقط)
+│   │   │   │       ├── page.tsx  // صفحة عرض ملاحظة (قراءة فقط)
 │   │   │   │       └── edit/
-│   │   │   │           └── page.tsx ← صفحة تعديل ملاحظة
+│   │   │   │           └── page.tsx  // صفحة تعديل ملاحظة
 │   │   │   └── profile/
-│   │   │       └── page.tsx        ← صفحة الملف الشخصي
+│   │   │       └── page.tsx  // صفحة الملف الشخصي
 │   │   │
 │   │   ├── api/                    ← Next.js Route Handlers
 │   │   │   ├── auth/
@@ -150,60 +150,60 @@ web-notes-e1/
 │   │   │   └── health/
 │   │   │       └── route.ts
 │   │   │
-│   │   ├── components/             ← مكونات واجهة المستخدم
+│   │   ├── components/  // مكونات واجهة المستخدم
 │   │   │   ├── layout/
-│   │   │   │   ├── AppBar.tsx      ← شريط التطبيق (عنوان + سمة + لغة + قائمة مستخدم)
-│   │   │   │   ├── SideBar.tsx     ← قائمة جانبية (responsive drawer)
-│   │   │   │   ├── MainLayout.tsx  ← تخطيط رئيسي (AppBar + SideBar + محتوى)
+│   │   │   │   ├── AppBar.tsx  // شريط التطبيق (عنوان + سمة + لغة + قائمة مستخدم)
+│   │   │   │   ├── SideBar.tsx  // قائمة جانبية (responsive drawer)
+│   │   │   │   ├── MainLayout.tsx  // تخطيط رئيسي (AppBar + SideBar + محتوى)
 │   │   │   │   └── EmotionCacheProvider.tsx ← CacheProvider مع دعم RTL/LTR ديناميكي
 │   │   │   ├── auth/
-│   │   │   │   └── PrivateRoute.tsx ← حماية الصفحات (redirect to /[locale]/login)
+│   │   │   │   └── PrivateRoute.tsx  // حماية الصفحات (redirect to /[locale]/login)
 │   │   │   ├── notes/
-│   │   │   │   ├── NoteCard.tsx         ← بطاقة ملاحظة (عنوان + نوع + تاريخ + معاينة)
-│   │   │   │   ├── NoteList.tsx         ← قائمة الملاحظات (Grid + بحث + تصفية + ترقيم)
-│   │   │   │   ├── NoteEditorForm.tsx   ← نموذج مشترك للإنشاء والتعديل (صفحة كاملة)
-│   │   │   │   ├── RichTextEditor.tsx   ← محرر نصوص متقدم (Tiptap + RTL كامل)
-│   │   │   │   ├── VoiceRecorder.tsx    ← مسجل صوتي (MediaRecorder + إيقاف/استئناف)
-│   │   │   │   └── DeleteConfirmDialog.tsx ← حوار تأكيد الحذف
+│   │   │   │   ├── NoteCard.tsx  // بطاقة ملاحظة (عنوان + نوع + تاريخ + معاينة)
+│   │   │   │   ├── NoteList.tsx  // قائمة الملاحظات (Grid + بحث + تصفية + ترقيم)
+│   │   │   │   ├── NoteEditorForm.tsx  // نموذج مشترك للإنشاء والتعديل (صفحة كاملة)
+│   │   │   │   ├── RichTextEditor.tsx  // محرر نصوص متقدم (Tiptap + RTL كامل)
+│   │   │   │   ├── VoiceRecorder.tsx  // مسجل صوتي (MediaRecorder + إيقاف/استئناف)
+│   │   │   │   └── DeleteConfirmDialog.tsx  // حوار تأكيد الحذف
 │   │   │   ├── profile/
 │   │   │   │   ├── ProfileEditor.tsx
 │   │   │   │   └── DeleteAccountDialog.tsx
 │   │   │   └── common/
-│   │   │       ├── LanguageToggle.tsx   ← زر تبديل اللغة (المرحلة ٧)
-│   │   │       ├── LocaleSwitchPromptDialog.tsx ← حوار اقتراح تبديل اللغة بعد تسجيل الدخول
-│   │   │       ├── ThemeToggle.tsx      ← زر تبديل السمة (مستخرج من AppBar)
-│   │   │       ├── OfflineBanner.tsx    ← شريط تنبيه حالة الاتصال (في تدفق الصفحة)
-│   │   │       └── ConnectionIndicator.tsx ← مؤشر حالة الاتصال والمزامنة (AppBar)
+│   │   │       ├── LanguageToggle.tsx  // زر تبديل اللغة (المرحلة ٧)
+│   │   │       ├── LocaleSwitchPromptDialog.tsx  // حوار اقتراح تبديل اللغة بعد تسجيل الدخول
+│   │   │       ├── ThemeToggle.tsx  // زر تبديل السمة (مستخرج من AppBar)
+│   │   │       ├── OfflineBanner.tsx  // شريط تنبيه حالة الاتصال (في تدفق الصفحة)
+│   │   │       └── ConnectionIndicator.tsx  // مؤشر حالة الاتصال والمزامنة (AppBar)
 │   │   │
 │   │   ├── context/
 │   │   │   ├── ThemeContext.tsx     ← MUI Theme + RTL/LTR + light/dark
 │   │   │   └── AuthContext.tsx      ← AuthProvider + JWT state + login/register/logout
 │   │   │
 │   │   ├── hooks/
-│   │   │   ├── useAuth.ts          ← خطاف المصادقة
-│   │   │   ├── useThemeMode.ts     ← خطاف تبديل السمة
-│   │   │   ├── useNotes.ts         ← خطاف إدارة الملاحظات (CRUD + بحث + تصفية + offline)
-│   │   │   ├── useOfflineStatus.ts ← خطاف حالة الاتصال (online/offline)
-│   │   │   ├── useSyncStatus.ts    ← خطاف حالة المزامنة (Dexie pending ops)
+│   │   │   ├── useAuth.ts  // خطاف المصادقة
+│   │   │   ├── useThemeMode.ts  // خطاف تبديل السمة
+│   │   │   ├── useNotes.ts  // خطاف إدارة الملاحظات (CRUD + بحث + تصفية + offline)
+│   │   │   ├── useOfflineStatus.ts  // خطاف حالة الاتصال (online/offline)
+│   │   │   ├── useSyncStatus.ts  // خطاف حالة المزامنة (Dexie pending ops)
 │   │   │   └── usePushNotifications.ts
 │   │   │
 │   │   ├── lib/
-│   │   │   ├── api.ts              ← طبقة HTTP Client (fetchApi + typed helpers)
-│   │   │   ├── apiErrors.ts        ← معالجة أخطاء API
-│   │   │   ├── mongodb.ts          ← اتصال MongoDB (singleton)
-│   │   │   ├── auth.ts             ← دوال JWT + bcrypt
-│   │   │   ├── navigation.ts       ← غلاف createNavigation من next-intl (المرحلة ٧)
-│   │   │   ├── webpush.ts          ← إعداد web-push
+│   │   │   ├── api.ts  // طبقة HTTP Client (fetchApi + typed helpers)
+│   │   │   ├── apiErrors.ts  // معالجة أخطاء API
+│   │   │   ├── mongodb.ts  // اتصال MongoDB (singleton)
+│   │   │   ├── auth.ts  // دوال JWT + bcrypt
+│   │   │   ├── navigation.ts  // غلاف createNavigation من next-intl (المرحلة ٧)
+│   │   │   ├── webpush.ts  // إعداد web-push
 │   │   │   ├── db.ts               ← IndexedDB عبر Dexie (التخزين المحلي offline)
-│   │   │   └── ui-constants.ts     ← ثوابت التخطيط المركزية (DRAWER_WIDTH, Z_INDEX, TRANSITIONS, SHADOWS)
+│   │   │   └── ui-constants.ts  // ثوابت التخطيط المركزية (DRAWER_WIDTH, Z_INDEX, TRANSITIONS, SHADOWS)
 │   │   │
-│   │   ├── models/                 ← نماذج Mongoose
+│   │   ├── models/  // نماذج Mongoose
 │   │   │   ├── User.ts
 │   │   │   ├── Note.ts             ← + pre('save') consistency guard
-│   │   │   ├── Device.ts           ← إدارة الأجهزة الموثوقة
+│   │   │   ├── Device.ts  // إدارة الأجهزة الموثوقة
 │   │   │   └── Subscription.ts
 │   │   │
-│   │   ├── repositories/           ← طبقة الوصول للبيانات
+│   │   ├── repositories/  // طبقة الوصول للبيانات
 │   │   │   ├── repository.interface.ts
 │   │   │   ├── base.repository.ts
 │   │   │   ├── user.repository.ts
@@ -218,31 +218,31 @@ web-notes-e1/
 │   │   │   └── auth.middleware.ts
 │   │   │
 │   │   ├── utils/
-│   │   │   ├── audio.ts            ← مساعدات تحويل الصوت (blobToBase64, createAudioUrl, formatDuration)
-│   │   │   ├── notes.ts            ← مساعدات مشتركة (stripHtml, formatDateShort, formatDateLong)
-│   │   │   └── sanitize.ts         ← تعقيم HTML (XSS protection) قبل dangerouslySetInnerHTML
+│   │   │   ├── audio.ts  // مساعدات تحويل الصوت (blobToBase64, createAudioUrl, formatDuration)
+│   │   │   ├── notes.ts  // مساعدات مشتركة (stripHtml, formatDateShort, formatDateLong)
+│   │   │   └── sanitize.ts  // تعقيم HTML (XSS protection) قبل dangerouslySetInnerHTML
 │   │   │
 │   │   └── tests/
 │   │       ├── setup.ts
 │   │       ├── utils.tsx
 │   │       └── *.test.{ts,tsx}    ← 37 ملف اختبار — 476 اختبار ✅
 │   │
-│   ├── i18n/                      ← إعداد next-intl (المرحلة ٧)
+│   ├── i18n/  // إعداد next-intl (المرحلة ٧)
 │   │   ├── request.ts              ← getRequestConfig (تحميل ملفات الترجمة حسب اللغة)
-│   │   └── routing.ts              ← تعريف المسارات (locales: ['ar','en']، defaultLocale: 'ar')
+│   │   └── routing.ts  // تعريف المسارات (locales: ['ar','en'], defaultLocale: 'ar')
 │   │
-│   ├── messages/                   ← ملفات الترجمة (المرحلة ٧)
+│   ├── messages/  // ملفات الترجمة (المرحلة ٧)
 │   │   ├── ar.json
 │   │   └── en.json
 │   │
 │   ├── sw.ts                      ← Service Worker المصدري (@serwist — يُجمّع إلى public/sw.js)
 │   ├── proxy.ts                   ← proxy التوجيه حسب اللغة (next-intl) — تمت إعادة التسمية من middleware.ts (Next.js 16)
-│   └── instrumentation.ts         ← خطاف بدء الخادم (port + MongoDB status)
+│   └── instrumentation.ts  // خطاف بدء الخادم (port + MongoDB status)
 │
 ├── public/
 │   ├── manifest.json
 │   ├── sw.js                   ← Service Worker (مولَّد بـ @serwist/next)
-│   └── icons/                  ← أيقونات التطبيق فقط (لا أيقونات Next.js الافتراضية)
+│   └── icons/  // أيقونات التطبيق فقط (لا أيقونات Next.js الافتراضية)
 │       ├── badge-96x96.png
 │       ├── icon.png
 │       ├── icon.svg
@@ -256,14 +256,14 @@ web-notes-e1/
 │       └── icon-512x512.png (+.svg)
 │
 ├── scripts/
-│   ├── convert-icons.mjs       ← تحويل أيقونات SVG → PNG
-│   ├── format.mjs              ← تنسيق Prettier عبر المنصات (--check للـ CI)
-│   ├── generate-icons.mjs      ← توليد أيقونات PWA بجميع الأحجام
-│   ├── http-smoke.mjs          ← اختبارات HTTP محلية (smoke tests)
-│   └── validate-workflow.mjs   ← فحص شامل قبل الدفع (tsc + tests + env + files)
+│   ├── convert-icons.mjs  // تحويل أيقونات SVG → PNG
+│   ├── format.mjs  // تنسيق Prettier عبر المنصات (--check للـ CI)
+│   ├── generate-icons.mjs  // توليد أيقونات PWA بجميع الأحجام
+│   ├── http-smoke.mjs  // اختبارات HTTP محلية (smoke tests)
+│   └── validate-workflow.mjs  // فحص شامل قبل الدفع (tsc + tests + env + files)
 │
 └── docs/
-    ├── project-plan.md         ← هذا الملف
+    ├── project-plan.md  // هذا الملف
     ├── api-endpoints.md
     ├── database-abstraction.md
     ├── repository-quick-reference.md
@@ -278,7 +278,7 @@ web-notes-e1/
         ├── README.md
         ├── concepts-guide.md
         ├── quick-reference.md
-        └── lessons/            ← مجلد واحد (SSR — لا فصل server/client)
+        └── lessons/  // مجلد واحد (SSR — لا فصل server/client)
             ├── 01-project-setup.md
             ├── 02-database-models.md
             ├── 03-repository-pattern.md
@@ -296,7 +296,7 @@ web-notes-e1/
 
 ### مخطط الطبقات المعمارية
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │                    العميل (Client)                   │
 │  ┌───────────┐  ┌──────────┐  ┌──────────────────┐  │
@@ -354,7 +354,7 @@ web-notes-e1/
 
 ### نظرة عامة على المراحل
 
-```
+```text
 المرحلة ٠: تهيئة المشروع والبنية الأساسية
     ↓
 المرحلة ١: طبقة البيانات (Models + Repositories + MongoDB)
@@ -1162,9 +1162,9 @@ web-notes-e1/
 ### صيغة الاستجابة
 
 ```typescript
-// نجاح
-{
   "data": { ... },
+{
+// نجاح
   "message": "تم بنجاح"
 }
 
@@ -1182,7 +1182,7 @@ web-notes-e1/
 {
   "error": {
     "code": "VALIDATION_ERROR",
-    "message": "البريد الإلكتروني مطلوب، كلمة المرور يجب أن تكون 6 أحرف على الأقل"
+    "message": "البريد الإلكتروني مطلوب, كلمة المرور يجب أن تكون 6 أحرف على الأقل"
   }
 }
 ```
@@ -1234,8 +1234,8 @@ web-notes-e1/
 ## المتغيرات البيئية المتوقعة
 
 ```env
-# قاعدة البيانات
 DATABASE_URL=mongodb://localhost:27017/mynotes
+# قاعدة البيانات
 
 # المصادقة
 JWT_SECRET=your_jwt_secret_key_change_in_production
