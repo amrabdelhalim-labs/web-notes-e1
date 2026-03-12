@@ -70,7 +70,7 @@ src/app/
 │   ├── note.repository.ts            # findByUser, findByUserPaginated, findByType, search
 │   ├── device.repository.ts          # findByDeviceId, touch, deleteByDeviceId
 │   ├── subscription.repository.ts    # findByEndpoint, deleteByEndpoint, deleteByDeviceId
-│   └── index.ts                       # RepositoryManager singleton (.user, .note, .subscription)
+│   └── index.ts                       # RepositoryManager singleton (.user, .note, .subscription, .device)
 ├── validators/
 │   └── index.ts                       # All 6 validators: register, login, note, updateNote, updateUser, changePassword
 ├── middlewares/

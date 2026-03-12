@@ -637,7 +637,8 @@ GET /api/notes?page=1&limit=20&type=text&q=اجتماع
   "repositories": {
     "user": true,
     "note": true,
-    "subscription": true
+    "subscription": true,
+    "device": true
   },
   "timestamp": "2026-03-10T12:00:00.000Z"
 }
@@ -651,7 +652,8 @@ GET /api/notes?page=1&limit=20&type=text&q=اجتماع
   "repositories": {
     "user": false,
     "note": false,
-    "subscription": false
+    "subscription": false,
+    "device": false
   }
 }
 ```

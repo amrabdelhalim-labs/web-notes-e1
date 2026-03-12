@@ -325,7 +325,8 @@ const health = await manager.healthCheck();
   "repositories": {
     "user": true,
     "note": true,
-    "subscription": true
+    "subscription": true,
+    "device": true
   }
 }
 ```

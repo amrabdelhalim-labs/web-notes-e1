@@ -191,7 +191,8 @@ curl https://my-notes-app.herokuapp.com/api/health
   "repositories": {
     "user": true,
     "note": true,
-    "subscription": true
+    "subscription": true,
+    "device": true
   },
   "timestamp": "2025-01-01T12:00:00.000Z"
 }
@@ -361,5 +362,5 @@ heroku logs --tail --app my-notes-app
 
 ---
 
-*لإعداد متغيرات البيئة المحلية: راجع [environment-variables-guide.md](../../docs/environment-variables-guide.md)*  
+*لإعداد متغيرات البيئة المحلية: انسخ [.env.example](../.env.example) إلى `.env.local` وعدّل القيم*  
 *لقائمة endpoints لاختبار النشر: [api-endpoints.md](api-endpoints.md)*

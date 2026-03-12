@@ -358,13 +358,14 @@ const manager = getRepositoryManager();
 manager.user          // UserRepository
 manager.note          // NoteRepository
 manager.subscription  // SubscriptionRepository
+manager.device        // DeviceRepository
 
 // فحص الصحة
 const health = await manager.healthCheck();
 // {
 //   status: 'healthy' | 'degraded',
 //   database: 'connected' | 'disconnected',
-//   repositories: { user: true, note: true, subscription: true }
+//   repositories: { user: true, note: true, subscription: true, device: true }
 // }
 ```
 

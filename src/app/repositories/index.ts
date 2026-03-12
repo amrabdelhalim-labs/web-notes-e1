@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 import { getUserRepository, UserRepository } from './user.repository';
 import { getNoteRepository, NoteRepository } from './note.repository';
 import { getSubscriptionRepository, SubscriptionRepository } from './subscription.repository';
+import { getDeviceRepository, DeviceRepository } from './device.repository';
 
 class RepositoryManager {
   get user(): UserRepository {
@@ -22,6 +23,10 @@ class RepositoryManager {
 
   get subscription(): SubscriptionRepository {
     return getSubscriptionRepository();
+  }
+
+  get device(): DeviceRepository {
+    return getDeviceRepository();
   }
 
   /**
@@ -57,6 +62,13 @@ class RepositoryManager {
       results.subscription = true;
     } catch {
       results.subscription = false;
+    }
+
+    try {
+      await this.device.count();
+      results.device = true;
+    } catch {
+      results.device = false;
     }
 
     const allHealthy = Object.values(results).every(Boolean);
