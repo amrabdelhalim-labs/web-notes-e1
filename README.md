@@ -1,7 +1,7 @@
 # ملاحظاتي — تطبيق ويب تقدمي للملاحظات 📝
 
-> **الإصدار:** `v0.2.1` — تطبيق ويب تقدمي (PWA) كامل، يعمل بدون اتصال، مع مزامنة تلقائية وإشعارات فورية
-> **الحالة:** ٥٨١ اختبار ✅ — النشر على Heroku — مكتمل التطوير
+> **الإصدار:** `v0.2.3` — تطبيق ويب تقدمي (PWA) كامل، يعمل بدون اتصال، مع مزامنة تلقائية وإشعارات فورية
+> **الحالة:** ٥٨١ اختبار ✅ — النشر على Heroku و Docker (GHCR) — مكتمل التطوير
 
 ---
 
@@ -47,7 +47,7 @@
 | **محرر النصوص** | Tiptap | 3.x |
 | **الاختبارات** | Vitest + Testing Library | 4.x |
 | **التنسيق** | Prettier | 3.x |
-| **النشر** | Heroku | — |
+| **النشر** | Heroku و Docker (GHCR) | — |
 
 ---
 
@@ -207,7 +207,7 @@ npm run test:coverage       # تقرير التغطية
 
 ## النشر
 
-التطبيق مُعدٌّ للنشر على **Heroku** عبر النشر التلقائي من الفرع الرئيسي.
+التطبيق مُعدٌّ للنشر على **Heroku** عبر النشر التلقائي من الفرع الرئيسي، أو عبر **Docker** (بناء + نشر على GHCR عبر `docker-publish.yml`).
 
 ```bash
 npm run validate
@@ -217,7 +217,7 @@ npm run validate
 npm run build
 ```
 
-**المتغيرات البيئية المطلوبة على Heroku:**
+**المتغيرات البيئية المطلوبة (Heroku / Docker):**
 
 | المتغير | الوصف |
 |---------|-------|
@@ -243,7 +243,7 @@ npm run build
 | [docs/repository-quick-reference.md](docs/repository-quick-reference.md) | مرجع سريع لعمليات المستودعات |
 | [docs/pwa-guide.md](docs/pwa-guide.md) | دليل PWA: Service Worker، IndexedDB، المزامنة، الإشعارات |
 | [docs/testing.md](docs/testing.md) | استراتيجية الاختبار والأوامر والتغطية |
-| [docs/deployment.md](docs/deployment.md) | دليل النشر على Heroku والمتغيرات البيئية |
+| [docs/deployment.md](docs/deployment.md) | دليل النشر على Heroku وDocker والمتغيرات البيئية |
 
 ### توثيقات AI
 

@@ -997,7 +997,7 @@ web-notes-e1/
 #### المهام:
 
 - [x] **١٢.١** ربط المستودع بتطبيق Heroku
-- [x] **١٢.٢** إعداد متغيرات البيئة على Heroku (MONGODB_URI, JWT_SECRET, VAPID keys)
+- [x] **١٢.٢** إعداد متغيرات البيئة على Heroku (DATABASE_URL, JWT_SECRET, VAPID keys)
 - [x] **١٢.٣** إنشاء `validate-workflow.mjs` — فحص محلي لصحة المشروع
 
 **الإيداع:** `deploy: configure Heroku auto-deploy from main branch`

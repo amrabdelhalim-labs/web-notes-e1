@@ -61,7 +61,7 @@
 | `docs/database-abstraction.md` | شرح نمط المستودعات وطبقة البيانات | عربي |
 | `docs/repository-quick-reference.md` | مرجع سريع لعمليات المستودعات | عربي |
 | `docs/testing.md` | استراتيجية الاختبار + الأوامر + التغطية | عربي |
-| `docs/deployment.md` | خطوات النشر على Heroku + المتغيرات البيئية | عربي |
+| `docs/deployment.md` | خطوات النشر على Heroku وDocker + المتغيرات البيئية | عربي |
 | `docs/pwa-guide.md` | دليل PWA: Service Worker، التخزين المحلي، المزامنة، الإشعارات | عربي |
 | `docs/ai/README.md` | بطاقة هوية المشروع + القواعد الحاسمة + مواقع الملفات | إنجليزي |
 | `docs/ai/architecture.md` | مخطط الطبقات + الأنماط + تدفق البيانات الكامل | إنجليزي |
@@ -148,7 +148,7 @@ web-notes-e1/
 ## هيكل المجلدات (شجرة مبسطة)
 ## الأوامر المتاحة (جدول: test, format, validate, smoke, build, dev)
 ## الاختبارات (573 اختبار — 39 ملف)
-## النشر (Heroku)
+## النشر (Heroku وDocker)
 ## التوثيق (روابط لكل ملف في docs/)
 ## المساهمة (رابط CONTRIBUTING.md)
 ## الترخيص
@@ -165,7 +165,7 @@ web-notes-e1/
 | 3 | `repository-quick-reference.md` | جميع عمليات المستودعات مع أمثلة كود | `database-abstraction.md` |
 | 4 | `pwa-guide.md` | SW + Dexie + المزامنة + الإشعارات + بصمة صفرية | — |
 | 5 | `testing.md` | استراتيجية + إعداد Vitest + أعداد + أوامر | — |
-| 6 | `deployment.md` | Heroku + المتغيرات البيئية + الإعداد + المراقبة | `testing.md` |
+| 6 | `deployment.md` | Heroku وDocker + المتغيرات البيئية + الإعداد + المراقبة | `testing.md` |
 
 ### مرحلة ٤-ج: توثيقات AI (`docs/ai/`)
 
@@ -293,7 +293,7 @@ const example = 'code';
 | **الاختبار** | Vitest, Testing Library, Mocking, AAA Pattern |
 | **أنماط التصميم** | Context + Hook, Optimistic UI, Mutex, State Machine |
 | **جودة الكود** | Prettier, ESLint, Conventional Commits, Annotated Tags |
-| **النشر** | Heroku, المتغيرات البيئية, CI/CD |
+| **النشر** | Heroku وDocker, المتغيرات البيئية, CI/CD |
 
 #### `docs/tutorials/quick-reference.md`
 

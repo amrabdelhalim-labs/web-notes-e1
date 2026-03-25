@@ -1,7 +1,7 @@
-# دليل النشر على Heroku 🚀
+# دليل النشر (Heroku وDocker) 🚀
 
-> **الغرض:** خطوات نشر **ملاحظاتي** على Heroku من الصفر حتى الإنتاج
-> **البيئة المستهدفة:** Heroku + MongoDB Atlas + VAPID Push
+> **الغرض:** خطوات نشر **ملاحظاتي** على Heroku وDocker من الصفر حتى الإنتاج
+> **البيئة المستهدفة:** Heroku/Docker + MongoDB Atlas + VAPID Push
 
 ---
 
@@ -24,6 +24,7 @@
 
 - [ ] حساب Heroku (مجاني أو مدفوع)
 - [ ] Heroku CLI مثبّت: `npm install -g heroku`
+- [ ] Docker (للإعداد المحلي عبر `docker compose`)
 - [ ] MongoDB Atlas cluster جاهز (مجاني كافٍ للبداية)
 - [ ] مفاتيح VAPID جاهزة (لإشعارات Push)
 - [ ] Git مثبّت وتهيئته
@@ -364,3 +365,25 @@ heroku logs --tail --app my-notes-app
 
 *لإعداد متغيرات البيئة المحلية: انسخ [.env.example](../.env.example) إلى `.env.local` وعدّل القيم*  
 *لقائمة endpoints لاختبار النشر: [api-endpoints.md](api-endpoints.md)*
+
+---
+
+## النشر عبر Docker (محلي + GHCR)
+
+### التشغيل المحلي (App + MongoDB)
+
+```bash
+docker compose up --build
+# ثم اختبر:
+curl http://localhost:3000/api/health
+```
+
+ملفات Docker الأساسية:
+- `Dockerfile`
+- `docker-compose.yml` (يستخدم MongoDB مع `mongo_data` وvolume لـ `/app/uploads` لأوضاع `STORAGE_TYPE=local`)
+- `.env.docker.example`
+
+### النشر على GHCR (تلقائي)
+
+يتم بناء ونشر صورة Docker إلى GHCR عبر GitHub Actions عند دفع **Tags** بصيغة `v*`.
+عند تشغيل `workflow_dispatch` يمكنك جعل `publish=false` للحصول على `build-only` بدون رفع للـGHCR.

@@ -289,6 +289,19 @@ npm run test:coverage
 # يُولّد تقريراً في coverage/index.html
 ```
 
+### بوابات جودة مرتبطة بالتجهيز للإنتاج
+
+```bash
+npm run validate
+# سير عمل شامل: format:check + lint + tsc --noEmit + vitest + docker:check
+
+npm run docker:check
+# فحص جاهزية ملفات Docker وcompose محليًا
+
+npm run typecheck
+# فحص TypeScript بدون إخراج ملفات
+```
+
 ### قراءة النتائج
 
 ```text

@@ -20,7 +20,7 @@
 | **PWA** | @serwist/next 9 — بصمة صفرية (Zero Footprint) |
 | **المحرر** | TipTap 3 (نصوص غنية) |
 | **الاختبارات** | Vitest 4 + Testing Library — **573 اختبار** في 39 ملف |
-| **النشر** | Heroku |
+| **النشر** | Heroku و Docker (GHCR) |
 
 ---
 
@@ -109,5 +109,5 @@
 | [../repository-quick-reference.md](../repository-quick-reference.md) | كل عمليات المستودعات مع أمثلة |
 | [../pwa-guide.md](../pwa-guide.md) | دليل PWA التقني |
 | [../testing.md](../testing.md) | منظومة الاختبارات |
-| [../deployment.md](../deployment.md) | دليل النشر على Heroku |
+| [../deployment.md](../deployment.md) | دليل النشر على Heroku وDocker |
 | [../ai/README.md](../ai/README.md) | فهرس توثيقات AI (إنجليزي) |

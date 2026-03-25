@@ -142,7 +142,7 @@ web-notes-e1/  // جذر المشروع
 
 | المكتبة | الإصدار | الغرض |
 |---------|---------|-------|
-| `next` | 16.1.6 | إطار العمل الأساسي |
+| `next` | 16.2.1 | إطار العمل الأساسي |
 | `react` / `react-dom` | 19.2.3 | مكتبة واجهة المستخدم |
 | `@mui/material` | ^7.3.8 | مكونات UI جاهزة (Material Design) |
 | `@emotion/cache`, `@emotion/react`, `@emotion/styled` | ^11.x | محرك CSS-in-JS خلف MUI |

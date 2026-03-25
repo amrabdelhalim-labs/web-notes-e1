@@ -709,17 +709,26 @@ git tag -a v1.0.0 -m "Release v1.0.0: initial production release"
 
 Heroku هو منصة سحابية لنشر التطبيقات. يُنشئ حاوية (dyno) تُشغّل التطبيق تلقائيًا عند رفع الكود.
 
+### ما هو Docker و Docker Compose؟
+
+Docker هو منصة لتغليف تطبيقك وتشغيله داخل حاويات (Containers) متطابقة على أي جهاز.
+Docker Compose يدير عدة حاويات معًا (مثل: التطبيق + MongoDB) عبر ملف `docker-compose.yml`.
+
+### ما هو GHCR؟
+
+GHCR هو مستودع صور الحاويات داخل GitHub. عند تفعيل workflow النشر، يتم رفع صورة Docker إلى GHCR.
+
 ### المتغيرات البيئية المطلوبة
 
 | المتغير | الغرض |
 |---------|-------|
-| `MONGODB_URI` | رابط اتصال قاعدة البيانات |
+| `DATABASE_URL` | رابط اتصال قاعدة البيانات |
 | `JWT_SECRET` | مفتاح تشفير رموز JWT |
-| `VAPID_PUBLIC_KEY` | مفتاح VAPID العام (إشعارات) |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | مفتاح VAPID العام (إشعارات) |
 | `VAPID_PRIVATE_KEY` | مفتاح VAPID الخاص (إشعارات) |
-| `VAPID_SUBJECT` | بريد مسؤول الإشعارات |
+| `VAPID_EMAIL` | بريد مسؤول الإشعارات |
 
-### خطوات النشر
+### خطوات النشر (Heroku)
 
 ```bash
 npm install -g heroku
@@ -732,8 +741,13 @@ heroku login
 heroku create my-notes-app
 
 # 4. ضبط المتغيرات البيئية
-heroku config:set MONGODB_URI="mongodb+srv://..."
+heroku config:set DATABASE_URL="mongodb+srv://..."
 heroku config:set JWT_SECRET="..."
+heroku config:set NEXT_PUBLIC_VAPID_PUBLIC_KEY="..."
+heroku config:set VAPID_PRIVATE_KEY="..."
+heroku config:set VAPID_EMAIL="mailto:admin@example.com"
+# (يفضل) ضبط بيئة التشغيل
+heroku config:set NODE_ENV="production"
 
 # 5. رفع الكود
 git push heroku main
@@ -742,7 +756,19 @@ git push heroku main
 heroku open
 ```
 
-راجع [deployment.md](../deployment.md) للدليل التفصيلي.
+### التشغيل المحلي عبر Docker
+
+```text
+docker compose up --build
+curl -fsS http://localhost:3000/api/health
+```
+
+### النشر على GHCR (تلقائي عبر Tags `v*`)
+
+workflow `docker-publish.yml` يعمل تلقائيًا عند دفع Tags بصيغة `v*`.
+ولعمل `build-only` عبر `workflow_dispatch` اجعل `publish=false`.
+
+راجع [deployment.md](../deployment.md) للدليل التفصيلي لـ Heroku وDocker.
 
 ---
 

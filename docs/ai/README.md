@@ -16,7 +16,7 @@
 | Push           | VAPID Web Push (web-push library)                       |
 | i18n           | next-intl 4 (Arabic + English, locale-prefixed routing) |
 | Testing        | Vitest 4 + Testing Library — **573 tests** in 39 files  |
-| Deployment     | Heroku (Node.js buildpack)                              |
+| Deployment     | Heroku + Docker (GHCR)                              |
 | Node           | >= 20.x, npm >= 10.x                                   |
 
 ## AI Documentation Index

@@ -238,7 +238,20 @@
 | `npm run format` | تنسيق الكود بـ Prettier |
 | `npm run format:check` | فحص التنسيق بدون تعديل |
 | `npm run validate` | سير عمل متكامل (lint + format:check + test) |
+| `npm run typecheck` | فحص TypeScript بدون إخراج ملفات |
+| `npm run docker:check` | فحص جاهزية Docker/compose محليًا |
 | `npm run smoke` | اختبار دخان HTTP للتأكد من عمل الخادم |
+
+---
+
+## أوامر Docker (محليًا)
+
+```text
+docker compose up --build
+curl -fsS http://localhost:3000/api/health
+```
+
+لتفاصيل Docker وGHCR راجع `docs/deployment.md`.
 
 ---
 
