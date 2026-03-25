@@ -88,11 +88,7 @@ export default function NotFound() {
           {title}
         </Typography>
 
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          sx={{ mb: 4, lineHeight: 1.7 }}
-        >
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 4, lineHeight: 1.7 }}>
           {body}
         </Typography>
 

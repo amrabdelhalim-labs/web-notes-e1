@@ -23,11 +23,12 @@ const subscriptionSchema = new Schema<ISubscription>(
     keys: {
       p256dh: { type: String, required: true },
       auth: { type: String, required: true },
-    },    /** Explicit indexed link to Device.deviceId for reliable cascade deletion. */
+    } /** Explicit indexed link to Device.deviceId for reliable cascade deletion. */,
     deviceId: {
       type: String,
       index: true,
-    },    deviceInfo: {
+    },
+    deviceInfo: {
       type: String,
       trim: true,
     },

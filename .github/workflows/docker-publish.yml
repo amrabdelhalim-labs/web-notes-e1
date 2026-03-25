@@ -1,0 +1,169 @@
+name: Docker Publish (GHCR)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish image to GHCR (set false for build-only)'
+        required: true
+        type: boolean
+        default: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-test-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Docker config check
+        run: npm run docker:check
+
+      - name: Build (pre-publish gate)
+        run: npm run build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build local image (for scanning)
+        id: build_local
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: |
+            web-notes-e1-scan:${{ github.sha }}
+
+      - name: Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@v0.24.0
+        with:
+          image-ref: web-notes-e1-scan:${{ github.sha }}
+          format: table
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+
+      - name: Login to GHCR
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish == true }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.event_name != 'workflow_dispatch' }}
+
+      - name: Build & push to GHCR
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish == true }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  ghcr_cleanup:
+    needs: build-test-scan
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish == true }}
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Cleanup untagged GHCR versions (best-effort)
+        uses: actions/github-script@v7
+        env:
+          OWNER: ${{ github.repository_owner }}
+          PACKAGE: ${{ github.event.repository.name }}
+        with:
+          script: |
+            const owner = process.env.OWNER;
+            const packageName = process.env.PACKAGE;
+
+            async function listVersions(usingOrgEndpoint) {
+              const params = usingOrgEndpoint
+                ? { org: owner, package_name: packageName, per_page: 100 }
+                : { username: owner, package_name: packageName, per_page: 100 };
+              const route = usingOrgEndpoint
+                ? 'GET /orgs/{org}/packages/container/{package_name}/versions'
+                : 'GET /users/{username}/packages/container/{package_name}/versions';
+              return await github.request(route, params);
+            }
+
+            async function deleteVersion(usingOrgEndpoint, versionId) {
+              const params = usingOrgEndpoint
+                ? { org: owner, package_name: packageName, package_version_id: versionId }
+                : { username: owner, package_name: packageName, package_version_id: versionId };
+              const route = usingOrgEndpoint
+                ? 'DELETE /orgs/{org}/packages/container/{package_name}/versions/{package_version_id}'
+                : 'DELETE /users/{username}/packages/container/{package_name}/versions/{package_version_id}';
+              await github.request(route, params);
+            }
+
+            let versions;
+            let useOrg = true;
+            try {
+              versions = await listVersions(true);
+            } catch (e) {
+              useOrg = false;
+              versions = await listVersions(false);
+            }
+
+            const currentRef = context.ref_name;
+            const keepTags = new Set([currentRef, 'latest']);
+
+            const items = versions.data || [];
+            let deleted = 0;
+            for (const v of items) {
+              const tags = v?.metadata?.container?.tags ?? [];
+              const hasAnyKeepTag = tags.some((t) => keepTags.has(t));
+              const isUntagged = tags.length === 0;
+              if (isUntagged && !hasAnyKeepTag) {
+                const versionId = v.id;
+                await deleteVersion(useOrg, versionId);
+                deleted++;
+              }
+            }
+
+            core.info(`Cleanup complete. Deleted ${deleted} untagged GHCR versions.`);
+

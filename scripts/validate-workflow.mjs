@@ -54,7 +54,11 @@ const requiredFiles = [
   '.gitattributes',
   '.gitignore',
   '.prettierrc.json',
+  '.dockerignore',
+  '.env.docker.example',
   'next.config.mjs',
+  'Dockerfile',
+  'docker-compose.yml',
   'tsconfig.json',
   'vitest.config.ts',
   'CONTRIBUTING.md',
@@ -62,6 +66,7 @@ const requiredFiles = [
   'src/proxy.ts',
   'src/sw.ts',
   'src/instrumentation.ts',
+  '.github/workflows/docker-publish.yml',
 ];
 
 for (const f of requiredFiles) {
@@ -154,7 +159,18 @@ try {
   fail(`Tests failed:\n${e.stdout?.toString().slice(-500) ?? e.message}`);
 }
 
-// ── 7. Env example coverage ───────────────────────────────────────────────
+// ── 7. Docker config ──────────────────────────────────────────────────────
+
+section('Docker config');
+
+try {
+  execSync('npm run docker:check', { cwd: ROOT, stdio: 'pipe' });
+  ok('Docker config → OK');
+} catch (e) {
+  fail(`Docker config errors:\n${e.stdout?.toString().slice(-500) ?? e.message}`);
+}
+
+// ── 8. Env example coverage ───────────────────────────────────────────────
 
 section('.env.example coverage');
 

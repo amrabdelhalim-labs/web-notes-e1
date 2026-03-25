@@ -1,0 +1,19 @@
+node_modules
+.next
+
+# VCS
+.git
+.github
+
+# Local env / logs
+.env.local
+.env.*
+!.env.example
+!.env.docker.example
+*.log
+coverage
+
+# Docs & misc (not needed for Next build output)
+docs
+*.md
+

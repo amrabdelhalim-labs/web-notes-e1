@@ -13,7 +13,14 @@ import { connectDB } from '@/app/lib/mongodb';
 import { authenticateRequest } from '@/app/middlewares/auth.middleware';
 import { getNoteRepository } from '@/app/repositories/note.repository';
 import { validateUpdateNoteInput } from '@/app/validators';
-import { validationError, forbiddenError, notFoundError, serverError, getRequestLocale, serverMsg } from '@/app/lib/apiErrors';
+import {
+  validationError,
+  forbiddenError,
+  notFoundError,
+  serverError,
+  getRequestLocale,
+  serverMsg,
+} from '@/app/lib/apiErrors';
 import type { INote, Note } from '@/app/types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

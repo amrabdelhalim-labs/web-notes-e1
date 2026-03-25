@@ -26,7 +26,10 @@ function isValidEmail(email: string): boolean {
 
 // ─── Auth Validators ────────────────────────────────────────────────────────
 
-export function validateRegisterInput(input: RegisterInput, locale: SupportedLocale = 'ar'): string[] {
+export function validateRegisterInput(
+  input: RegisterInput,
+  locale: SupportedLocale = 'ar'
+): string[] {
   const errors: string[] = [];
 
   if (!input.username || input.username.trim().length < 3) {
@@ -92,7 +95,10 @@ export function validateNoteInput(input: NoteInput, locale: SupportedLocale = 'a
   return errors;
 }
 
-export function validateUpdateNoteInput(input: UpdateNoteInput, locale: SupportedLocale = 'ar'): string[] {
+export function validateUpdateNoteInput(
+  input: UpdateNoteInput,
+  locale: SupportedLocale = 'ar'
+): string[] {
   const errors: string[] = [];
 
   if (input.title !== undefined) {
@@ -113,7 +119,10 @@ export function validateUpdateNoteInput(input: UpdateNoteInput, locale: Supporte
 
 // ─── User Validators ────────────────────────────────────────────────────────
 
-export function validateUpdateUserInput(input: UpdateUserInput, locale: SupportedLocale = 'ar'): string[] {
+export function validateUpdateUserInput(
+  input: UpdateUserInput,
+  locale: SupportedLocale = 'ar'
+): string[] {
   const errors: string[] = [];
 
   if (input.username !== undefined) {
@@ -140,7 +149,10 @@ export function validateUpdateUserInput(input: UpdateUserInput, locale: Supporte
   return errors;
 }
 
-export function validateChangePasswordInput(input: ChangePasswordInput, locale: SupportedLocale = 'ar'): string[] {
+export function validateChangePasswordInput(
+  input: ChangePasswordInput,
+  locale: SupportedLocale = 'ar'
+): string[] {
   const errors: string[] = [];
 
   if (!input.currentPassword || input.currentPassword.trim().length < 1) {

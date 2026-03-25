@@ -16,7 +16,9 @@
     "test:coverage": "vitest run --coverage",
     "format": "node scripts/format.mjs",
     "format:check": "node scripts/format.mjs --check",
+    "typecheck": "npx tsc --noEmit",
     "validate": "node scripts/validate-workflow.mjs",
+    "docker:check": "node scripts/check-docker-config.mjs",
     "smoke": "node scripts/http-smoke.mjs"
   },
   "dependencies": {
@@ -40,7 +42,7 @@
     "dexie": "^4.3.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.4",
-    "next": "16.1.6",
+    "next": "16.2.1",
     "next-intl": "^4.8.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -59,7 +61,7 @@
     "@types/web-push": "^3.6.4",
     "@vitejs/plugin-react": "^5.1.4",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "16.2.1",
     "jsdom": "^28.1.0",
     "prettier": "^3.8.1",
     "typescript": "^5",

@@ -17,7 +17,14 @@ import { comparePassword } from '@/app/lib/auth';
 import { getDeviceRepository } from '@/app/repositories/device.repository';
 import { getUserRepository } from '@/app/repositories/user.repository';
 import { getSubscriptionRepository } from '@/app/repositories/subscription.repository';
-import { validationError, unauthorizedError, notFoundError, serverError, getRequestLocale, serverMsg } from '@/app/lib/apiErrors';
+import {
+  validationError,
+  unauthorizedError,
+  notFoundError,
+  serverError,
+  getRequestLocale,
+  serverMsg,
+} from '@/app/lib/apiErrors';
 import type { Device, IDevice } from '@/app/types';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -167,8 +174,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       subs
         .filter(
           (s) =>
-            s.deviceId === deviceId ||
-            (s.deviceInfo && s.deviceInfo.startsWith(`${deviceId}|`))
+            s.deviceId === deviceId || (s.deviceInfo && s.deviceInfo.startsWith(`${deviceId}|`))
         )
         .map((s) => subRepo.deleteByEndpoint(s.endpoint))
     );

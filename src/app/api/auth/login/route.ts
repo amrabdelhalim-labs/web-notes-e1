@@ -12,7 +12,12 @@ import { connectDB } from '@/app/lib/mongodb';
 import { comparePassword, generateToken } from '@/app/lib/auth';
 import { getUserRepository } from '@/app/repositories/user.repository';
 import { validateLoginInput } from '@/app/validators';
-import { validationError, unauthorizedError, serverError, getRequestLocale } from '@/app/lib/apiErrors';
+import {
+  validationError,
+  unauthorizedError,
+  serverError,
+  getRequestLocale,
+} from '@/app/lib/apiErrors';
 import type { User } from '@/app/types';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

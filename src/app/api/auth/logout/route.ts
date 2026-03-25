@@ -27,7 +27,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (auth.error) return auth.error;
 
     // Body is optional — device may never have been trusted
-    const body = await request.json().catch(() => ({})) as { deviceId?: string };
+    const body = (await request.json().catch(() => ({}))) as { deviceId?: string };
     const { deviceId } = body;
 
     if (!deviceId || typeof deviceId !== 'string') {
@@ -52,8 +52,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       subs
         .filter(
           (s) =>
-            s.deviceId === deviceId ||
-            (s.deviceInfo && s.deviceInfo.startsWith(`${deviceId}|`))
+            s.deviceId === deviceId || (s.deviceInfo && s.deviceInfo.startsWith(`${deviceId}|`))
         )
         .map((s) => subRepo.deleteByEndpoint(s.endpoint))
     );

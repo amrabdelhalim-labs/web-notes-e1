@@ -69,9 +69,7 @@ export function unauthorizedError(
 }
 
 /** 403 — Insufficient permissions. */
-export function forbiddenError(
-  locale: SupportedLocale = 'ar'
-): NextResponse<ApiResponse<null>> {
+export function forbiddenError(locale: SupportedLocale = 'ar'): NextResponse<ApiResponse<null>> {
   return apiError('FORBIDDEN', serverMsg(locale, 'forbidden'), 403);
 }
 
@@ -92,8 +90,6 @@ export function conflictError(
 }
 
 /** 500 — Unexpected server error. */
-export function serverError(
-  locale: SupportedLocale = 'ar'
-): NextResponse<ApiResponse<null>> {
+export function serverError(locale: SupportedLocale = 'ar'): NextResponse<ApiResponse<null>> {
   return apiError('SERVER_ERROR', serverMsg(locale, 'serverError'), 500);
 }

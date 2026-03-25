@@ -1,0 +1,37 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  app:
+    build:
+      context: .
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: mongodb://mongo:27017/mynotes
+
+      # Secrets (set real values via an env file if you want)
+      JWT_SECRET: change_this_to_a_strong_secret
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: your_vapid_public_key_here
+      VAPID_PRIVATE_KEY: your_vapid_private_key_here
+      VAPID_EMAIL: mailto:your-email@example.com
+
+      # Placeholder for deployments that use local uploads.
+      STORAGE_TYPE: local
+    volumes:
+      - uploads:/app/uploads
+
+volumes:
+  mongo_data:
+  uploads:
+

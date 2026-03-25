@@ -6,6 +6,8 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Enables Docker-friendly "standalone" output for smaller runtime images.
+  output: 'standalone',
 };
 
 /**
