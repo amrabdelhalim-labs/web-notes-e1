@@ -74,6 +74,8 @@ jobs:
           format: table
           severity: 'HIGH,CRITICAL'
           exit-code: '1'
+          scanners: 'vuln'
+          trivyignores: '.trivyignore'
 
       - name: Login to GHCR
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish == true }}

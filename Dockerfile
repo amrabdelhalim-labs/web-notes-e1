@@ -24,8 +24,9 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
-# Needed for HEALTHCHECK
-RUN apk add --no-cache curl
+# Needed for HEALTHCHECK and runtime CVE patching.
+# We also remove npm/npx from runtime because this image only needs `node server.js`.
+RUN apk upgrade --no-cache && apk add --no-cache curl && rm -rf /usr/local/lib/node_modules/npm && rm -f /usr/local/bin/npm /usr/local/bin/npx
 
 # Create a non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001 -G nodejs

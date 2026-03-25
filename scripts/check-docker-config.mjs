@@ -68,6 +68,7 @@ const requiredFiles = [
   'docker-compose.yml',
   '.dockerignore',
   '.env.docker.example',
+  '.trivyignore',
   '.github/workflows/docker-publish.yml',
 ];
 
@@ -82,6 +83,8 @@ else fail(`Dockerfile should have at least 2 FROM stages (found: ${fromCount})`)
 assertContains(dockerfile, 'HEALTHCHECK', 'Dockerfile includes HEALTHCHECK');
 assertContains(dockerfile, 'standalone', 'Dockerfile references standalone output');
 assertContains(dockerfile, 'server.js', 'Dockerfile runs server.js');
+assertContains(dockerfile, 'apk upgrade --no-cache', 'Dockerfile upgrades APK packages');
+assertContains(dockerfile, 'rm -rf /usr/local/lib/node_modules/npm', 'Dockerfile removes npm from runtime image');
 
 // Non-root user marker
 const hasUser = /\nUSER\s+\w+/m.test(dockerfile);
@@ -127,6 +130,8 @@ assertContains(workflow, 'workflow_dispatch', 'workflow supports workflow_dispat
 assertContains(workflow, 'push:', 'workflow configured for tag pushes');
 assertContains(workflow, 'tags:', 'workflow configured for tag triggers');
 assertContains(workflow, 'v*', 'workflow uses v* tag pattern');
+assertContains(workflow, "scanners: 'vuln'", 'workflow scans vulnerabilities only (no secret scan in this step)');
+assertContains(workflow, "trivyignores: '.trivyignore'", 'workflow uses .trivyignore policy file');
 
 if (failed > 0) {
   // eslint-disable-next-line no-console

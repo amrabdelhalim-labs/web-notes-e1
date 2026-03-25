@@ -1,0 +1,5 @@
+# Temporary allowlist for base-image CVEs that are not yet patched
+# in the current official node:20-alpine stream.
+# Re-evaluate and remove once patched package reaches Alpine stable repos.
+CVE-2026-22184
+
