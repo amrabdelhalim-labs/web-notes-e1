@@ -92,7 +92,8 @@ jobs:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=ref,event=tag
-            type=raw,value=latest,enable=${{ github.event_name != 'workflow_dispatch' }}
+            type=sha
+            type=raw,value=latest,enable=${{ github.event_name == 'push' }}
 
       - name: Build & push to GHCR
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish == true }}

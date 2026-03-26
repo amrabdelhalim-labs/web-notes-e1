@@ -66,5 +66,15 @@
     "prettier": "^3.8.1",
     "typescript": "^5",
     "vitest": "^4.0.18"
+  },
+  "overrides": {
+    "cross-spawn": "^7.0.6",
+    "flatted": "^3.4.2",
+    "glob": "^10.5.0",
+    "minimatch": "^9.0.8",
+    "picomatch": "^4.0.4",
+    "tar": "^7.5.11",
+    "undici": "^7.24.6",
+    "yaml": "^2.8.3"
   }
 }
