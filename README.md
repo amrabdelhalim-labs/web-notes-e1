@@ -230,6 +230,8 @@ npm run build
 
 للتفاصيل الكاملة: [docs/deployment.md](docs/deployment.md)
 
+**Docker Compose:** يتضمن `mongo` مع فحص صحة (`mongosh ping`) وانتظار التطبيق حتى تصبح قاعدة البيانات جاهزة (`depends_on` + `service_healthy`)؛ راجع نفس الدليل لشرح `HEALTHCHECK` في الصورة.
+
 ---
 
 ## التوثيق

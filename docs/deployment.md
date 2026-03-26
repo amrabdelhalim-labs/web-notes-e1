@@ -383,6 +383,12 @@ curl http://localhost:3000/api/health
 - `docker-compose.yml` (يستخدم MongoDB مع `mongo_data` وvolume لـ `/app/uploads` لأوضاع `STORAGE_TYPE=local`)
 - `.env.docker.example`
 
+### جاهزية MongoDB وفحص صحة التطبيق
+
+- خدمة **`mongo`** تتضمن `healthcheck` (أمر `mongosh` مع `db.adminCommand('ping')`) مع `interval` / `timeout` / `retries` / `start_period` لتقليل سباقات التشغيل.
+- خدمة **`app`** تستخدم `depends_on` مع `condition: service_healthy` على `mongo` بحيث لا يبدأ Next.js قبل جاهزية قاعدة البيانات على شبكة Compose.
+- **HEALTHCHECK** في `Dockerfile` يستهدف `http://127.0.0.1:${PORT}/api/health` عبر `curl` (مثبت في الصورة بعد `apk upgrade`) لتفادي الاعتماد على `hostname -i` الذي قد يختلف بين بيئات الشبكة.
+
 ### النشر على GHCR (تلقائي)
 
 يتم بناء ونشر صورة Docker إلى GHCR عبر GitHub Actions عند دفع **Tags** بصيغة `v*`.
