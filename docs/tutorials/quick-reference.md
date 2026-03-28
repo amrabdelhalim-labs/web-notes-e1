@@ -249,9 +249,15 @@
 ```text
 docker compose up --build
 curl -fsS http://localhost:3000/api/health
+npm run docker:check
 ```
 
-لتفاصيل Docker وGHCR راجع `docs/deployment.md`.
+| الأمر | الغرض |
+|-------|--------|
+| `docker compose up --build` | تطبيق + MongoDB محليًا |
+| `docker pull ghcr.io/<owner>/web-notes-e1:latest` | سحب آخر صورة من GHCR (`<owner>` بأحرف صغيرة) |
+
+مرجع كامل: [deployment.md](../deployment.md) القسم 9 (سير workflow، `docker run`، VAPID، PowerShell، استكشاف الأخطاء).
 
 ---
 

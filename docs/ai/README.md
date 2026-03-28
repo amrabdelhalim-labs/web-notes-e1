@@ -16,7 +16,7 @@
 | Push           | VAPID Web Push (web-push library)                       |
 | i18n           | next-intl 4 (Arabic + English, locale-prefixed routing) |
 | Testing        | Vitest 4 + Testing Library — **573 tests** in 39 files  |
-| Deployment     | Heroku + Docker (GHCR)                              |
+| Deployment     | Heroku (git push) + Docker image on **GHCR** via `docker-publish.yml` |
 | Node           | >= 20.x, npm >= 10.x                                   |
 
 ## AI Documentation Index
@@ -25,6 +25,7 @@
 | ------------------------------------------- | ------------------------------------------------- |
 | [architecture.md](architecture.md)          | Layer diagram, patterns, data flows, model schemas |
 | [feature-guide.md](feature-guide.md)        | Step-by-step guide to add a new entity end-to-end |
+| [../deployment.md](../deployment.md)        | Heroku + **Docker / Compose / GHCR** (Arabic, full ops reference) |
 | [../database-abstraction.md](../database-abstraction.md) | Repository Pattern deep-dive             |
 | [../api-endpoints.md](../api-endpoints.md)  | All 18 REST endpoints reference                   |
 | [../pwa-guide.md](../pwa-guide.md)          | Service Worker, offline sync, Web Push            |
@@ -182,3 +183,9 @@ Test configuration: `vitest.config.ts` — jsdom environment, `@vitejs/plugin-re
 | `NEXT_PUBLIC_SW_DISABLED`        | No       | —                                    | Set `false` to enable SW in dev      |
 
 See `.env.example` for a copy-paste template.
+
+## Docker and GHCR (summary)
+
+- **Local stack:** `docker compose up --build` — see `docker-compose.yml`, `.env.docker.example`, and [../deployment.md](../deployment.md) §9.
+- **CI image:** `.github/workflows/docker-publish.yml` runs quality gates, `npm run docker:check`, Trivy scan, then pushes to `ghcr.io/<lowercase-owner>/web-notes-e1` on `v*` tags or manual dispatch.
+- **Pull/run:** `docker pull ghcr.io/<owner>/web-notes-e1:<tag>` — pass `DATABASE_URL`, `JWT_SECRET`, and VAPID variables at `docker run` time (see deployment doc for examples and PowerShell notes).

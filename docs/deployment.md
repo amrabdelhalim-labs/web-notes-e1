@@ -15,6 +15,7 @@
 6. [التحديثات اللاحقة (CD)](#6-التحديثات-اللاحقة-cd)
 7. [المراقبة وتشخيص المشاكل](#7-المراقبة-وتشخيص-المشاكل)
 8. [ملاحظات أمان](#8-ملاحظات-أمان)
+9. [النشر عبر Docker و GHCR](#9-النشر-عبر-docker-و-ghcr)
 
 ---
 
@@ -368,28 +369,76 @@ heroku logs --tail --app my-notes-app
 
 ---
 
-## النشر عبر Docker (محلي + GHCR)
+## 9. النشر عبر Docker و GHCR
 
-### التشغيل المحلي (App + MongoDB)
+### 9.1 الملفات ذات الصلة
+
+| الملف | الدور |
+|-------|--------|
+| `Dockerfile` | مرحلتان: `builder` (`npm ci` + `npm run build`) ثم `runner` (نسخة **Next standalone**، مستخدم غير جذر `nextjs`، بدون `npm` في الصورة النهائية) |
+| `docker-compose.yml` | تطبيق + **MongoDB 7**؛ حجم `mongo_data` لبيانات DB؛ حجم `uploads` على `/app/uploads` عند `STORAGE_TYPE=local` |
+| `.dockerignore` | يستثني `node_modules`، `.next`، `docs`، `*.md`، ملفات البيئة الحساسة — يقلل سياق البناء |
+| `.env.docker.example` | قالب المتغيرات لبيئة الحاوية (انسخه إلى `.env` في جذر المشروع إذا استخدمت `docker compose` مع `--env-file`) |
+| `.github/workflows/docker-publish.yml` | CI: جودة الكود + اختبارات + `npm run build` + بناء صورة + **Trivy** (HIGH/CRITICAL) ثم دفع إلى GHCR |
+
+### 9.2 التشغيل المحلي (التطبيق + MongoDB)
 
 ```bash
 docker compose up --build
-# ثم اختبر:
-curl http://localhost:3000/api/health
+curl -fsS http://localhost:3000/api/health
 ```
 
-ملفات Docker الأساسية:
-- `Dockerfile`
-- `docker-compose.yml` (يستخدم MongoDB مع `mongo_data` وvolume لـ `/app/uploads` لأوضاع `STORAGE_TYPE=local`)
-- `.env.docker.example`
+- غيّر الأسرار في `docker-compose.yml` أو مرّر ملف بيئة حسب حاجتك (لا تُودع كلمات المرور في Git).
+- `DATABASE_URL` الافتراضي داخل Compose: `mongodb://mongo:27017/mynotes`.
 
-### جاهزية MongoDB وفحص صحة التطبيق
+### 9.3 جاهزية MongoDB وفحص صحة التطبيق
 
-- خدمة **`mongo`** تتضمن `healthcheck` (أمر `mongosh` مع `db.adminCommand('ping')`) مع `interval` / `timeout` / `retries` / `start_period` لتقليل سباقات التشغيل.
-- خدمة **`app`** تستخدم `depends_on` مع `condition: service_healthy` على `mongo` بحيث لا يبدأ Next.js قبل جاهزية قاعدة البيانات على شبكة Compose.
-- **HEALTHCHECK** في `Dockerfile` يستهدف `http://127.0.0.1:${PORT}/api/health` عبر `curl` (مثبت في الصورة بعد `apk upgrade`) لتفادي الاعتماد على `hostname -i` الذي قد يختلف بين بيئات الشبكة.
+- خدمة **`mongo`**: `healthcheck` عبر `mongosh` و`db.adminCommand('ping')` مع `interval` / `timeout` / `retries` / `start_period`.
+- خدمة **`app`**: `depends_on` + `condition: service_healthy` على `mongo`.
+- **`Dockerfile` `HEALTHCHECK`**: `curl -fsS http://127.0.0.1:${PORT}/api/health` (يُثبَّت `curl` بعد `apk upgrade`).
 
-### النشر على GHCR (تلقائي)
+### 9.4 سير عمل GitHub Actions (`docker-publish.yml`)
 
-يتم بناء ونشر صورة Docker إلى GHCR عبر GitHub Actions عند دفع **Tags** بصيغة `v*`.
-عند تشغيل `workflow_dispatch` يمكنك جعل `publish=false` للحصول على `build-only` بدون رفع للـGHCR.
+1. **التحفّز:** دفع **وسم** يطابق `v*` (مثل `v0.2.3`)، أو تشغيل يدوي **workflow_dispatch** (خيار `publish`: نعم/لا).
+2. **البوابات:** `format:check`، `lint`، `typecheck`، `npm test`، **`npm run docker:check`**، **`npm run build`**.
+3. **الأمان:** بناء صورة محلية ثم **Trivy** على الصورة مع `trivyignores: '.trivyignore'`.
+4. **الدفع:** تسجيل الدخول إلى `ghcr.io` بـ `GITHUB_TOKEN`؛ اسم الصورة **بأحرف صغيرة**: `ghcr.io/<owner>/web-notes-e1` حيث `<owner>` هو مالك المستودع على GitHub.
+5. **الوسوم على السجل:** اسم وسم Git (مثل `v0.2.3`)، ووسم **`sha-<commit>`**، ووسم **`latest`** عند التحفّز بحدث `push` (أي عند دفع وسم `v*`).
+6. **التزامن (`concurrency`):** `cancel-in-progress: false` لتفادي إلغاء نشر قيد التنفيذ وحالات «manifest not found» على GHCR.
+7. **التنظيف:** job لاحق يستخدم `actions/delete-package-versions` لحذف نسخ **غير الموسومة** فقط مع الإبقاء على **20** نسخة كحد أدنى.
+
+### 9.5 سحب وتشغيل الصورة من GHCR
+
+استبدل `OWNER` باسم المستخدم أو المنظمة على GitHub (أحرف صغيرة في عنوان الصورة)، والوسم بـ `latest` أو إصدار `v*` أو `sha-…` الظاهر في صفحة الحزمة على GitHub.
+
+```bash
+docker pull ghcr.io/OWNER/web-notes-e1:latest
+docker run --rm -p 3000:3000 \
+  -e NODE_ENV=production \
+  -e DATABASE_URL="mongodb+srv://USER:PASS@cluster.mongodb.net/mynotes" \
+  -e JWT_SECRET="long-random-secret" \
+  -e NEXT_PUBLIC_VAPID_PUBLIC_KEY="..." \
+  -e VAPID_PRIVATE_KEY="..." \
+  -e VAPID_EMAIL="mailto:you@example.com" \
+  ghcr.io/OWNER/web-notes-e1:latest
+```
+
+- **حزمة خاصة:** نفّذ `docker login ghcr.io` باستخدام اسم مستخدم GitHub و**PAT** بصلاحية `read:packages` (أو `write:packages` للدفع).
+- **PowerShell (Windows):** لا تستخدم `\` لاستمرار السطر؛ إمّا أمر `docker run` في **سطر واحد**، أو ضع `` ` `` (backtick) في نهاية كل سطر للاستمرار بدل `\`.
+- **المنفذ مشغول:** إن كان `3000` مستخدمًا، استخدم مثلًا `-p 3001:3000` وافتح `http://localhost:3001`.
+- **JWT cookie في الإنتاج:** مع `NODE_ENV=production` قد تُضبط كوكي الجلسة بخاصية `Secure`؛ يُفضّل HTTPS في الإنتاج أو تجربة محلية عبر `localhost` حسب سلوك المتصفح.
+
+### 9.6 استكشاف أخطاء السحب من GHCR
+
+| العرض | سبب محتمل |
+|--------|------------|
+| `manifest … not found` | وسم قديم أو غير مرفوع؛ استخدم `latest` أو وسم إصدار من صفحة **Packages** في GitHub، أو أعد نشر وسم `v*` بعد نجاح الـ workflow. |
+| `port is already allocated` | خدمة أخرى (أو `docker compose`) تستخدم المنفذ 3000. |
+
+### 9.7 التحقق المحلي من إعداد Docker (بدون بناء تشغيل كامل)
+
+```bash
+npm run docker:check
+```
+
+يستدعي `scripts/check-docker-config.mjs` للتحقق من وجود الملفات والعلامات الأساسية في `Dockerfile` و`docker-compose.yml` والـ workflow.

@@ -296,7 +296,8 @@ npm run validate
 # سير عمل شامل: format:check + lint + tsc --noEmit + vitest + docker:check
 
 npm run docker:check
-# فحص جاهزية ملفات Docker وcompose محليًا
+# فحص جاهزية ملفات Docker وcompose وworkflow (نفس بوابة job النشر على GHCR)
+# تشغيل الصورة وسحبها من ghcr.io: docs/deployment.md القسم 9
 
 npm run typecheck
 # فحص TypeScript بدون إخراج ملفات

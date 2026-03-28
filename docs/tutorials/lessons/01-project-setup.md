@@ -22,7 +22,8 @@
 12. [instrumentation.ts — تهيئة الخادم](#12-instrumentationts--تهيئة-الخادم)
 13. [vitest.config.ts — إعداد الاختبارات](#13-vitestconfigts--إعداد-الاختبارات)
 14. [سكربتات المشروع — نظرة سريعة](#14-سكربتات-المشروع--نظرة-سريعة)
-15. [ملخص](#15-ملخص)
+15. [ملفات Docker والحاويات](#15-ملفات-docker-والحاويات)
+16. [ملخص](#16-ملخص)
 
 ---
 
@@ -73,6 +74,9 @@ web-notes-e1/  // جذر المشروع
   docs/  // التوثيق التقني
   scripts/  // سكربتات المساعدة
   public/  // ملفات عامة (أيقونات, manifest)
+  Dockerfile  // صورة الإنتاج (Next standalone)
+  docker-compose.yml  // تشغيل محلي: التطبيق + MongoDB
+  .dockerignore  // استثناءات سياق بناء Docker
   package.json  // تعريف المشروع
   tsconfig.json  // إعدادات TypeScript
   next.config.mjs  // تكوين Next.js
@@ -879,12 +883,34 @@ describe('...', () => {
 | `http-smoke.mjs` | `npm run smoke` | اختبار دخان HTTP بعد النشر |
 | `generate-icons.mjs` | — | توليد أيقونات PWA بأحجام مختلفة |
 | `convert-icons.mjs` | — | تحويل صيغ الأيقونات |
+| `check-docker-config.mjs` | `npm run docker:check` | التحقق من وجود ملفات Docker والـ workflow دون تشغيل حاوية |
 
 > سكربتات الأيقونات تُشغَّل يدويًا عند تغيير شعار التطبيق فقط. باقيها جزء من سير عمل التطوير اليومي.
 
 ---
 
-## 15. ملخص
+## 15. ملفات Docker والحاويات
+
+المشروع يدعم تشغيل **نفس التطبيق** داخل حاويات للمحاكاة المحلية وللنشر عبر **GitHub Container Registry (GHCR)**.
+
+| الملف | الوظيفة |
+|-------|---------|
+| `Dockerfile` | بناء مرحلتين: تثبيت التبعيات وبناء Next.js ثم صورة تشغيل خفيفة (`node server.js`، مستخدم غير جذر) |
+| `docker-compose.yml` | يربط خدمة التطبيق بـ **MongoDB 7** مع فحص صحة وانتظار جاهزية القاعدة |
+| `.env.docker.example` | قالب المتغيرات عند التشغيل داخل Compose أو كمرجع لمتغيرات الحاوية |
+| `.github/workflows/docker-publish.yml` | على GitHub Actions: جودة الكود + اختبارات + فحص Trivy + دفع الصورة إلى `ghcr.io` عند وسوم `v*` |
+
+للتشغيل السريع محليًا (يتطلّب Docker Desktop أو Docker Engine):
+
+```bash
+docker compose up --build
+```
+
+الدليل الكامل (سحب الصورة من GHCR، `docker run`، PowerShell، استكشاف الأخطاء): **[deployment.md](../../deployment.md)** القسم 9.
+
+---
+
+## 16. ملخص
 
 ### ما تعلمناه في هذا الدرس
 
@@ -906,6 +932,7 @@ describe('...', () => {
 | `proxy.ts` | توجيه اللغة | matcher يستثني API والملفات الثابتة |
 | `instrumentation.ts` | تهيئة الخادم | يعمل مرة واحدة عند الإقلاع، يُدفّئ اتصال MongoDB |
 | `vitest.config.ts` | إعداد الاختبارات | `jsdom` لمحاكاة المتصفح، `globals` لتبسيط الاختبارات |
+| `Dockerfile` / `docker-compose.yml` | الحاويات | تشغيل محلي متكامل + نفس البنية التي تُرفَع إلى GHCR |
 
 ### نقطة المراقبة
 
@@ -916,6 +943,7 @@ describe('...', () => {
 - [ ] تحديد مكان أي ثابت (constant) في المشروع
 - [ ] إضافة متغير بيئي جديد بشكل صحيح (`.env` + `.env.example`)
 - [ ] تشغيل `npm run validate` وفهم نتائجه
+- [ ] معرفة مكان ملفات Docker واستدعاء `npm run docker:check` عند العمل على النشر
 
 ---
 

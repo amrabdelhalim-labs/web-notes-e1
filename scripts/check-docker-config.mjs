@@ -132,6 +132,9 @@ assertContains(workflow, 'tags:', 'workflow configured for tag triggers');
 assertContains(workflow, 'v*', 'workflow uses v* tag pattern');
 assertContains(workflow, "scanners: 'vuln'", 'workflow scans vulnerabilities only (no secret scan in this step)');
 assertContains(workflow, "trivyignores: '.trivyignore'", 'workflow uses .trivyignore policy file');
+assertContains(workflow, 'cancel-in-progress: false', 'workflow avoids canceling in-flight GHCR publishes');
+assertContains(workflow, 'actions/delete-package-versions@v5', 'workflow uses delete-package-versions for untagged cleanup');
+assertContains(workflow, 'min-versions-to-keep: 20', 'workflow keeps a minimum of 20 package versions');
 
 if (failed > 0) {
   // eslint-disable-next-line no-console

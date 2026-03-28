@@ -636,6 +636,12 @@ describe('validateTagInput', () => {
 
 ---
 
+## Shipping: Heroku vs Docker
+
+This guide covers **application code** only. After merging to `main`, **Heroku** builds from the repo automatically (config vars on the dashboard). **Container images** are built and pushed to **GHCR** by `.github/workflows/docker-publish.yml` when you push a `v*` tag (or run the workflow manually). Env vars for `docker run` and Compose, Trivy gates, image tags, and Windows PowerShell notes are documented in **[../deployment.md](../deployment.md)** (section 9).
+
+---
+
 ## Git Commit Convention
 
 After completing all changes for a feature, commit following the workspace convention:
@@ -656,7 +662,7 @@ git commit -m "test: add Tag hook and validator tests"
 # Combined (if done in one pass)
 git add -A
 git commit -m "feat: add tag management with full test coverage"
-```text
+```
 
 Commit message format: `<type>(<scope>): <description>`
 

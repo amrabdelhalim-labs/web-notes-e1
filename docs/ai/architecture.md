@@ -649,3 +649,17 @@ If device is trusted (usePwaStatus.isReady):
         ▼
     getSubscriptionRepository().create({ user, endpoint, keys, deviceId })
 ```
+
+---
+
+## Deployment and container runtime
+
+Runtime is a **Next.js standalone** Node server (`node server.js`, port `3000` by default). The production image is built from the multi-stage `Dockerfile` at the repo root (`output: 'standalone'` in `next.config.mjs`).
+
+| Mode | What runs | Notes |
+| ---- | --------- | ----- |
+| **Docker Compose** | `app` service (image built from `Dockerfile`) + **MongoDB 7** | `DATABASE_URL` points at `mongo` service; optional `uploads` volume for `STORAGE_TYPE=local`. |
+| **GHCR image** | Same standalone server in a minimal Alpine-based image | Supply MongoDB (e.g. Atlas) and all secrets via `-e` / orchestrator env; health: `GET /api/health`. |
+| **Heroku** | `npm start` on the platform | No container registry involved; config vars only. |
+
+CI publishes the container image with **`.github/workflows/docker-publish.yml`**: lint, tests, `docker:check`, full `next build`, **Trivy** image scan, then push to **`ghcr.io/<lowercase-github-owner>/web-notes-e1`** with tags `v*`, `sha-*`, and `latest` on tag pushes. Operational detail (pull/run, PowerShell, troubleshooting) lives in **[../deployment.md](../deployment.md)** (section 9).

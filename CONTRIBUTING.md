@@ -245,11 +245,11 @@ cp .env.example .env.local
 
 ---
 
-## 8. النشر على هيروكو
+## 8. النشر على هيروكو وصور Docker (GHCR)
 
-- هيروكو يبني تلقائياً من فرع `main`
-- لا توجد GitHub Actions workflows للنشر — هيروكو يتولى ذلك مباشرة
-- متغيرات البيئة تُضبط في **Heroku Config Vars** فقط — لا `.env`
+- **Heroku:** يبني تلقائياً من فرع `main` — لا يوجد GitHub Action يدفع إلى Heroku؛ الربط يتم من لوحة Heroku و`git push heroku`.
+- **Docker / GHCR:** يوجد workflow [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) لبناء الصورة وفحصها (بما فيها Trivy) ورفعها إلى **GitHub Container Registry** عند دفع وسوم `v*` أو عند `workflow_dispatch`. راجع [docs/deployment.md](docs/deployment.md) للتفاصيل.
+- متغيرات بيئة **Heroku** تُضبط في **Heroku Config Vars** فقط — لا `.env` على المنصة.
 
 ```bash
 "engines": { "node": ">=20.x", "npm": ">=10.x" }

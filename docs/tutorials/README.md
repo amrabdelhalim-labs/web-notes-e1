@@ -109,5 +109,5 @@
 | [../repository-quick-reference.md](../repository-quick-reference.md) | كل عمليات المستودعات مع أمثلة |
 | [../pwa-guide.md](../pwa-guide.md) | دليل PWA التقني |
 | [../testing.md](../testing.md) | منظومة الاختبارات |
-| [../deployment.md](../deployment.md) | دليل النشر على Heroku وDocker |
+| [../deployment.md](../deployment.md) | دليل النشر: Heroku وDocker وCompose وGHCR (القسم 9 = سحب/تشغيل الصورة وسير CI) |
 | [../ai/README.md](../ai/README.md) | فهرس توثيقات AI (إنجليزي) |

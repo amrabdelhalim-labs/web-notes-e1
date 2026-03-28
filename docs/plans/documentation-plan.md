@@ -61,7 +61,7 @@
 | `docs/database-abstraction.md` | شرح نمط المستودعات وطبقة البيانات | عربي |
 | `docs/repository-quick-reference.md` | مرجع سريع لعمليات المستودعات | عربي |
 | `docs/testing.md` | استراتيجية الاختبار + الأوامر + التغطية | عربي |
-| `docs/deployment.md` | خطوات النشر على Heroku وDocker + المتغيرات البيئية | عربي |
+| `docs/deployment.md` | خطوات النشر على Heroku وDocker + GHCR (سحب/تشغيل، workflow، Trivy، استكشاف الأخطاء) + المتغيرات البيئية | عربي |
 | `docs/pwa-guide.md` | دليل PWA: Service Worker، التخزين المحلي، المزامنة، الإشعارات | عربي |
 | `docs/ai/README.md` | بطاقة هوية المشروع + القواعد الحاسمة + مواقع الملفات | إنجليزي |
 | `docs/ai/architecture.md` | مخطط الطبقات + الأنماط + تدفق البيانات الكامل | إنجليزي |
@@ -86,6 +86,11 @@
 web-notes-e1/
 ├── README.md  // بطاقة المشروع (يُحدَّث)
 ├── CONTRIBUTING.md  // موجود (لا تغيير)
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
+├── .env.docker.example
+├── .github/workflows/docker-publish.yml
 │
 ├── docs/
 │   ├── plans/
@@ -165,13 +170,13 @@ web-notes-e1/
 | 3 | `repository-quick-reference.md` | جميع عمليات المستودعات مع أمثلة كود | `database-abstraction.md` |
 | 4 | `pwa-guide.md` | SW + Dexie + المزامنة + الإشعارات + بصمة صفرية | — |
 | 5 | `testing.md` | استراتيجية + إعداد Vitest + أعداد + أوامر | — |
-| 6 | `deployment.md` | Heroku وDocker + المتغيرات البيئية + الإعداد + المراقبة | `testing.md` |
+| 6 | `deployment.md` | Heroku وDocker وCompose وGHCR (§9) + المتغيرات البيئية + الإعداد + المراقبة | `testing.md` |
 
 ### مرحلة ٤-ج: توثيقات AI (`docs/ai/`)
 
 | الملف | المحتوى |
 |-------|---------|
-| `README.md` | اسم المشروع، الحزمة التقنية، القواعد الحاسمة (لا أيقونات Next.js، CJS config، LF)، مواقع الملفات الأساسية، أوامر الاختبار، المتغيرات البيئية، عدد الاختبارات |
+| `README.md` | اسم المشروع، الحزمة التقنية، القواعد الحاسمة (لا أيقونات Next.js، CJS config، LF)، مواقع الملفات الأساسية، أوامر الاختبار، المتغيرات البيئية، عدد الاختبارات، ملخص Docker/GHCR + رابط `deployment.md` §9 |
 | `architecture.md` | مخطط الطبقات الكامل (ASCII)، كل طبقة مع أنماطها، تدفق البيانات لـ: إنشاء ملاحظة online، إنشاء ملاحظة offline + مزامنة، تسجيل دخول + إشعار |
 | `feature-guide.md` | ٨ خطوات لإضافة كيان جديد: نموذج → مستودع → تحقق → API Route → خطاف → مكون → ترجمة → اختبار |
 
