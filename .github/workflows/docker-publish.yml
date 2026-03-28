@@ -12,13 +12,18 @@ on:
         type: boolean
         default: true
 
+# Queue runs instead of canceling an in-flight publish — avoids overlapping GHCR
+# pushes and half-published tags that later fail with "manifest not found".
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
   packages: write
+
+env:
+  REGISTRY: ghcr.io
 
 jobs:
   build-test-scan:
@@ -81,15 +86,18 @@ jobs:
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish == true }}
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image name (lowercase, required by GHCR)
+        run: echo "IMAGE_NAME=${REGISTRY}/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
 
       - name: Docker image metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=tag
             type=sha
@@ -104,8 +112,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-  ghcr_cleanup:
+  cleanup:
+    name: Cleanup untagged GHCR versions
     needs: build-test-scan
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish == true }}
@@ -113,60 +124,10 @@ jobs:
       packages: write
       contents: read
     steps:
-      - name: Cleanup untagged GHCR versions (best-effort)
-        uses: actions/github-script@v7
-        env:
-          OWNER: ${{ github.repository_owner }}
-          PACKAGE: ${{ github.event.repository.name }}
+      - name: Delete old untagged package versions
+        uses: actions/delete-package-versions@v5
         with:
-          script: |
-            const owner = process.env.OWNER;
-            const packageName = process.env.PACKAGE;
-
-            async function listVersions(usingOrgEndpoint) {
-              const params = usingOrgEndpoint
-                ? { org: owner, package_name: packageName, per_page: 100 }
-                : { username: owner, package_name: packageName, per_page: 100 };
-              const route = usingOrgEndpoint
-                ? 'GET /orgs/{org}/packages/container/{package_name}/versions'
-                : 'GET /users/{username}/packages/container/{package_name}/versions';
-              return await github.request(route, params);
-            }
-
-            async function deleteVersion(usingOrgEndpoint, versionId) {
-              const params = usingOrgEndpoint
-                ? { org: owner, package_name: packageName, package_version_id: versionId }
-                : { username: owner, package_name: packageName, package_version_id: versionId };
-              const route = usingOrgEndpoint
-                ? 'DELETE /orgs/{org}/packages/container/{package_name}/versions/{package_version_id}'
-                : 'DELETE /users/{username}/packages/container/{package_name}/versions/{package_version_id}';
-              await github.request(route, params);
-            }
-
-            let versions;
-            let useOrg = true;
-            try {
-              versions = await listVersions(true);
-            } catch (e) {
-              useOrg = false;
-              versions = await listVersions(false);
-            }
-
-            const currentRef = context.ref_name;
-            const keepTags = new Set([currentRef, 'latest']);
-
-            const items = versions.data || [];
-            let deleted = 0;
-            for (const v of items) {
-              const tags = v?.metadata?.container?.tags ?? [];
-              const hasAnyKeepTag = tags.some((t) => keepTags.has(t));
-              const isUntagged = tags.length === 0;
-              if (isUntagged && !hasAnyKeepTag) {
-                const versionId = v.id;
-                await deleteVersion(useOrg, versionId);
-                deleted++;
-              }
-            }
-
-            core.info(`Cleanup complete. Deleted ${deleted} untagged GHCR versions.`);
-
+          package-name: ${{ github.event.repository.name }}
+          package-type: container
+          min-versions-to-keep: 20
+          delete-only-untagged-versions: true
